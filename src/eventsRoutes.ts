@@ -9,7 +9,6 @@ export default (client: Socket) => {
      */
     const user = new User({ baseURL }) // instancia usuario para o CLIENTE
     client.on("user::login", credentials => user.login(credentials, client))
-    client.on("user::info", () => user.info(client))
     client.on("user::logoff", () => user.logoff(client))
 
     client.on("disconnect", reason => {

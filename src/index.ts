@@ -1,12 +1,13 @@
-import express from "express";
+import { Server } from "socket.io";
+import eventsRoutes from "./eventsRoutes";
 
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-app.get('/', (req, res) => {
-    res.send("SIGAA-SOCKET-API")
+const io = new Server({
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
 })
+const PORT = parseInt(process.env.PORT) || 5000;
 
-app.listen(PORT, () => {
-    console.log(`Server started on :${PORT}`)
-})
+io.listen(PORT)
+io.on('connection', client => eventsRoutes(client))

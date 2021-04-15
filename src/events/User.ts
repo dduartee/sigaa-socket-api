@@ -1,9 +1,10 @@
-import { Account, Sigaa} from "sigaa-api";
+import { Account, Sigaa } from "sigaa-api";
 import { Socket } from 'socket.io';
 export default class User {
     baseURL: string
     account: Account
     fullName: string
+    logado: boolean = false;
     constructor({ baseURL }) {
         this.baseURL = baseURL;
     }
@@ -13,51 +14,50 @@ export default class User {
      * @param client Socket
      */
     async login(credentials: { username: string, password: string }, client: Socket) {
+        try {
+            if(this.logado) return this.logado = true
+            const { username, password } = credentials;
 
-        const {username, password} = credentials;
-        
-        const sigaa = new Sigaa({ url:this.baseURL});
+            const sigaa = new Sigaa({ url: this.baseURL });
 
-        console.log(username+": logando...")
-
-        await sigaa.login(username, password).then(async account => {
+            console.log(username + ": logando...")
+            client.emit('status', "Logando...")
+            const account = await sigaa.login(username, password)
             this.account = account;
             this.fullName = await this.account.getName()
-            console.log(this.fullName +" Logado")
-            client.emit('status', {account: true, error: false})
-            return client.emit('status', (this.fullName+": Logado"));
-            // {account: true, error: false}
-        }).catch(error => {
+            console.log(this.fullName + " Logado")
+            client.emit('status', "Logado com sucesso")
+            this.logado = true;
+            return client.emit('info', (this.fullName + ": Logado"));
+        } catch (error) {
             console.error(error);
-            client.emit('status', {account: false, error: true})
-            return client.emit('status', error)
-        })
+            client.emit('status', "Não foi possivel fazer login, tente novamente")
+            this.logado = false;
+            return client.emit('errors', error.message)
+        }
     }
-    /**
-     * handle info
-     * @param client Socket
-     * @returns 
-     */
-    async info(client: Socket) {
-        return client.emit('status', {fullName: this.fullName})
-    }
-
     /**
      * handle logoff
      * @param client Socket
      */
     async logoff(client: Socket) {
-        console.log(this.fullName+" Deslogando")
-        await this.account.logoff().then(async () => {
-            console.log(this.fullName+" Deslogado")
-            return client.emit('status', this.fullName+" Deslogado")
-            // {error: false, logoff: true}
-        }).catch(error => {
+        try {
+            if(this.logado == false) {
+                return client.emit('errors', "Sigaa-Socket-API: Você não esta logado")
+            }
+            client.emit('status', "Deslogando...")
+            await this.account.logoff()
+            console.log(this.fullName + " Deslogado")
+            client.emit('status', "Deslogado com sucesso");
+            this.account = null;
+            this.fullName = null;
+            this.logado = false;
+            return client.emit('info', "");
+        } catch (error) {
             console.error(error)
-            return client.emit('status', error)
-            // {error: true, logoff: false}
-        })
-        this.account = null;
-        this.fullName = null;
+            client.emit('status', "Não foi possivel fazer logoff")
+            this.logado = false;
+            return client.emit('errors', error.message)
+        }
     }
 };

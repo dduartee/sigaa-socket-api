@@ -1,12 +1,13 @@
 {
   "name": "sigaa-socket-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "integração do modulo sigaa-api com sockets",
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
     "build": "tsc",
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "devDebug": "ts-node-dev --inspect=0.0.0.0:7001 --exit-child --respawn --transpile-only src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -20,6 +21,7 @@
   },
   "homepage": "https://github.com/dduartee/sigaa-socket-api#readme",
   "dependencies": {
+    "flatted": "^3.1.1",
     "jsonwebtoken": "^8.5.1",
     "node-cache": "^5.1.2",
     "sigaa-api": "^1.0.21",
@@ -30,6 +32,7 @@
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^8.5.1",
+    "@types/redis": "^2.8.28",
     "@types/uuid": "^8.3.0"
   }
 }

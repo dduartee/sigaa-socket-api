@@ -9,6 +9,11 @@ export class Bond {
     constructor() {
         this.BondSIGAA = new BondSIGAA();
     }
+    /**
+     * Controla listagem de vinculos
+     * @param params {socket: Socket, inactive?: boolean}
+     * @returns boolean
+     */
     async list(params: { socket: Socket, inactive?: boolean }) {
         try {
             const { socket, inactive } = params;
@@ -32,6 +37,11 @@ export class Bond {
         }
     }
 
+    /**
+     * Parser de Bonds
+     * @param params {bond: StudentBond, courses?: CourseStudent[]}
+     * @returns [{program, registration, courses}]
+     */
     static parser(params: { bond: StudentBond, courses?: CourseStudent[] }) {
         const { bond, courses } = params
         return {

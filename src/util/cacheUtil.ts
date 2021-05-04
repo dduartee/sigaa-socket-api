@@ -35,9 +35,6 @@ class CacheUtil implements ICacheUtil {
         return this.cacheService.take(key)
     }
 
-    public getStats() {
-        return this.cacheService.getStats()
-    }
 }
 
 export default new CacheUtil();

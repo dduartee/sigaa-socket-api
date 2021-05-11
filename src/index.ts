@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
-import eventsRoutes from "./routes";
+import { Router } from "./Router";
+
 
 const io = new Server({
     cors: {
@@ -7,8 +8,6 @@ const io = new Server({
         methods: ["GET", "POST"]
     }
 })
-
 const PORT = parseInt(process.env.PORT) || 5000;
-
 io.listen(PORT)
-io.on('connection', client => eventsRoutes(client))
+io.on('connection', async (socket) => await new Router({socket, io}).index())

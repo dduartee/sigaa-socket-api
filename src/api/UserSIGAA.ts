@@ -1,5 +1,4 @@
 import { Sigaa, Account } from 'sigaa-api';
-import { UserCredentials } from '../controllers/User';
 export class UserSIGAA {
     /**
      * Realiza login do usuario na api
@@ -7,7 +6,7 @@ export class UserSIGAA {
      * @param baseURL String
      * @returns Account
      */
-    async login(credentials: UserCredentials, baseURL: string) {
+    async login(credentials, baseURL: string) {
         const {username, password} = credentials;
         const account = await new Sigaa({url: baseURL}).login(username, password);
         return account;

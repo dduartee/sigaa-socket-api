@@ -5,7 +5,6 @@ import { Account } from "sigaa-api";
 import { cacheService } from "../services/cacheService";
 import { Socket } from "socket.io";
 import { cacheUtil } from "../services/cacheUtil";
-import { CacheController } from "./Cache";
 export class User {
     baseURL: string;
     logado: boolean;

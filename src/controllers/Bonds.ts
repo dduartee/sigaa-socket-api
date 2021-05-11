@@ -1,5 +1,5 @@
 import { cacheUtil } from "../services/cacheUtil";
-import { Account, StudentBond } from 'sigaa-api'
+import { StudentBond } from 'sigaa-api'
 import { BondSIGAA } from "../api/BondSIGAA";
 import { Socket } from "socket.io";
 import { CacheController } from "./Cache";

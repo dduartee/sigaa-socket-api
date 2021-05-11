@@ -1,4 +1,3 @@
-import { Auth } from "../middlewares/Auth";
 import { cacheService } from "../services/cacheService";
 import { CacheType, cacheUtil, jsonCache } from "../services/cacheUtil";
 

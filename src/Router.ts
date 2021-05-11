@@ -1,5 +1,5 @@
 import { Socket, Server } from 'socket.io';
-import { baseURL } from "./apiConfig.json";
+
 import { Bonds } from './controllers/Bonds';
 import { Courses } from './controllers/Courses';
 import { session } from './controllers/Session';

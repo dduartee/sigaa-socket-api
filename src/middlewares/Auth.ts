@@ -18,6 +18,11 @@ class Auth implements IAuth {
         dotenv.config()
         this.secret = process.env.SECRET || secret;
     }
+    /**
+     * Autentica socket, verifica se tem o token e se é valido, caso não for ele enviará um valido para o client
+     * @param params 
+     * @returns 
+     */
     middleware(params: { event: { 0: string, 1: { token: string } }, socket: Socket, next: (err?: Error) => void }) {
         try {
             const { event, socket, next } = params;
@@ -47,6 +52,11 @@ class Auth implements IAuth {
             return false;
         }
     }
+    /**
+     * verifica o token JWT
+     * @param token 
+     * @returns 
+     */
     verify(token: string) {
         try {
             const valid = JWT.verify(token, this.secret)
@@ -56,6 +66,11 @@ class Auth implements IAuth {
             return false;
         }
     }
+    /**
+     * Decodifica o token
+     * @param token 
+     * @returns 
+     */
     decode(token: string) {
         try {
             const decoded: any = JWT.decode(token);
@@ -65,6 +80,11 @@ class Auth implements IAuth {
             return false;
         }
     }
+    /**
+     * Cria token JWT
+     * @param payload 
+     * @returns 
+     */
     sign(payload: {}) {
         try {
             const token = JWT.sign(payload, this.secret);
@@ -74,6 +94,11 @@ class Auth implements IAuth {
             return false;
         }
     }
+    /**
+     * Calcula a diferença de tempo do token
+     * @param time 
+     * @returns 
+     */
     diffTime(time: string) {
         const past = new Date(time)
         const now = new Date()

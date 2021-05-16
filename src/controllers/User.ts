@@ -11,6 +11,12 @@ export class User {
     constructor() {
         this.baseURL = baseURL;
     }
+    /**
+     * Realiza evento de login
+     * @param credentials 
+     * @param params 
+     * @returns 
+     */
     async login(credentials, params: { socket: Socket }) {
         try {
 
@@ -22,7 +28,7 @@ export class User {
             socket.emit('user::status', JSON.stringify({ message: "Logando" }))
             const account = cache?.account ?? await userSigaa.login(credentials, this.baseURL)
             this.logado = true;
-            cacheUtil.merge(uniqueID, { account })
+            cacheUtil.merge(uniqueID, { account, jsonCache: [], rawCache: {}, time: new Date().toISOString()})
             socket.emit('user::status', JSON.stringify({ message: "Logado" }))
             console.log("Logado")
             return socket.emit('user::login', JSON.stringify({ logado: true }))
@@ -31,6 +37,10 @@ export class User {
             return false;
         }
     }
+    /**
+     *  Realiza evento de envio de informações do usuario
+     * @param params 
+     */
     async info(params: { socket: Socket }) {
         try {
             if (!this.logado) throw new Error("Usuario não esta logado")
@@ -44,6 +54,11 @@ export class User {
             console.error(error)
         }
     }
+    /**
+     * Realiza logoff da conta
+     * @param params 
+     * @returns 
+     */
     async logoff(params: { socket: Socket }) {
         try {
             if (!this.logado) throw new Error("Usuario não esta logado")

@@ -26,7 +26,7 @@ export class Bonds {
             for (const bond of bonds) {
                 BondsJSON.push(Bonds.parser({ bond }));
             }
-            CacheController.storeCache(uniqueID, { jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], rawCache: {bonds},time: new Date().toISOString() })
+            CacheController.storeCache(uniqueID, { account, jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], rawCache: {bonds},time: new Date().toISOString() })
             return socket.emit("bond::list", JSON.stringify(BondsJSON));
         } catch (error) {
             console.error(error);

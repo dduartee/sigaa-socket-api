@@ -8,6 +8,30 @@ import { CacheController } from "./Cache";
 import { Courses } from "./Courses";
 
 export class Homeworks {
+    event: {
+        list: {
+            name: string
+        },
+        specific: {
+            name: string
+        },
+        status: {
+            name: string
+        }
+    }
+    constructor() {
+        this.event = {
+            list: {
+                name: "homeworks::list"
+            },
+            specific: {
+                name: "homeworks::specific"
+            },
+            status: {
+                name: "homeworks::status"
+            }
+        }
+    }
     /**
      * Lista homeworks de uma máteria especificado pelo code
      * @param params socket
@@ -17,13 +41,17 @@ export class Homeworks {
     async specific(params: { socket: Socket }, received: jsonCache["received"]) {
         try {
             const { socket } = params;
+            const { specific, status } = this.event;
+            const eventName = specific.name;
+            const eventStatus = status.name;
+
             const { cache, uniqueID } = cacheUtil.restore(socket.id);
             if (!cache.account) throw new Error("Usuario não tem account")
             const { account, jsonCache } = cache
 
             const newest = CacheController.getNewest(jsonCache, received)
             if (newest) {
-                return socket.emit("homeworks::specific", JSON.stringify(newest["BondsJSON"]))
+                return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]))
             }
             const bonds = await new BondSIGAA().getBonds(account, true);
             const BondsJSON = [];
@@ -33,15 +61,15 @@ export class Homeworks {
                 for (const course of courses) {
                     if (course.code == received.code) {
                         const homeworksList: any = await new CourseSIGAA().getHomeworks(course)
-                        const homeworks = await this.parser(homeworksList, received.fullHW);
+                        const homeworks = await Homeworks.parser(homeworksList, received.fullHW);
                         CoursesJSON.push(Courses.parser({ course, homeworks }))
                         BondsJSON.push(Bonds.parser({ bond, CoursesJSON }));
                         CacheController.storeCache(uniqueID, { jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], time: new Date().toISOString() })
-                        return socket.emit("homeworks::specific", JSON.stringify(BondsJSON));
+                        return socket.emit(eventName, JSON.stringify(BondsJSON));
                     }
                 }
             }
-            return socket.emit("homeworks::status", "Nothing found with code: " + received)
+            return socket.emit(eventStatus, "Nothing found with code: " + received.code)
 
         } catch (error) {
             console.error(error);
@@ -57,14 +85,16 @@ export class Homeworks {
     async list(params: { socket: Socket }, received: jsonCache["received"]) {
         try {
             const { socket } = params;
+            const { list, status } = this.event;
+            const eventName = list.name;
+            const eventStatus = status.name;
+
             const { cache, uniqueID } = cacheUtil.restore(socket.id);
             if (!cache.account) throw new Error("Usuario não tem account")
             const { account, jsonCache } = cache
 
             const newest = CacheController.getNewest(jsonCache, received)
-            if (newest) {
-                return socket.emit("homeworks::specific", JSON.stringify(newest["BondsJSON"]))
-            }
+            if (newest) return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]))
             const bonds = await new BondSIGAA().getBonds(account, true);
             const BondsJSON = [];
             for (const bond of bonds) {
@@ -73,26 +103,27 @@ export class Homeworks {
                     const courses = await new CourseSIGAA().getCourses(bond);
                     for (const course of courses) {
                         const homeworksList: any = await new CourseSIGAA().getHomeworks(course)
-                        const homeworks = await this.parser(homeworksList, received.fullHW);
+                        const homeworks = await Homeworks.parser(homeworksList, received.fullHW);
                         CoursesJSON.push(Courses.parser({ course, homeworks }))
-                        socket.emit("homeworks::list", JSON.stringify([Bonds.parser({ bond, CoursesJSON })]))
+                        socket.emit(eventName, JSON.stringify([Bonds.parser({ bond, CoursesJSON })]))
                     }
                     BondsJSON.push(Bonds.parser({ bond, CoursesJSON }));
                 }
             }
             CacheController.storeCache(uniqueID, { jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], time: new Date().toISOString() })
-            return socket.emit("homeworks::list", JSON.stringify(BondsJSON));
+            return socket.emit(eventName, JSON.stringify(BondsJSON));
 
         } catch (error) {
             console.error(error);
             return false;
         }
     }
-    async parser(homeworkList: SigaaHomework[], full?: boolean) {
+    static async parser(homeworkList: any[], full?: boolean) {
         const homeworks = [];
         for (const homework of homeworkList) {
             const description = full ? (await homework.getDescription()) : "";
-            const haveGrade = full ? (await homework.getHaveGrade() ? "Vale nota" : "Não vale nota") : "";
+            const haveGrade = full ? (await homework.getFlagHaveGrade()) : "";
+            const isGroup = full ? (await homework.getFlagIsGroupHomework()) : "";
             const startDate = homework.startDate;
             const endDate = homework.endDate;
             const title = homework.title;
@@ -100,6 +131,7 @@ export class Homeworks {
                 title,
                 description,
                 startDate,
+                isGroup,
                 endDate,
                 haveGrade,
             });

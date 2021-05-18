@@ -15,7 +15,8 @@ export type jsonCache = {
         code?: string,
         inactive?: boolean,
         fullHW?: boolean,
-        full?: boolean
+        fullNews?: boolean
+        limit?: number
     },
     time: string
 }

@@ -6,9 +6,9 @@ export class BondSIGAA {
      * @param inactive boolean
      * @returns allBonds
      */
-    async getBonds(account: Account, inactive: boolean): Promise<StudentBond[]> {
+    async getBonds(account: Account, inactive?: boolean): Promise<StudentBond[]> {
         const activeBonds: any = await account.getActiveBonds();
-        const inactiveBonds:any = inactive?await account.getInactiveBonds():[]
+        const inactiveBonds:any = false?await account.getInactiveBonds():[]
         const bonds: StudentBond[] = []
         for (const activeBond of activeBonds) {
             bonds.push(activeBond);
@@ -16,6 +16,7 @@ export class BondSIGAA {
         for (const inactiveBond of inactiveBonds) {
             bonds.push(inactiveBond);
         }
+        await account.getActiveBonds();
         return bonds;
     }
 }

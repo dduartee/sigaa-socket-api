@@ -4,7 +4,7 @@ import { CacheType, cacheUtil, jsonCache } from "../services/cacheUtil";
 class Cache {
     /**
      * Armazena cache mergindo com o original
-     * @param uniqueID A
+     * @param uniqueID 
      * @param object 
      * @returns 
      */

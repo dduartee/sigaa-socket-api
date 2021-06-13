@@ -1,9 +1,10 @@
 # sigaa-socket-api
-Este projeto é a integração do socket.io com o modulo sigaa-api. <br>
-Vale resaltar que este modulo é dependente de sigaa-api, um crawler/web scraper do SIGAA.<br>
+Este projeto é a integração do socket.io com o modulo [sigaa-api](https://github.com/GeovaneSchmitz/sigaa-api). <br><br>
+Este código é dependente de [sigaa-api](https://github.com/GeovaneSchmitz/sigaa-api), um crawler/web scraper do SIGAA.<br>
 O SIGAA por ser um sistema sem codigo-fonte aberto, não é possivel garantir 100% de compatibilidade com cada usuario.<br>
 Caso acontecer alguma incompatibilidade, crie um Issue, informando todos os passos.<br>
 Pull Requests são bem vindos. <br>
+
 ## Eventos
 ### Login / Logout
 #### Realiza login na api

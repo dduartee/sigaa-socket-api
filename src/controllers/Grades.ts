@@ -4,7 +4,7 @@ import { BondSIGAA } from "../api/BondSIGAA";
 import { CourseSIGAA } from "../api/CourseSIGAA";
 import { jsonCache, cacheUtil } from "../services/cacheUtil";
 import { Bonds } from "./Bonds";
-import { CacheController } from "./Cache";
+import { cacheHelper } from "../helpers/Cache";
 import { Courses } from "./Courses";
 
 export class Grades {
@@ -35,8 +35,12 @@ export class Grades {
             const { cache, uniqueID } = cacheUtil.restore(socket.id);
             if (!cache.account) throw new Error("Usuario não tem account")
             const { account, jsonCache } = cache
-            const newest = CacheController.getNewest(jsonCache, received)
-            if (newest) return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]))
+            if(received.cache) {
+                const newest = cacheHelper.getNewest(jsonCache, received)
+                if (newest) {
+                    return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]))
+                }
+            }
 
             const bonds = await new BondSIGAA().getBonds(account, true);
             const BondsJSON = [];
@@ -45,12 +49,12 @@ export class Grades {
                 const courses = await new CourseSIGAA().getCourses(bond);
                 const CoursesJSON = [];
                 for (const course of courses) {
-                        if (course.code == received.code) {
+                    if (course.code == received.code) {
                         const gradesGroups = await new CourseSIGAA().getGrades(course);
                         const grades = Grades.parser(gradesGroups)
                         CoursesJSON.push(Courses.parser({ course, grades }))
                         BondsJSON.push(Bonds.parser({ bond, CoursesJSON }));
-                        CacheController.storeCache(uniqueID, { account, jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], time: new Date().toISOString() })
+                        cacheHelper.storeCache(uniqueID, { account, jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], time: new Date().toISOString() })
                         return socket.emit(eventName, JSON.stringify(BondsJSON));
                     }
                 }

@@ -1,6 +1,6 @@
 import { Account, CourseStudent, Homework, StudentBond } from "sigaa-api";
 import merge from "ts-deepmerge";
-import { session } from "../controllers/Session";
+import { session } from "../helpers/Session";
 import { cacheService } from "./cacheService";
 export type CacheType = {
     account?: Account,
@@ -17,6 +17,7 @@ export type jsonCache = {
         fullHW?: boolean,
         fullNews?: boolean
         limit?: number
+        cache?: boolean
     },
     time: string
 }

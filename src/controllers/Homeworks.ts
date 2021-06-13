@@ -4,7 +4,7 @@ import { BondSIGAA } from "../api/BondSIGAA";
 import { CourseSIGAA } from "../api/CourseSIGAA";
 import { cacheUtil, jsonCache } from "../services/cacheUtil";
 import { Bonds } from "./Bonds";
-import { CacheController } from "./Cache";
+import { cacheHelper } from "../helpers/Cache";
 import { Courses } from "./Courses";
 
 export class Homeworks {
@@ -49,9 +49,11 @@ export class Homeworks {
             if (!cache.account) throw new Error("Usuario não tem account")
             const { account, jsonCache } = cache
 
-            const newest = CacheController.getNewest(jsonCache, received)
-            if (newest) {
-                return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]))
+            if (received.cache) {
+                const newest = cacheHelper.getNewest(jsonCache, received)
+                if (newest) {
+                    return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]))
+                }
             }
             const bonds = await new BondSIGAA().getBonds(account, true);
             const BondsJSON = [];
@@ -64,7 +66,7 @@ export class Homeworks {
                         const homeworks = await Homeworks.parser(homeworksList, received.fullHW);
                         CoursesJSON.push(Courses.parser({ course, homeworks }))
                         BondsJSON.push(Bonds.parser({ bond, CoursesJSON }));
-                        CacheController.storeCache(uniqueID, { jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], time: new Date().toISOString() })
+                        cacheHelper.storeCache(uniqueID, { jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], time: new Date().toISOString() })
                         return socket.emit(eventName, JSON.stringify(BondsJSON));
                     }
                 }
@@ -92,9 +94,12 @@ export class Homeworks {
             const { cache, uniqueID } = cacheUtil.restore(socket.id);
             if (!cache.account) throw new Error("Usuario não tem account")
             const { account, jsonCache } = cache
-
-            const newest = CacheController.getNewest(jsonCache, received)
-            if (newest) return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]))
+            if (received.cache) {
+                const newest = cacheHelper.getNewest(jsonCache, received)
+                if (newest) {
+                    return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]))
+                }
+            }
             const bonds = await new BondSIGAA().getBonds(account, true);
             const BondsJSON = [];
             for (const bond of bonds) {
@@ -110,7 +115,7 @@ export class Homeworks {
                     BondsJSON.push(Bonds.parser({ bond, CoursesJSON }));
                 }
             }
-            CacheController.storeCache(uniqueID, { jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], time: new Date().toISOString() })
+            cacheHelper.storeCache(uniqueID, { jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], time: new Date().toISOString() })
             return socket.emit(eventName, JSON.stringify(BondsJSON));
 
         } catch (error) {

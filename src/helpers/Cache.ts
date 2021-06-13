@@ -1,7 +1,7 @@
 import { cacheService } from "../services/cacheService";
 import { CacheType, cacheUtil, jsonCache } from "../services/cacheUtil";
 
-class Cache {
+class CacheHelper {
     /**
      * Armazena cache mergindo com o original
      * @param uniqueID 
@@ -52,7 +52,18 @@ class Cache {
     getNewest(jsonCache, received) {
         const newests: jsonCache[] = jsonCache ? this.sortByDate(jsonCache) : [];
         for (const newest of newests) {
-            if (this.diffDateCache(newest.time) < 6 && newest.received === received) {
+            const diffDateCache = this.diffDateCache(newest.time)
+            delete newest.received.cache // Deleta a propriedade de cache
+            delete received.cache
+            const shallowEqual = (object1, object2) => {
+                const keys1 = Object.keys(object1);
+                const keys2 = Object.keys(object2);
+                if (keys1.length !== keys2.length) return false;
+                for (let key of keys1) if (object1[key] !== object2[key]) return false;
+                return true;
+            }
+            const receivedEquals = shallowEqual(newest.received, received);
+            if (diffDateCache < 6 && receivedEquals) {
                 return newest
             }
         }
@@ -60,4 +71,4 @@ class Cache {
     }
 }
 
-export const CacheController = new Cache();
+export const cacheHelper = new CacheHelper();

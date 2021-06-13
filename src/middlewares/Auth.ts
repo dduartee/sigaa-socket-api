@@ -2,7 +2,7 @@ import { Socket } from 'socket.io';
 import JWT from "jsonwebtoken";
 import dotenv from "dotenv";
 import { v4 } from 'uuid';
-import { session } from '../controllers/Session';
+import { session } from '../helpers/Session';
 export interface IAuth {
     secret: string;
     token: string;

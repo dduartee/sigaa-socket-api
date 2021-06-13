@@ -1,5 +1,5 @@
 import { UserSIGAA } from "../api/UserSIGAA";
-import { session } from "./Session";
+import { session } from "../helpers/Session";
 import { baseURL } from "../apiConfig.json";
 import { Account } from "sigaa-api";
 import { cacheService } from "../services/cacheService";

@@ -18,24 +18,22 @@ export class User {
      * @returns 
      */
     async login(credentials, params: { socket: Socket }) {
+        const { socket } = params;
         try {
-
-            if (this.logado) throw new Error("Usuario já esta logado");
-            this.logado = false;
-            const { socket } = params;
+            if (this.logado) return "Usuario já esta logado";
             const { cache, uniqueID } = cacheUtil.restore(socket.id)
             const userSigaa = new UserSIGAA();
             socket.emit('user::status', JSON.stringify({ message: "Logando" }))
             const account = cache?.account ?? await userSigaa.login(credentials, this.baseURL)
             this.logado = true;
-            cacheUtil.merge(uniqueID, { account, jsonCache: [], rawCache: {}, time: new Date().toISOString()})
-            socket.emit('user::status', JSON.stringify({ message: "Logado" }))
-            console.log("Logado")
-            return socket.emit('user::login', JSON.stringify({ logado: true }))
+            cacheUtil.merge(uniqueID, { account, jsonCache: [], rawCache: {}, time: new Date().toISOString() })
+            console.log("Logado");
         } catch (error) {
             console.error(error);
-            return false;
+            this.logado = false;
         }
+        socket.emit('user::status', JSON.stringify({ message: this.logado ? "Logado" : "Deslogado" }))
+        return socket.emit('user::login', JSON.stringify({ logado: this.logado }))
     }
     /**
      *  Realiza evento de envio de informações do usuario
@@ -64,9 +62,7 @@ export class User {
             if (!this.logado) throw new Error("Usuario não esta logado")
             const { socket } = params;
             const { cache, uniqueID } = cacheUtil.restore(socket.id)
-            if (!cache.account) {
-                throw new Error("Usuario não tem account")
-            }
+            if (!cache.account) throw new Error("Usuario não tem account")
             socket.emit('user::status', "Deslogando")
             await cache.account.logoff()
             session.delete(socket.id)

@@ -23,12 +23,11 @@ export class Bonds {
      * @returns 
      */
     async list(params: { socket: Socket }, received?: jsonCache["received"]) {
+        const { socket } = params;
+        const { list } = this.event;
+        const eventName = list.name;
+        const { inactive } = received;
         try {
-            const { socket } = params;
-            const { list } = this.event;
-            const eventName = list.name;
-            
-            const { inactive } = received;
             const { cache, uniqueID } = cacheUtil.restore(socket.id)
             if (!cache.account) throw new Error("Usuario não tem account")
             const { account, jsonCache } = cache
@@ -43,10 +42,11 @@ export class Bonds {
             for (const bond of bonds) {
                 BondsJSON.push(Bonds.parser({ bond }));
             }
-            cacheHelper.storeCache(uniqueID, { account, jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], rawCache: {bonds},time: new Date().toISOString() })
+            cacheHelper.storeCache(uniqueID, { account, jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], rawCache: { bonds }, time: new Date().toISOString() })
             return socket.emit(eventName, JSON.stringify(BondsJSON));
         } catch (error) {
             console.error(error);
+            socket.emit('api::error', error.message)
             return false;
         }
     }

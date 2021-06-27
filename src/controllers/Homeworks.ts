@@ -39,11 +39,11 @@ export class Homeworks {
      * @returns 
      */
     async specific(params: { socket: Socket }, received: jsonCache["received"]) {
+        const { socket } = params;
+        const { specific, status } = this.event;
+        const eventName = specific.name;
+        const eventStatus = status.name;
         try {
-            const { socket } = params;
-            const { specific, status } = this.event;
-            const eventName = specific.name;
-            const eventStatus = status.name;
 
             const { cache, uniqueID } = cacheUtil.restore(socket.id);
             if (!cache.account) throw new Error("Usuario não tem account")
@@ -75,6 +75,7 @@ export class Homeworks {
 
         } catch (error) {
             console.error(error);
+            socket.emit('api::error', error.message)
             return false;
         }
     }
@@ -85,11 +86,11 @@ export class Homeworks {
      * @returns 
      */
     async list(params: { socket: Socket }, received: jsonCache["received"]) {
+        const { socket } = params;
+        const { list, status } = this.event;
+        const eventName = list.name;
+        const eventStatus = status.name;
         try {
-            const { socket } = params;
-            const { list, status } = this.event;
-            const eventName = list.name;
-            const eventStatus = status.name;
 
             const { cache, uniqueID } = cacheUtil.restore(socket.id);
             if (!cache.account) throw new Error("Usuario não tem account")
@@ -120,6 +121,7 @@ export class Homeworks {
 
         } catch (error) {
             console.error(error);
+            socket.emit('api::error', error.message)
             return false;
         }
     }

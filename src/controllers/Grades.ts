@@ -27,11 +27,10 @@ export class Grades {
         }
     }
     async specific(params: { socket: Socket }, received: jsonCache["received"]) {
+        const { socket } = params;
+        const { specific } = this.event;
+        const eventName = specific.name;
         try {
-            const { socket } = params;
-            const { specific } = this.event;
-            const eventName = specific.name;
-
             const { cache, uniqueID } = cacheUtil.restore(socket.id);
             if (!cache.account) throw new Error("Usuario não tem account")
             const { account, jsonCache } = cache
@@ -60,7 +59,8 @@ export class Grades {
                 }
             }
         } catch (error) {
-            console.error(error)
+            console.error(error);
+            socket.emit('api::error', error.message)
             return false;
         }
     }

@@ -29,11 +29,10 @@ export class Courses {
      * @returns 
      */
     async list(params: { socket: Socket }, received: jsonCache["received"]) {
+        const { socket } = params;
+        const { list } = this.event;
+        const eventName = list.name;
         try {
-            const { socket } = params;
-            const { list } = this.event;
-            const eventName = list.name;
-
             const { cache, uniqueID } = cacheUtil.restore(socket.id);
             if (!cache.account) throw new Error("Usuario não tem account")
             const { account, jsonCache } = cache
@@ -60,7 +59,8 @@ export class Courses {
                 }
             }
         } catch (error) {
-            console.error(error)
+            console.error(error);
+            socket.emit('api::error', error.message)
             return false;
         }
     }

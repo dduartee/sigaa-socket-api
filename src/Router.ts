@@ -5,7 +5,7 @@ import { Courses } from './controllers/Courses';
 import { Grades } from './controllers/Grades';
 import { Homeworks } from './controllers/Homeworks';
 import { News } from './controllers/News';
-import { session } from './controllers/Session';
+import { session } from './helpers/Session';
 import { User } from './controllers/User';
 
 import { Auth } from "./middlewares/Auth";

@@ -1,5 +1,5 @@
 import { UserSIGAA } from "../api/UserSIGAA";
-import { session } from "./Session";
+import { session } from "../helpers/Session";
 import { baseURL } from "../apiConfig.json";
 import { Account } from "sigaa-api";
 import { cacheService } from "../services/cacheService";
@@ -23,16 +23,26 @@ export class User {
             if (this.logado) return "Usuario já esta logado";
             const { cache, uniqueID } = cacheUtil.restore(socket.id)
             const userSigaa = new UserSIGAA();
-            socket.emit('user::status', JSON.stringify({ message: "Logando" }))
-            const account = cache?.account ?? await userSigaa.login(credentials, this.baseURL)
+            let account: Account;
+            if (!cache?.account) {
+                socket.emit('user::status', "Logando")
+                if (credentials.username && credentials.password) {
+                    account = await userSigaa.login(credentials, this.baseURL);
+                } else {
+                    throw new Error("Usuario não informou as credenciais")
+                }
+                cacheUtil.merge(uniqueID, { account, jsonCache: [], rawCache: {}, time: new Date().toISOString() })
+            } else {
+                account = cache.account;
+            }
             this.logado = true;
-            cacheUtil.merge(uniqueID, { account, jsonCache: [], rawCache: {}, time: new Date().toISOString() })
             console.log("Logado");
         } catch (error) {
             console.error(error);
+            socket.emit('api::error', error.message)
             this.logado = false;
         }
-        socket.emit('user::status', JSON.stringify({ message: this.logado ? "Logado" : "Deslogado" }))
+        socket.emit('user::status', this.logado ? "Logado" : "Deslogado")
         return socket.emit('user::login', JSON.stringify({ logado: this.logado }))
     }
     /**
@@ -41,7 +51,6 @@ export class User {
      */
     async info(params: { socket: Socket }) {
         try {
-            if (!this.logado) throw new Error("Usuario não esta logado")
             const { socket } = params;
             const { cache, uniqueID } = cacheUtil.restore(socket.id)
             if (!cache.account) throw new Error("Usuario não tem account")

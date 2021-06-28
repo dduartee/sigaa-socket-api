@@ -3,6 +3,7 @@ import JWT from "jsonwebtoken";
 import dotenv from "dotenv";
 import { v4 } from 'uuid';
 import { session } from '../helpers/Session';
+import { cacheHelper } from '../helpers/Cache';
 export interface IAuth {
     secret: string;
     token: string;
@@ -17,6 +18,24 @@ class Auth implements IAuth {
     constructor(secret?: string) {
         dotenv.config()
         this.secret = process.env.SECRET || secret;
+    }
+    valid(socket: Socket, { token }) {
+        const verify = token && this.verify(token);
+        const valid = verify && this.decode(token);
+        if (valid) {
+            const { time, uniqueID } = valid;
+            const existsCache = cacheHelper.getCache(uniqueID)
+            const sid = socket.id;
+            const difftime = this.diffTime(time);
+            if (difftime < 6 && existsCache != {}) {
+                this.token = token;
+                session.update(sid, uniqueID)
+                socket.emit("auth::valid", true)
+                return true;
+            }
+        }
+        socket.emit("auth::valid", false)
+        return false;
     }
     /**
      * Autentica socket, verifica se tem o token e se é valido, caso não for ele enviará um valido para o client

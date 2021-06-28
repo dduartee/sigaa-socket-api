@@ -36,7 +36,6 @@ export class Courses {
             const { cache, uniqueID } = cacheUtil.restore(socket.id);
             if (!cache.account) throw new Error("Usuario não tem account")
             const { account, jsonCache } = cache
-            console.log(received);
             if (received.cache) {
                 const newest = cacheHelper.getNewest(jsonCache, received)
                 if (newest) {

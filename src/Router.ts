@@ -30,10 +30,12 @@ export class Router {
         const homework = new Homeworks();
         const news = new News();
         const grades = new Grades();
-        
+
         console.log(socket.id);
 
         socket.use((event: any, next) => auth.middleware({ event, socket, next }))
+
+        socket.on("auth::valid", async (received) => auth.valid(socket, received));
 
         socket.on("user::login", async (credentials) => await user.login(credentials, { socket }));
         socket.on("user::info", async (received) => await user.info({ socket }))
@@ -46,11 +48,11 @@ export class Router {
 
         socket.on("homeworks::specific", async (received) => await homework.specific({ socket }, received))
         socket.on("homeworks::list", async (received) => await homework.list({ socket }, received))
-        
+
         socket.on("news::specific", async (received) => await news.specific({ socket }, received))
 
         socket.on("grades::specific", async (received) => await grades.specific({ socket }, received))
-        
+
         socket.on("disconnect", async (reason) => {
             session.delete(socket.id)
             console.log("Sessão finalizada")

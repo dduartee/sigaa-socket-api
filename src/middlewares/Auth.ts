@@ -27,7 +27,7 @@ class Auth implements IAuth {
             const existsCache = cacheHelper.getCache(uniqueID)
             const sid = socket.id;
             const difftime = this.diffTime(time);
-            if (difftime < 6 && existsCache == {}) {
+            if (difftime < 6 && existsCache != {}) {
                 this.token = token;
                 session.update(sid, uniqueID)
                 socket.emit("auth::valid", true)

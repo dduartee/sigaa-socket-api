@@ -31,3 +31,4 @@ class SessionHelper {
 }
 
 export const session = new SessionHelper()
+

@@ -12,7 +12,7 @@ export class Bonds {
     constructor() {
         this.event = {
             list: {
-                name: "bond::list"
+                name: "bonds::list"
             }
         }
     }

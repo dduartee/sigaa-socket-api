@@ -39,11 +39,11 @@ client.on('user::login', (data) => {
 ### Eventos de JSON
 #### Lista vinculos ATIVOS
 ```js
-client.emit('bond::list', {
+client.emit('bonds::list', {
   token: "ey..." // obrigatório
 })
 
-client.on('bond::list', (data) => {
+client.on('bonds::list', (data) => {
   // dados json
 })
 

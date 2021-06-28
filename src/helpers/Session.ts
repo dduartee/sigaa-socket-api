@@ -1,6 +1,6 @@
 import { cacheService } from "../services/cacheService";
 
-class Session {
+class SessionHelper {
     /**
      * Cria sessão para o socket com UniqueID
      * @param sid string
@@ -30,4 +30,5 @@ class Session {
     }
 }
 
-export const session = new Session()
+export const session = new SessionHelper()
+

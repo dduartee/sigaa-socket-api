@@ -9,95 +9,125 @@ Pull Requests são bem vindos. <br>
 ### Login / Logout
 #### Realiza login na api
 ```js
-client.emit('user::login', {
+emit('user::login', {
   username: "usuario",
   password: "senha",
   token: "ey..." // caso tenha
 });
-```
-#### Recebe token após login
-```js
-client.on('auth::store', token => {
-  // O token JWT pode ser armazenado de qualquer forma, desde que seja enviado a cada evento
+
+on('user::login', (data) => {
+    logado: true / false
 });
+
 ```
-#### Realiza Logout no SIGAA
+
+#### Realiza Logoff no SIGAA
 ```js
-client.emit('user::logoff', {
+emit('user::logoff', {
   token: "ey..." // obrigatório
 })
 ```
-Para realizar logoff se sessão basta fechar a conexão e caso queira recuperar a sessão informe o token pelo evento 'user::login'
+Para realizar logoff de sessão basta fechar a conexão e caso queira recuperar a sessão informe o token pelo evento 'user::login'
 
 #### Recebe status de login
 ```js
-client.on('user::login', (data) => {
-    logado: true / false
+on('user::status', (data) => {
+    "Logando"/"Logado"/"Deslogado"/"Deslogando"
 });
 ```
 
 ### Eventos de JSON
 #### Lista vinculos ATIVOS
 ```js
-client.emit('bonds::list', {
-  token: "ey..." // obrigatório
+emit('bonds::list', {
+  token: "ey...", // obrigatório
+  inactive: true/false // retorna vinculos inativos ou não (EXPERIMENTAL)
 })
 
-client.on('bonds::list', (data) => {
+on('bonds::list', (data) => {
   // dados json
 })
 
 ```
 #### Lista matérias de um vinculo
 ```js
-client.emit('courses::list', {
+emit('courses::list', {
   registration: "", // numero da matricula do vinculo, obrigatório
-  token: "ey..." // obrigatório
+  inactive: true/false, // retorna vinculos inativos ou não (EXPERIMENTAL)
+  token: "ey..." // obrigatório,
 }
-client.on('courses::list', (data) => {
+on('courses::list', (data) => {
    // dados json
 })
 ```
 #### Lista uma matéria especifica
 ```js
-client.emit('courses::specific', {
+emit('courses::details', {
   code: "", // Código da matéria, obrigatório
+  inactive: true/false, // retorna vinculos inativos ou não (EXPERIMENTAL)
+  fullDetails: true / false, // quando true retorna todas as informações sendo mais devagar
   token: "ey..." // obrigatório
 })
-client.on('courses::specific' (data) => {
+on('courses::details' (data) => {
   // dados json
 })
 ```
 #### Lista todas tarefas de um vinculo
 ```js
-client.emit('homeworks::list', {
+emit('homeworks::list', {
   registration: "", // numero da matricula do vinculo, obrigatório
   fullHW: true / false, // quando true retorna todas as informações sendo mais devagar, quando false retorna somente titulo e datas
+  inactive: true/false, // retorna vinculos inativos ou não (EXPERIMENTAL)
   token: "ey..." // obrigatório
 })
-client.on('homeworks::list', (data) => {
+on('homeworks::list', (data) => {
    // dados json
 })
 ```
 #### Lista todas as tarefas de uma matéria
 ```js
-client.emit('homeworks::specific', {
+emit('homeworks::specific', {
   code: "", // Código da matéria, obrigatório
   fullHW: true / false, // quando true retorna todas as informações sendo mais devagar, quando false retorna somente titulo e datas
+  inactive: true/false, // retorna vinculos inativos ou não (EXPERIMENTAL)
   token: "ey..." // obrigatório
 })
-client.on('homeworks::specific', (data) => {
+on('homeworks::specific', (data) => {
   // dados json
 })
 ```
 
 #### Lista todas as noticias de uma matéria
 ```js
-client.emit('news::specific', {
+emit('news::list', {
   code: "", // Código da matéria, obrigatório
   fullNews: true / false, // quando true retorna todas as informações sendo mais devagar, quando false retorna somente titulo e id sem datas
+  inactive: true/false, // retorna vinculos inativos ou não (EXPERIMENTAL)
   token: "ey..." // obrigatório
 })
-client.on('news::specific', (data) => {
+on('news::list', (data) => {
   // dados json
 })
+```
+
+```js
+emit('grades::list', {
+  code: "", // Código da matéria, obrigatório
+  inactive: true/false, // retorna vinculos inativos ou não (EXPERIMENTAL)
+  cache: true/false, // retorna dados em cache (caso tenha)
+  token: "ey..." // obrigatório
+})
+on('grades::list', (data) => {
+  // dados json
+})
+```
+
+#### Recebe token após login
+```js
+on('auth::store', token => {
+  // O token JWT pode ser armazenado de qualquer forma, desde que seja enviado a cada evento
+});
+emit('auth::valid', token => {
+  // verifica a validação do token
+})
+```

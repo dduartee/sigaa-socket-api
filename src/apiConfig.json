@@ -1,3 +1,35 @@
 {
-    "baseURL": "https://sigaa.ifsc.edu.br/"
+    "baseURL": "https://sigaa.ifsc.edu.br/",
+    "events": {
+        "user": {
+            "login": "user::login",
+            "status": "user::status",
+            "info": "user::info",
+            "logoff": "user::logoff"
+        },
+        "bonds": {
+            "list": "bonds::list"
+        },
+        "courses": {
+            "list": "courses::list",
+            "details": "courses::details"
+        },
+        "grades": {
+            "list": "grades::list"
+        },
+        "news": {
+            "list": "news::list"
+        },
+        "homeworks": {
+            "list": "homeworks::list",
+            "specific": "homeworks::specific"
+        },
+        "auth": {
+            "valid": "auth::valid",
+            "store": "auth::store"
+        },
+        "api": {
+            "error": "api::error"
+        }
+    }
 }

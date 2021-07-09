@@ -45,13 +45,14 @@ export class Router {
         socket.on("bonds::list", async (received) => await bonds.list({ socket }, received));
 
         socket.on("courses::list", async (received) => await courses.list({ socket }, received));
+        socket.on("courses::details", async (received) => await courses.details({ socket }, received));
 
         socket.on("homeworks::specific", async (received) => await homework.specific({ socket }, received))
         socket.on("homeworks::list", async (received) => await homework.list({ socket }, received))
 
-        socket.on("news::specific", async (received) => await news.specific({ socket }, received))
+        socket.on("news::list", async (received) => await news.list({ socket }, received))
 
-        socket.on("grades::specific", async (received) => await grades.specific({ socket }, received))
+        socket.on("grades::list", async (received) => await grades.list({ socket }, received))
 
         socket.on("disconnect", async (reason) => {
             session.delete(socket.id)

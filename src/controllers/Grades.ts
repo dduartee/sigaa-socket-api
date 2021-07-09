@@ -6,30 +6,14 @@ import { jsonCache, cacheUtil } from "../services/cacheUtil";
 import { Bonds } from "./Bonds";
 import { cacheHelper } from "../helpers/Cache";
 import { Courses } from "./Courses";
+import { events } from "../apiConfig.json"
 
 export class Grades {
-    event: {
-        list: {
-            name: string
-        },
-        specific: {
-            name: string
-        }
-    }
-    constructor() {
-        this.event = {
-            list: {
-                name: "grades::list"
-            },
-            specific: {
-                name: "grades::specific"
-            }
-        }
-    }
-    async specific(params: { socket: Socket }, received: jsonCache["received"]) {
+
+    async list(params: { socket: Socket }, received: jsonCache["received"]) {
         const { socket } = params;
-        const { specific } = this.event;
-        const eventName = specific.name;
+        const eventName = events.grades.list;
+        const apiEventError = events.api.error;
         try {
             const { cache, uniqueID } = cacheUtil.restore(socket.id);
             if (!cache.account) throw new Error("Usuario não tem account")
@@ -41,7 +25,7 @@ export class Grades {
                 }
             }
 
-            const bonds = await new BondSIGAA().getBonds(account, true);
+            const bonds = await new BondSIGAA().getBonds(account, received.inactive);
             const BondsJSON = [];
             for (const bond of bonds) {
                 debugger

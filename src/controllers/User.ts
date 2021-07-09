@@ -5,6 +5,7 @@ import { Account } from "sigaa-api";
 import { cacheService } from "../services/cacheService";
 import { Socket } from "socket.io";
 import { cacheUtil } from "../services/cacheUtil";
+import { events } from "../apiConfig.json"
 export class User {
     baseURL: string;
     logado: boolean;
@@ -17,48 +18,54 @@ export class User {
      * @param params 
      * @returns 
      */
-    async login(credentials, params: { socket: Socket }) {
+    async login( credentials, params: { socket: Socket } ) {
         const { socket } = params;
+        const eventName = events.user.login;
+        const statusEventName = events.user.status;
+        const apiEventError = events.api.error;
         try {
-            if (this.logado) return "Usuario já esta logado";
-            const { cache, uniqueID } = cacheUtil.restore(socket.id)
+            if ( this.logado ) return "Usuario já esta logado";
+            const { cache, uniqueID } = cacheUtil.restore( socket.id )
             const userSigaa = new UserSIGAA();
             let account: Account;
-            if (!cache?.account) {
-                socket.emit('user::status', "Logando")
-                if (credentials.username && credentials.password) {
-                    account = await userSigaa.login(credentials, this.baseURL);
+            if ( !cache?.account ) {
+                socket.emit( statusEventName, "Logando" )
+                if ( credentials.username && credentials.password ) {
+                    account = await userSigaa.login( credentials, this.baseURL );
                 } else {
-                    throw new Error("Usuario não informou as credenciais")
+                    throw new Error( "Usuario não informou as credenciais" )
                 }
-                cacheUtil.merge(uniqueID, { account, jsonCache: [], rawCache: {}, time: new Date().toISOString() })
+                cacheUtil.merge( uniqueID, { account, jsonCache: [], rawCache: {}, time: new Date().toISOString() } )
             } else {
                 account = cache.account;
             }
             this.logado = true;
-            console.log("Logado");
-        } catch (error) {
-            console.error(error);
-            socket.emit('api::error', error.message)
+            console.log( "Logado" );
+        } catch ( error ) {
+            console.error( error );
+            socket.emit( apiEventError, error.message )
             this.logado = false;
         }
-        socket.emit('user::status', this.logado ? "Logado" : "Deslogado")
-        return socket.emit('user::login', JSON.stringify({ logado: this.logado }))
+        socket.emit( statusEventName, this.logado ? "Logado" : "Deslogado" )
+        return socket.emit( eventName, JSON.stringify( { logado: this.logado } ) )
     }
     /**
      *  Realiza evento de envio de informações do usuario
      * @param params 
      */
-    async info(params: { socket: Socket }) {
+    async info( params: { socket: Socket } ) {
+        const { socket } = params;
+        const eventName = events.user.info;
+        const apiEventError = events.api.error;
         try {
-            const { socket } = params;
-            const { cache, uniqueID } = cacheUtil.restore(socket.id)
-            if (!cache.account) throw new Error("Usuario não tem account")
+            const { cache, uniqueID } = cacheUtil.restore( socket.id )
+            if ( !cache.account ) throw new Error( "Usuario não tem account" )
             const account: Account = cache.account;
             const info = { fullName: await account.getName(), profilePictureURL: await account.getProfilePictureURL() }
-            socket.emit('user::info', JSON.stringify(info))
-        } catch (error) {
-            console.error(error)
+            socket.emit( eventName, JSON.stringify( info ) )
+        } catch ( error ) {
+            console.error( error );
+            socket.emit( apiEventError, error.message )
         }
     }
     /**
@@ -66,22 +73,25 @@ export class User {
      * @param params 
      * @returns 
      */
-    async logoff(params: { socket: Socket }) {
+    async logoff( params: { socket: Socket } ) {
+        const eventName = events.user.login;
+        const statusEventName = events.user.status;
+        const apiEventError = events.api.error;
+        const { socket } = params;
         try {
-            if (!this.logado) throw new Error("Usuario não esta logado")
-            const { socket } = params;
-            const { cache, uniqueID } = cacheUtil.restore(socket.id)
-            if (!cache.account) throw new Error("Usuario não tem account")
-            socket.emit('user::status', "Deslogando")
+            const { cache, uniqueID } = cacheUtil.restore( socket.id )
+            if ( !cache.account ) throw new Error( "Usuario não tem account" )
+            socket.emit( statusEventName, "Deslogando" )
             await cache.account.logoff()
-            session.delete(socket.id)
-            cacheService.del(uniqueID)
-            console.log("Deslogado")
+            session.delete( socket.id )
+            cacheService.del( uniqueID )
+            console.log( "Deslogado" )
             this.logado = false;
-            socket.emit('user::status', "Deslogado")
-            return socket.emit('user::login', JSON.stringify({ logado: false }))
-        } catch (err) {
-            console.error(err)
+            socket.emit( statusEventName, "Deslogado" )
+            return socket.emit( eventName, JSON.stringify( { logado: false } ) )
+        } catch ( error ) {
+            console.error( error );
+            socket.emit( apiEventError, error.message )
             return false;
         }
     }

@@ -39,6 +39,7 @@ on('user::status', (data) => {
 ### Eventos de JSON
 #### Lista vinculos ATIVOS
 ```js
+
 emit('bonds::list', {
   token: "ey...", // obrigatório
   inactive: true/false // retorna vinculos inativos ou não (EXPERIMENTAL)

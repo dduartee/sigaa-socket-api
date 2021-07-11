@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { v4 } from 'uuid';
 import { session } from '../helpers/Session';
 import { cacheHelper } from '../helpers/Cache';
+import { events } from "../apiConfig.json"
 export interface IAuth {
     secret: string;
     token: string;
@@ -20,21 +21,22 @@ class Auth implements IAuth {
         this.secret = process.env.SECRET || secret;
     }
     valid(socket: Socket, { token }) {
+        const eventName = events.auth.valid;
         const verify = token && this.verify(token);
         const valid = verify && this.decode(token);
         if (valid) {
             const { time, uniqueID } = valid;
-            const existsCache = cacheHelper.getCache(uniqueID)
+            const hasCache = cacheHelper.getCache(uniqueID)
             const sid = socket.id;
             const difftime = this.diffTime(time);
-            if (difftime < 6 && existsCache != {}) {
+            if (difftime < 6 && hasCache.account) {
                 this.token = token;
                 session.update(sid, uniqueID)
-                socket.emit("auth::valid", true)
+                socket.emit(eventName, true)
                 return true;
             }
         }
-        socket.emit("auth::valid", false)
+        socket.emit(eventName, false)
         return false;
     }
     /**
@@ -43,8 +45,9 @@ class Auth implements IAuth {
      * @returns 
      */
     middleware(params: { event: { 0: string, 1: { token: string } }, socket: Socket, next: (err?: Error) => void }) {
+        const { event, socket, next } = params;
+        const eventName = events.auth.store;
         try {
-            const { event, socket, next } = params;
             if (!event[1]) throw new Error("No token received");
             const { token } = event[1];
             const valid = token && this.verify(token) && this.decode(token);
@@ -64,7 +67,7 @@ class Auth implements IAuth {
             const newToken: any = this.sign({ time, uniqueID, sid })
             this.token = newToken;
             session.create(sid, uniqueID)
-            socket.emit('auth::store', newToken)
+            socket.emit(eventName, newToken)
             return next();
         } catch (err) {
             console.error(err)

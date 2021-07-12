@@ -15,7 +15,8 @@
             "details": "courses::details"
         },
         "grades": {
-            "list": "grades::list"
+            "list": "grades::list",
+            "specific": "grades::specific"
         },
         "news": {
             "list": "news::list"

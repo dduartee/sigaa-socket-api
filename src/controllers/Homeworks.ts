@@ -87,7 +87,7 @@ export class Homeworks {
                         const homeworksList: any = await new CourseSIGAA().getHomeworks( course )
                         const homeworks = await Homeworks.parser( homeworksList, received.fullHW );
                         CoursesJSON.push( Courses.parser( { course, homeworks } ) )
-                        socket.emit( eventName, JSON.stringify( [Bonds.parser( { bond, CoursesJSON } )] ) )
+                        socket.emit( "homeworks::listPartial", JSON.stringify( [Bonds.parser( { bond, CoursesJSON } )] ) )
                     }
                     BondsJSON.push( Bonds.parser( { bond, CoursesJSON } ) );
                 }

@@ -87,7 +87,7 @@ export class Homeworks {
                         const homeworksList: any = await new CourseSIGAA().getHomeworks( course )
                         const homeworks = await Homeworks.parser( homeworksList, received.fullHW );
                         CoursesJSON.push( Courses.parser( { course, homeworks } ) )
-                        socket.emit( eventName, JSON.stringify( [Bonds.parser( { bond, CoursesJSON } )] ) )
+                        socket.emit( "homeworks::listPartial", JSON.stringify( [Bonds.parser( { bond, CoursesJSON } )] ) )
                     }
                     BondsJSON.push( Bonds.parser( { bond, CoursesJSON } ) );
                 }
@@ -104,9 +104,9 @@ export class Homeworks {
     static async parser( homeworkList: any[], full?: boolean ) {
         const homeworks = [];
         for ( const homework of homeworkList ) {
-            const description = full ? ( await homework.getDescription() ) : "";
-            const haveGrade = full ? ( await homework.getFlagHaveGrade() ) : "";
-            const isGroup = full ? ( await homework.getFlagIsGroupHomework() ) : "";
+            const description = full ? ( await homework.getDescription() ) : null;
+            const haveGrade = full ? ( await homework.getFlagHaveGrade() ) : null;
+            const isGroup = full ? ( await homework.getFlagIsGroupHomework() ) : null;
             const startDate = homework.startDate;
             const endDate = homework.endDate;
             const title = homework.title;

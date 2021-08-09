@@ -101,7 +101,7 @@ on('homeworks::specific', (data) => {
 #### Lista todas as noticias de uma matéria
 ```js
 emit('news::list', {
-  code: "", // Código da matéria, obrigatório
+  registration: "", // Código da matéria, obrigatório
   fullNews: true / false, // quando true retorna todas as informações sendo mais devagar, quando false retorna somente titulo e id sem datas
   inactive: true/false, // retorna vinculos inativos ou não (EXPERIMENTAL)
   token: "ey..." // obrigatório

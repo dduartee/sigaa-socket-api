@@ -113,7 +113,7 @@ on('news::list', (data) => {
 
 ```js
 emit('grades::list', {
-  code: "", // Código da matéria, obrigatório
+  registration: "", // Código da matéria, obrigatório
   inactive: true/false, // retorna vinculos inativos ou não (EXPERIMENTAL)
   cache: true/false, // retorna dados em cache (caso tenha)
   token: "ey..." // obrigatório

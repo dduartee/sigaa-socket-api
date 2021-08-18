@@ -1,20 +1,16 @@
-import { cacheUtil, jsonCache } from "../services/cacheUtil";
-import { StudentBond } from "sigaa-api";
-import { BondSIGAA } from "../api/BondSIGAA";
 import { Socket } from "socket.io";
-import { cacheHelper } from "../helpers/Cache";
+import { cacheUtil, jsonCache } from "../services/cacheUtil";
 import { events } from "../apiConfig.json";
-export class Bonds {
-  /**
-   * Lista vinculos com inativos opcional
-   * @param params {socket}
-   * @param received {inactive}
-   * @returns
-   */
+import { cacheHelper } from "../helpers/Cache";
+import { BondSIGAA } from "../api/BondSIGAA";
+import { Bonds } from "./Bonds";
+import { FrontPageActivities } from "sigaa-api";
+
+export class Activities {
   async list(params: { socket: Socket }, received?: jsonCache["received"]) {
     const { socket } = params;
 
-    const eventName = events.bonds.list;
+    const eventName = events.activities.list;
     const apiEventError = events.api.error;
     const { inactive } = received;
     try {
@@ -29,8 +25,15 @@ export class Bonds {
       }
       const bonds = await new BondSIGAA().getBonds(account, inactive);
       const BondsJSON = [];
+      const ActivitiesJSON = [];
       for (const bond of bonds) {
-        BondsJSON.push(Bonds.parser({ bond }));
+        if (received.registration === bond.registration) {
+          const activities = await new BondSIGAA().getActivities(bond);
+          for (const activity of activities) {
+            ActivitiesJSON.push(Activities.parser({ activity }));
+          }
+          BondsJSON.push(Bonds.parser({ bond, ActivitiesJSON }));
+        }
       }
       cacheHelper.storeCache(uniqueID, {
         account,
@@ -50,20 +53,12 @@ export class Bonds {
    * @param params {bond: StudentBond, courses?: CourseStudent[]}
    * @returns program, registration, courses
    */
-  static parser({
-    bond,
-    CoursesJSON,
-    ActivitiesJSON,
-  }: {
-    bond: StudentBond;
-    CoursesJSON?: any;
-    ActivitiesJSON?: any;
-  }) {
+  static parser({ activity }: { activity: FrontPageActivities }) {
     return {
-      program: bond.program,
-      registration: bond.registration,
-      courses: CoursesJSON ?? [],
-      activities: ActivitiesJSON ?? [],
+      course: activity.course,
+      title: activity.title,
+      date: activity.date,
+      done: activity.done,
     };
   }
 }

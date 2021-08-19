@@ -7,21 +7,32 @@ export class BondSIGAA {
    * @returns allBonds
    */
   async getBonds(account: Account, inactive?: boolean): Promise<StudentBond[]> {
-    const activeBonds: any = await account.getActiveBonds();
-    const inactiveBonds: any = inactive ? await account.getInactiveBonds() : [];
-    const bonds: StudentBond[] = [];
-    for (const activeBond of activeBonds) {
-      bonds.push(activeBond);
+    try {
+      const activeBonds: any = await account.getActiveBonds();
+      const inactiveBonds: any = inactive
+        ? await account.getInactiveBonds()
+        : [];
+      const bonds: StudentBond[] = [];
+      for (const activeBond of activeBonds) {
+        bonds.push(activeBond);
+      }
+      for (const inactiveBond of inactiveBonds) {
+        bonds.push(inactiveBond);
+      }
+      return bonds;
+    } catch (error) {
+      console.error(error);
+      return [];
     }
-    for (const inactiveBond of inactiveBonds) {
-      bonds.push(inactiveBond);
-    }
-    await account.getActiveBonds();
-    return bonds;
   }
 
   async getActivities(bond: StudentBond) {
-    const activities = await bond.getFrontPageActivities();
-    return activities;
+    try {
+      const activities = await bond.getActivities();
+      return activities;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
   }
 }

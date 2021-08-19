@@ -4,7 +4,9 @@ import { events } from "../apiConfig.json";
 import { cacheHelper } from "../helpers/Cache";
 import { BondSIGAA } from "../api/BondSIGAA";
 import { Bonds } from "./Bonds";
-import { FrontPageActivities } from "sigaa-api";
+import { Activity } from "sigaa-api/dist/activity/sigaa-activity-factory";
+import { CourseStudent } from "sigaa-api";
+import { Courses } from "./Courses";
 
 export class Activities {
   async list(params: { socket: Socket }, received?: jsonCache["received"]) {
@@ -53,11 +55,26 @@ export class Activities {
    * @param params {bond: StudentBond, courses?: CourseStudent[]}
    * @returns program, registration, courses
    */
-  static parser({ activity }: { activity: FrontPageActivities }) {
+  static parser({ activity }: { activity: Activity }) {
+    let description = "";
+    switch (activity.type) {
+      case "exam":
+        description = activity.examDescription;
+        break;
+      case "homework":
+        description = activity.homeworkTitle;
+        break;
+      case "quiz":
+        description = activity.quizTitle;
+        break;
+      default:
+        break;
+    }
     return {
-      course: activity.course,
-      title: activity.title,
-      date: activity.date,
+      type: activity.type,
+      description,
+      date: activity.date.toISOString(),
+      course: { title: activity.courseTitle },
       done: activity.done,
     };
   }

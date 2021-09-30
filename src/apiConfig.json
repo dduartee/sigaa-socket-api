@@ -25,6 +25,9 @@
             "list": "homeworks::list",
             "specific": "homeworks::specific"
         },
+        "activities": {
+            "list": "activities::list"
+        },
         "auth": {
             "valid": "auth::valid",
             "store": "auth::store"

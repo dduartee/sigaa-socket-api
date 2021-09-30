@@ -6,8 +6,13 @@ export class CourseSIGAA {
         return courses;
     }
     async getHomeworks(course: CourseStudent) {
-        const homeworkList = await course.getHomeworks()
-        return homeworkList;
+        try {
+            const homeworkList = await course.getHomeworks()
+            return homeworkList;
+        } catch (error) {
+            console.error(error);
+            return [];
+        }
     }
     async getGrades(course: CourseStudent) {
         try {

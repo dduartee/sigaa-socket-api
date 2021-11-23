@@ -1,6 +1,6 @@
 {
   "name": "sigaa-socket-api",
-  "version": "1.0.8",
+  "version": "1.0.10",
   "description": "integração do modulo sigaa-api com sockets",
   "main": "dist/index.js",
   "scripts": {

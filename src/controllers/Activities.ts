@@ -50,11 +50,7 @@ export class Activities {
       return false;
     }
   }
-  /**
-   * Parser de Bonds
-   * @param params {bond: StudentBond, courses?: CourseStudent[]}
-   * @returns program, registration, courses
-   */
+
   static parser({ activity }: { activity: Activity }) {
     let description = "";
     switch (activity.type) {

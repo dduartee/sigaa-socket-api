@@ -14,7 +14,7 @@
     "url": "git+https://github.com/dduartee/sigaa-socket-api.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Gabriel Kleemann Duarte",
   "license": "MIT",
   "engines": {
     "node": "18.x"

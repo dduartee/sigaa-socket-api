@@ -16,6 +16,9 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "bugs": {
     "url": "https://github.com/dduartee/sigaa-socket-api/issues"
   },

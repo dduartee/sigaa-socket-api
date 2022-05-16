@@ -644,10 +644,9 @@ semver@^5.6.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.1.tgz#a954f931aeba508d307bbf069eff0c01c96116f7"
   integrity sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==
 
-sigaa-api@^1.0.28:
-  version "1.0.28"
-  resolved "https://registry.yarnpkg.com/sigaa-api/-/sigaa-api-1.0.28.tgz#a31d5c54f80dd348be2f6dd22349cd2d1667db6c"
-  integrity sha512-v/F7qh9Vkj811oXcv+DPzhnW+JVyWPPKRGxv+QGt5TNVya3U5thh8ecG84HCJTH7SyBqxzqdfZJa0dczOgIuLQ==
+"sigaa-api@git+https://github.com/dduartee/sigaa-api":
+  version "1.0.33"
+  resolved "git+https://github.com/dduartee/sigaa-api#380a021e33558e75d0e897611386a6f152114c30"
   dependencies:
     cheerio "^1.0.0-rc.10"
     formdata-node "^3.6.3"

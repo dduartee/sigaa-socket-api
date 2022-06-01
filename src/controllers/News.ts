@@ -1,12 +1,12 @@
 import { NewsData, News as NEWS } from "sigaa-api";
 import { Socket } from "socket.io";
-import { BondSIGAA } from "../api/BondSIGAA";
-import { CourseSIGAA } from "../api/CourseSIGAA";
+import { BondSIGAA } from "../services/sigaa-api/BondSIGAA";
 import { cacheUtil, jsonCache } from "../services/cacheUtil";
 import { Bonds } from "./Bonds";
 import { cacheHelper } from "../helpers/Cache";
 import { Courses } from "./Courses";
 import { events } from "../apiConfig.json"
+import { CourseSIGAA } from "../services/sigaa-api/CourseSIGAA";
 
 export class News {
     async list( params: { socket: Socket }, received: jsonCache["received"] ) {

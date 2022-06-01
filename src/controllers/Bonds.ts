@@ -1,6 +1,6 @@
 import { cacheUtil, jsonCache } from "../services/cacheUtil";
 import { StudentBond } from "sigaa-api";
-import { BondSIGAA } from "../api/BondSIGAA";
+import { BondSIGAA } from "../services/sigaa-api/BondSIGAA";
 import { Socket } from "socket.io";
 import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";

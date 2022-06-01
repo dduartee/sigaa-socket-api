@@ -1,7 +1,6 @@
 import { CourseStudent, StudentBond } from "sigaa-api";
 import { Socket } from "socket.io";
-import { BondSIGAA } from "../api/BondSIGAA";
-import { CourseSIGAA } from "../api/CourseSIGAA";
+import { BondSIGAA } from "../services/sigaa-api/BondSIGAA";
 import { cacheUtil, jsonCache } from "../services/cacheUtil";
 import { Bonds } from "./Bonds";
 import { cacheHelper } from "../helpers/Cache";
@@ -9,6 +8,7 @@ import { events } from "../apiConfig.json";
 import { Homeworks } from "./Homeworks";
 import { Grades } from "./Grades";
 import { News } from "./News";
+import { CourseSIGAA } from "../services/sigaa-api/CourseSIGAA";
 export class Courses {
   /**
    * Lista matérias de um vinculo especificado pelo registration

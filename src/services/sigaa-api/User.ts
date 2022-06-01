@@ -1,5 +1,5 @@
 import { Sigaa, Account } from 'sigaa-api';
-export class UserSIGAA {
+export class UserService {
     /**
      * Realiza login do usuario na api
      * @param credentials UserCredentials

@@ -1,4 +1,3 @@
-import { UserSIGAA } from "../api/UserSIGAA";
 import { session } from "../helpers/Session";
 import { baseURL } from "../apiConfig.json";
 import { Account } from "sigaa-api";
@@ -6,6 +5,7 @@ import { cacheService } from "../services/cacheService";
 import { Socket } from "socket.io";
 import { cacheUtil } from "../services/cacheUtil";
 import { events } from "../apiConfig.json"
+import { UserService } from "../services/sigaa-api/User";
 export class User {
     baseURL: string;
     logado: boolean;
@@ -26,7 +26,7 @@ export class User {
         try {
             if ( this.logado ) return "Usuario já esta logado";
             const { cache, uniqueID } = cacheUtil.restore( socket.id )
-            const userSigaa = new UserSIGAA();
+            const userSigaa = new UserService();
             let account: Account;
             if ( !cache?.account ) {
                 socket.emit( statusEventName, "Logando" )

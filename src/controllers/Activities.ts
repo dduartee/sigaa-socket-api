@@ -2,7 +2,7 @@ import { Socket } from "socket.io";
 import { cacheUtil, jsonCache } from "../services/cacheUtil";
 import { events } from "../apiConfig.json";
 import { cacheHelper } from "../helpers/Cache";
-import { BondSIGAA } from "../api/BondSIGAA";
+import { BondSIGAA } from "../services/sigaa-api/BondSIGAA";
 import { Bonds } from "./Bonds";
 import { Activity } from "sigaa-api/dist/activity/sigaa-activity-factory";
 import { CourseStudent } from "sigaa-api";

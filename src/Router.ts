@@ -32,7 +32,6 @@ export class Router {
     const news = new News();
     const grades = new Grades();
     const activities = new Activities();
-    console.log(socket.id);
 
     socket.use((event: any, next) => auth.middleware({ event, socket, next }));
 

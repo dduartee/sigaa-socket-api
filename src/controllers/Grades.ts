@@ -1,12 +1,12 @@
 import { GradeGroup } from "sigaa-api";
 import { Socket } from "socket.io";
-import { BondSIGAA } from "../api/BondSIGAA";
-import { CourseSIGAA } from "../api/CourseSIGAA";
+import { BondSIGAA } from "../services/sigaa-api/BondSIGAA";
 import { jsonCache, cacheUtil } from "../services/cacheUtil";
 import { Bonds } from "./Bonds";
 import { cacheHelper } from "../helpers/Cache";
 import { Courses } from "./Courses";
 import { events } from "../apiConfig.json";
+import { CourseSIGAA } from "../services/sigaa-api/CourseSIGAA";
 
 export class Grades {
   async list(params: { socket: Socket }, received: jsonCache["received"]) {

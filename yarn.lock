@@ -647,8 +647,8 @@ semver@^5.6.0:
   integrity sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==
 
 "sigaa-api@git+https://github.com/dduartee/sigaa-api#patch-decrease-memory":
-  version "1.0.33"
-  resolved "git+https://github.com/dduartee/sigaa-api#d258975390dd2d85a93ab4ed32aa39824fcba809"
+  version "1.0.34"
+  resolved "git+https://github.com/dduartee/sigaa-api#19cc33140ca5b9a84ed80eb2c202b279b3edd7b8"
   dependencies:
     cheerio "^1.0.0-rc.10"
     formdata-node "^3.6.3"

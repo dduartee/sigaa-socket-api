@@ -16,8 +16,11 @@ import {
     SigaaSession,
     BondFactory,
     InstitutionType,
-    Parser
+    Parser,
+    Page,
+    Request
 } from 'sigaa-api'
+import { SigaaRequestStack } from 'sigaa-api/dist/helpers/sigaa-request-stack';
 import { SigaaPageCacheFactory } from 'sigaa-api/dist/session/sigaa-page-cache-factory'
 import { SigaaPageCacheWithBond } from 'sigaa-api/dist/session/sigaa-page-cache-with-bond'
 import { URL } from 'url'
@@ -28,8 +31,7 @@ class SigaaAPIBuilder {
      * Gera as páginas de cache
      * @returns pageCache, pageCacheWithBond
      */
-    private getPagesCache() {
-        const timeoutCache = 15 * 1000
+    public getPagesCache(timeoutCache: number = 15*60*1000) {
         const pageCacheFactory = new SigaaPageCacheFactory()
         const pageCacheWithBond = new SigaaPageCacheWithBond(pageCacheFactory, timeoutCache)
         const pageCache = new SigaaPageCache(timeoutCache)
@@ -43,11 +45,12 @@ class SigaaAPIBuilder {
      * @param pageCache SigaaPageCache
      * @returns httpSession
      */
-    private getHTTPSession(url: string, cookie: JSESSIONID, pageCache: SigaaPageCache) {
+    public getHTTPSession(url: string, cookie: JSESSIONID, pageCache: SigaaPageCache) {
         const cookiesController = new SigaaCookiesController()
         const { hostname } = new URL(url)
         const cookiesControllerInjected = this.injectCookies(hostname, cookie, cookiesController)
-        return new SigaaHTTPSession(url, cookiesControllerInjected, pageCache)
+        const requestStack = new SigaaRequestStack<Request, Page>()
+        return new SigaaHTTPSession(url, cookiesControllerInjected, pageCache, requestStack)
     }
 
     /**
@@ -133,9 +136,7 @@ class SigaaAPIBuilder {
      * @param cookie JSESSIONID
      * @returns httpFactory
      */
-    public getHTTPFactory(url: string, cookie: JSESSIONID) {
-        const { pageCache, pageCacheWithBond } = this.getPagesCache()
-        const httpSession = this.getHTTPSession(url, cookie, pageCache)
+    public getHTTPFactory(url: string, cookie: JSESSIONID, pageCacheWithBond, httpSession) {
         const bondController = this.getBondController()
         const httpFactory = new SigaaHTTPFactory(
             httpSession,

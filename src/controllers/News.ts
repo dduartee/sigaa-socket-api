@@ -1,4 +1,3 @@
-import { NewsData, News as NEWS } from "sigaa-api";
 import { Socket } from "socket.io";
 import { BondSIGAA } from "../services/sigaa-api/BondSIGAA";
 import { cacheUtil, jsonCache } from "../services/cacheUtil";
@@ -7,6 +6,7 @@ import { cacheHelper } from "../helpers/Cache";
 import { Courses } from "./Courses";
 import { events } from "../apiConfig.json"
 import { CourseSIGAA } from "../services/sigaa-api/CourseSIGAA";
+import Authentication from "../services/sigaa-api/Authentication";
 
 export class News {
     async list( params: { socket: Socket }, received: jsonCache["received"] ) {
@@ -17,15 +17,14 @@ export class News {
         try {
 
             const { cache, uniqueID } = cacheUtil.restore( socket.id );
-            if ( !cache.account ) throw new Error( "Usuario não tem account" )
-            const { account, jsonCache } = cache
+            const { JSESSIONID, jsonCache } = cache
             if ( received.cache ) {
                 const newest = cacheHelper.getNewest( jsonCache, received )
                 if ( newest ) {
                     return socket.emit( eventName, JSON.stringify( newest["BondsJSON"] ) )
                 }
             }
-
+            const {account, httpSession} = await Authentication.loginWithJSESSIONID(JSESSIONID)
             const bonds = await new BondSIGAA().getBonds( account, inactive );
             const BondsJSON = [];
 

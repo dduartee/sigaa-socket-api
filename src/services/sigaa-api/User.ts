@@ -1,16 +1,5 @@
 import { Sigaa, Account } from 'sigaa-api';
-export class UserService {
-    /**
-     * Realiza login do usuario na api
-     * @param credentials UserCredentials
-     * @param baseURL String
-     * @returns Account
-     */
-    async login(credentials, baseURL: string) {
-        const {username, password} = credentials;
-        const account = await new Sigaa({url: baseURL}).login(username, password);
-        return account;
-    }
+class UserService {
     /**
      * Resgata informações do usuario
      * @param account Account
@@ -19,14 +8,8 @@ export class UserService {
     async info(account: Account) {
         const fullName = await account.getName();
         const profilePictureURL = await account.getProfilePictureURL()
-        return {fullName, profilePictureURL}
-    }
-    /**
-     * Realiza logoff do usuario na api
-     * @param account Account
-     * @returns void
-     */
-    async logoff(account: Account) {
-        return await account.logoff()
+        return { fullName, profilePictureURL }
     }
 };
+
+export default new UserService()

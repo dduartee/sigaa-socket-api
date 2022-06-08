@@ -1,4 +1,4 @@
-import { Account, Page, Sigaa } from "sigaa-api";
+import { Account, InstitutionType, Page, Sigaa } from "sigaa-api";
 import Builder, { JSESSIONID } from "./Builder";
 const expectedErrors = [
     'SIGAA: Invalid response after login attempt.',
@@ -65,9 +65,10 @@ class AuthenticationService {
         if (attemptLogin.page) {
             const attemptGetAccount = await this.attemptGetAccount(attemptLogin.page, sigaaInstance)
             if (attemptGetAccount.account) {
+                const JSESSIONID = attemptLogin.page.requestHeaders.Cookie 
                 return {
                     account: attemptGetAccount.account,
-                    page: attemptLogin.page,
+                    JSESSIONID
                 }
             } else {
                 throw new Error(attemptGetAccount.error)
@@ -76,19 +77,25 @@ class AuthenticationService {
             throw new Error(attemptLogin.error)
         }
     }
-    public async loginWithJSESSIONID(JSESSIONID: JSESSIONID, options: any) {
+    public async loginWithJSESSIONID(JSESSIONID: JSESSIONID, options = {
+        url: "https://sigaa.ifsc.edu.br",
+        institution: "IFSC" as InstitutionType
+    }) {
         /**
          * Injeta o JSESSIONID no Sigaa
          */
         const { url, institution } = options
-        const httpFactory = Builder.getHTTPFactory(url, JSESSIONID)
+        const { pageCache, pageCacheWithBond } = Builder.getPagesCache(100)
+        const httpSession = Builder.getHTTPSession(url, JSESSIONID, pageCache)
+        const httpFactory = Builder.getHTTPFactory(url, JSESSIONID, pageCacheWithBond, httpSession)
         const http = httpFactory.createHttp()
         const parser = Builder.getSIGAAParser()
         const bondFactory = Builder.getBondFactory(http, httpFactory, parser)
         const accountFactory = Builder.getAccountFactory(http, parser, bondFactory, institution)
-
         const page = await http.get('/sigaa/vinculos.jsf')
         const account = await accountFactory.getAccount(page)
-        return { account, page }
+        return { account, page, httpSession, pageCache, pageCacheWithBond }
     }
 }
+
+export default new AuthenticationService()

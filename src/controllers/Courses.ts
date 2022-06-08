@@ -1,4 +1,4 @@
-import { CourseStudent, StudentBond } from "sigaa-api";
+import { CourseStudent } from "sigaa-api";
 import { Socket } from "socket.io";
 import { BondSIGAA } from "../services/sigaa-api/BondSIGAA";
 import { cacheUtil, jsonCache } from "../services/cacheUtil";
@@ -6,9 +6,9 @@ import { Bonds } from "./Bonds";
 import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
 import { Homeworks } from "./Homeworks";
-import { Grades } from "./Grades";
 import { News } from "./News";
 import { CourseSIGAA } from "../services/sigaa-api/CourseSIGAA";
+import Authentication from "../services/sigaa-api/Authentication";
 export class Courses {
   /**
    * Lista matérias de um vinculo especificado pelo registration
@@ -23,15 +23,14 @@ export class Courses {
     const { inactive } = received;
     try {
       const { cache, uniqueID } = cacheUtil.restore(socket.id);
-      if (!cache.account) throw new Error("Usuario não tem account");
-      const { account, jsonCache } = cache;
+      const { JSESSIONID, jsonCache } = cache;
       if (received.cache) {
         const newest = cacheHelper.getNewest(jsonCache, received);
         if (newest) {
           return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]));
         }
       }
-
+      const {account, httpSession} = await Authentication.loginWithJSESSIONID(JSESSIONID) 
       const bonds = await new BondSIGAA().getBonds(account, inactive);
       const BondsJSON = [];
       for (const bond of bonds) {
@@ -43,7 +42,6 @@ export class Courses {
           }
           BondsJSON.push(Bonds.parser({ bond, CoursesJSON }));
           cacheHelper.storeCache(uniqueID, {
-            account,
             jsonCache: [
               { BondsJSON, received, time: new Date().toISOString() },
             ],
@@ -71,14 +69,14 @@ export class Courses {
     const { inactive } = received;
     try {
       const { cache, uniqueID } = cacheUtil.restore(socket.id);
-      if (!cache.account) throw new Error("Usuario não tem account");
-      const { account, jsonCache } = cache;
+      const { JSESSIONID, jsonCache } = cache;
       if (received.cache) {
         const newest = cacheHelper.getNewest(jsonCache, received);
         if (newest) {
           return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]));
         }
       }
+      const {account, httpSession} = await Authentication.loginWithJSESSIONID(JSESSIONID) 
       const bonds = await new BondSIGAA().getBonds(account, inactive);
       const BondsJSON = [];
       for (const bond of bonds) {
@@ -103,17 +101,18 @@ export class Courses {
               );
               BondsJSON.push(Bonds.parser({ bond, CoursesJSON }));
               cacheHelper.storeCache(uniqueID, {
-                account,
                 jsonCache: [
                   { BondsJSON, received, time: new Date().toISOString() },
                 ],
                 time: new Date().toISOString(),
               });
+              httpSession.close()
               return socket.emit(eventName, JSON.stringify(BondsJSON));
             }
           }
         }
       }
+      httpSession.close()
     } catch (error) {
       console.error(error);
       socket.emit(apiEventError, error.message);

@@ -4,6 +4,7 @@ import { BondSIGAA } from "../services/sigaa-api/BondSIGAA";
 import { Socket } from "socket.io";
 import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
+import Authentication from "../services/sigaa-api/Authentication";
 export class Bonds {
   /**
    * Lista vinculos com inativos opcional
@@ -16,26 +17,25 @@ export class Bonds {
 
     const eventName = events.bonds.list;
     const apiEventError = events.api.error;
-    const { inactive } = received;
+    const { inactive, registration } = received;
     try {
       const { cache, uniqueID } = cacheUtil.restore(socket.id);
-      if (!cache.account) throw new Error("Usuario não tem account");
-      const { account, jsonCache } = cache;
+      const { JSESSIONID, jsonCache } = cache;
       if (received.cache) {
         const newest = cacheHelper.getNewest(jsonCache, received);
         if (newest) {
           return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]));
         }
       }
+      const {account, httpSession} = await Authentication.loginWithJSESSIONID(JSESSIONID) 
       const bonds = await new BondSIGAA().getBonds(account, inactive);
       const BondsJSON = [];
       for (const bond of bonds) {
         BondsJSON.push(Bonds.parser({ bond }));
       }
+      httpSession.close()
       cacheHelper.storeCache(uniqueID, {
-        account,
         jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }],
-        rawCache: { bonds },
         time: new Date().toISOString(),
       });
       return socket.emit(eventName, JSON.stringify(BondsJSON));

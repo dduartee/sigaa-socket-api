@@ -3,9 +3,9 @@ import merge from "ts-deepmerge";
 import { session } from "../helpers/Session";
 import { cacheService } from "./cacheService";
 export type CacheType = {
-    account?: Account,
     jsonCache?: jsonCache[],
-    rawCache?: rawCache,
+    JSESSIONID?: string,
+    registration?: string,
     time?: string
 }
 export type jsonCache = {
@@ -22,11 +22,7 @@ export type jsonCache = {
     },
     time: string
 }
-export type rawCache = {
-    courses?: CourseStudent[],
-    bonds?: StudentBond[],
-    homeworks?: Homework[]
-}
+
 class CacheUtil {
     /**
      * Restaura cache pelo socket.id retornando o cache e uniqueID

@@ -28,7 +28,7 @@ export class Router {
     } else if (!connectedUsers.includes(socket.id)) {
       connectedUsers.push(socket.id);
       cacheService.set("connectedUsers", connectedUsers);
-      console.log("Connected users: ", connectedUsers);
+      console.log("Connected users: ", connectedUsers.length);
     }
     /**
      * Inicializações das classes dos eventos
@@ -100,7 +100,7 @@ export class Router {
       connectedUsers.splice(connectedUsers.indexOf(socket.id), 1); // Remove o usuário da lista de usuários conectados
       cacheService.set("connectedUsers", connectedUsers);
       console.log("Sessão finalizada");
-      console.log("Connected users: ", connectedUsers);
+      console.log("Connected users: ", connectedUsers.length);
     });
   }
 }

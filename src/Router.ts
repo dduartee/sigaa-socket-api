@@ -23,12 +23,18 @@ export class Router {
   async index() {
     const { socket } = this;
     const connectedUsers = cacheService.get<string[]>("connectedUsers");
-    if(!connectedUsers) {
+    if (!connectedUsers) {
       cacheService.set("connectedUsers", []);
+      cacheService.set("maxConnectedUsers", 0);
     } else if (!connectedUsers.includes(socket.id)) {
       connectedUsers.push(socket.id);
       cacheService.set("connectedUsers", connectedUsers);
+      const maxConnectedUsers = cacheService.get<number>("maxConnectedUsers");
+      if (connectedUsers.length > maxConnectedUsers) {
+        cacheService.set("maxConnectedUsers", connectedUsers.length);
+      }
       console.log("Connected users: ", connectedUsers.length);
+      console.log("Max connected users: ", maxConnectedUsers);
     }
     /**
      * Inicializações das classes dos eventos

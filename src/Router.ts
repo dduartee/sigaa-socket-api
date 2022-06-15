@@ -23,7 +23,7 @@ export class Router {
   async index() {
     const { socket } = this;
     const connectedUsers = cacheService.get<string[]>("connectedUsers");
-    if (!connectedUsers.includes(socket.id)) {
+    if (connectedUsers && !connectedUsers.includes(socket.id)) {
       connectedUsers.push(socket.id);
       cacheService.set("connectedUsers", connectedUsers);
       console.log("Connected users: ", connectedUsers);

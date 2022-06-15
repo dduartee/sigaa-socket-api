@@ -1,11 +1,11 @@
-import { UserSIGAA } from "../api/UserSIGAA";
 import { session } from "../helpers/Session";
 import { baseURL } from "../apiConfig.json";
-import { Account } from "sigaa-api";
+import { Sigaa } from "sigaa-api";
 import { cacheService } from "../services/cacheService";
 import { Socket } from "socket.io";
 import { cacheUtil } from "../services/cacheUtil";
 import { events } from "../apiConfig.json"
+import Authentication from "../services/sigaa-api/Authentication";
 export class User {
     baseURL: string;
     logado: boolean;
@@ -18,54 +18,47 @@ export class User {
      * @param params 
      * @returns 
      */
-    async login( credentials, params: { socket: Socket } ) {
+    async login(credentials, params: { socket: Socket }) {
         const { socket } = params;
         const eventName = events.user.login;
         const statusEventName = events.user.status;
         const apiEventError = events.api.error;
+        if (this.logado) return "Usuario já esta logado";
         try {
-            if ( this.logado ) return "Usuario já esta logado";
-            const { cache, uniqueID } = cacheUtil.restore( socket.id )
-            const userSigaa = new UserSIGAA();
-            let account: Account;
-            if ( !cache?.account ) {
-                socket.emit( statusEventName, "Logando" )
-                if ( credentials.username && credentials.password ) {
-                    account = await userSigaa.login( credentials, this.baseURL );
-                } else {
-                    throw new Error( "Usuario não informou as credenciais" )
-                }
-                cacheUtil.merge( uniqueID, { account, jsonCache: [], rawCache: {}, time: new Date().toISOString() } )
-            } else {
-                account = cache.account;
+            socket.emit(statusEventName, "Logando")
+            if (credentials.username && credentials.password) {
+                const sigaaInstance = new Sigaa({ url: this.baseURL });
+                const { JSESSIONID } = await Authentication.loginWithCredentials(credentials, sigaaInstance);
+                const { uniqueID } = cacheUtil.restore(socket.id)
+                cacheUtil.merge(uniqueID, { JSESSIONID })
+                sigaaInstance.close()
             }
             this.logado = true;
-            console.log( "Logado" );
-        } catch ( error ) {
-            console.error( error );
-            socket.emit( apiEventError, error.message )
+        } catch (error) {
+            console.error(error);
+            socket.emit(apiEventError, error.message)
             this.logado = false;
         }
-        socket.emit( statusEventName, this.logado ? "Logado" : "Deslogado" )
-        return socket.emit( eventName, JSON.stringify( { logado: this.logado } ) )
+        socket.emit(statusEventName, this.logado ? "Logado" : "Deslogado")
+        return socket.emit(eventName, JSON.stringify({ logado: this.logado }))
     }
     /**
      *  Realiza evento de envio de informações do usuario
      * @param params 
      */
-    async info( params: { socket: Socket } ) {
+    async info(params: { socket: Socket }) {
         const { socket } = params;
         const eventName = events.user.info;
         const apiEventError = events.api.error;
         try {
-            const { cache, uniqueID } = cacheUtil.restore( socket.id )
-            if ( !cache.account ) throw new Error( "Usuario não tem account" )
-            const account: Account = cache.account;
+            const { cache, uniqueID } = cacheUtil.restore(socket.id)
+            const {account, httpSession} = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
             const info = { fullName: await account.getName(), profilePictureURL: await account.getProfilePictureURL() }
-            socket.emit( eventName, JSON.stringify( info ) )
-        } catch ( error ) {
-            console.error( error );
-            socket.emit( apiEventError, error.message )
+            httpSession.close()
+            socket.emit(eventName, JSON.stringify(info))
+        } catch (error) {
+            console.error(error);
+            socket.emit(apiEventError, error.message)
         }
     }
     /**
@@ -73,25 +66,26 @@ export class User {
      * @param params 
      * @returns 
      */
-    async logoff( params: { socket: Socket } ) {
+    async logoff(params: { socket: Socket }) {
         const eventName = events.user.login;
         const statusEventName = events.user.status;
         const apiEventError = events.api.error;
         const { socket } = params;
         try {
-            const { cache, uniqueID } = cacheUtil.restore( socket.id )
-            if ( !cache.account ) throw new Error( "Usuario não tem account" )
-            socket.emit( statusEventName, "Deslogando" )
-            await cache.account.logoff()
-            session.delete( socket.id )
-            cacheService.del( uniqueID )
-            console.log( "Deslogado" )
+            const { cache, uniqueID } = cacheUtil.restore(socket.id)
+            const {account, httpSession} = await Authentication.loginWithJSESSIONID(cache.JSESSIONID) 
+            socket.emit(statusEventName, "Deslogando")
+            await account.logoff()
+            httpSession.close()
+            session.delete(socket.id)
+            cacheService.del(uniqueID)
+            console.log("Deslogado")
             this.logado = false;
-            socket.emit( statusEventName, "Deslogado" )
-            return socket.emit( eventName, JSON.stringify( { logado: false } ) )
-        } catch ( error ) {
-            console.error( error );
-            socket.emit( apiEventError, error.message )
+            socket.emit(statusEventName, "Deslogado")
+            return socket.emit(eventName, JSON.stringify({ logado: false }))
+        } catch (error) {
+            console.error(error);
+            socket.emit(apiEventError, error.message)
             return false;
         }
     }

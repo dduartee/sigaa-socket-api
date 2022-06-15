@@ -10,6 +10,7 @@ import { User } from "./controllers/User";
 
 import { Auth } from "./middlewares/Auth";
 import { Activities } from "./controllers/Activities";
+import { cacheService } from "./services/cacheService";
 export class Router {
   socket: Socket;
   io: Server;
@@ -21,6 +22,22 @@ export class Router {
 
   async index() {
     const { socket } = this;
+    const connectedUsers = cacheService.get<string[]>("connectedUsers");
+    if (!connectedUsers) {
+      cacheService.set("connectedUsers", []);
+      cacheService.set("maxConnectedUsers", 0);
+    } else if (!connectedUsers.includes(socket.id)) {
+      connectedUsers.push(socket.id);
+      cacheService.set("connectedUsers", connectedUsers);
+      const maxConnectedUsers = cacheService.get<number>("maxConnectedUsers");
+      if (connectedUsers.length > maxConnectedUsers) {
+        cacheService.set("maxConnectedUsers", connectedUsers.length);
+        console.log("Max connected users: ", connectedUsers.length);
+      } else {
+        console.log("Max connected users: ", maxConnectedUsers);
+      }
+      console.log("Connected users: ", connectedUsers.length);
+    }
     /**
      * Inicializações das classes dos eventos
      */
@@ -32,7 +49,6 @@ export class Router {
     const news = new News();
     const grades = new Grades();
     const activities = new Activities();
-    console.log(socket.id);
 
     socket.use((event: any, next) => auth.middleware({ event, socket, next }));
 
@@ -88,7 +104,11 @@ export class Router {
 
     socket.on("disconnect", async (reason) => {
       session.delete(socket.id);
+      const connectedUsers = cacheService.get<string[]>("connectedUsers");
+      connectedUsers.splice(connectedUsers.indexOf(socket.id), 1); // Remove o usuário da lista de usuários conectados
+      cacheService.set("connectedUsers", connectedUsers);
       console.log("Sessão finalizada");
+      console.log("Connected users: ", connectedUsers.length);
     });
   }
 }

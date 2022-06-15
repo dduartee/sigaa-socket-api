@@ -10,6 +10,7 @@ import { User } from "./controllers/User";
 
 import { Auth } from "./middlewares/Auth";
 import { Activities } from "./controllers/Activities";
+import { cacheService } from "./services/cacheService";
 export class Router {
   socket: Socket;
   io: Server;
@@ -21,6 +22,12 @@ export class Router {
 
   async index() {
     const { socket } = this;
+    const connectedUsers = cacheService.get<string[]>("connectedUsers");
+    if (!connectedUsers.includes(socket.id)) {
+      connectedUsers.push(socket.id);
+      cacheService.set("connectedUsers", connectedUsers);
+      console.log("Connected users: ", connectedUsers);
+    }
     /**
      * Inicializações das classes dos eventos
      */
@@ -87,7 +94,11 @@ export class Router {
 
     socket.on("disconnect", async (reason) => {
       session.delete(socket.id);
+      const connectedUsers = cacheService.get<string[]>("connectedUsers");
+      connectedUsers.splice(connectedUsers.indexOf(socket.id), 1); // Remove o usuário da lista de usuários conectados
+      cacheService.set("connectedUsers", connectedUsers);
       console.log("Sessão finalizada");
+      console.log("Connected users: ", connectedUsers);
     });
   }
 }

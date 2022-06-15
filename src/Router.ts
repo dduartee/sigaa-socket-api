@@ -32,9 +32,11 @@ export class Router {
       const maxConnectedUsers = cacheService.get<number>("maxConnectedUsers");
       if (connectedUsers.length > maxConnectedUsers) {
         cacheService.set("maxConnectedUsers", connectedUsers.length);
+        console.log("Max connected users: ", connectedUsers.length);
+      } else {
+        console.log("Max connected users: ", maxConnectedUsers);
       }
       console.log("Connected users: ", connectedUsers.length);
-      console.log("Max connected users: ", maxConnectedUsers);
     }
     /**
      * Inicializações das classes dos eventos

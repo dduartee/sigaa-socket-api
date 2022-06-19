@@ -31,7 +31,7 @@ class Auth implements IAuth {
             if (difftime < 6) {
                 this.token = token;
                 const hasCache = cacheHelper.getCache(uniqueID)
-                if(hasCache.JSESSIONID) {
+                if(hasCache?.JSESSIONID) {
                     session.update(sid, uniqueID)
                     socket.emit(eventName, true)
                 }

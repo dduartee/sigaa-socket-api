@@ -25,8 +25,8 @@ export class User {
         const apiEventError = events.api.error;
         if (this.logado) return "Usuario já esta logado";
         try {
-            socket.emit(statusEventName, "Logando")
             if (credentials.username && credentials.password) {
+                socket.emit(statusEventName, "Logando")
                 const sigaaInstance = new Sigaa({ url: this.baseURL });
                 const { JSESSIONID } = await Authentication.loginWithCredentials(credentials, sigaaInstance);
                 const { uniqueID } = cacheUtil.restore(socket.id)

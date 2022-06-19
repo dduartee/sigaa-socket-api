@@ -6,6 +6,7 @@ import { Socket } from "socket.io";
 import { cacheUtil } from "../services/cacheUtil";
 import { events } from "../apiConfig.json"
 import Authentication from "../services/sigaa-api/Authentication";
+import { cacheHelper } from "../helpers/Cache";
 export class User {
     baseURL: string;
     logado: boolean;
@@ -25,6 +26,7 @@ export class User {
         const apiEventError = events.api.error;
         if (this.logado) return "Usuario já esta logado";
         try {
+            // login com credenciais
             if (credentials.username && credentials.password) {
                 socket.emit(statusEventName, "Logando")
                 const sigaaInstance = new Sigaa({ url: this.baseURL });
@@ -34,7 +36,16 @@ export class User {
                 sigaaInstance.close()
                 this.logado = true;
             } else {
-                this.logado = false;
+                // login com o JSESSIONID
+                const { cache } = cacheUtil.restore(socket.id)
+                if(cache?.JSESSIONID) {
+                    socket.emit(statusEventName, "Logando")
+                    const { httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
+                    httpSession.close()
+                    this.logado = true;
+                } else {
+                    this.logado = false;
+                }
             }
         } catch (error) {
             console.error(error);
@@ -54,7 +65,7 @@ export class User {
         const apiEventError = events.api.error;
         try {
             const { cache, uniqueID } = cacheUtil.restore(socket.id)
-            const {account, httpSession} = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
+            const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
             const info = { fullName: await account.getName(), profilePictureURL: await account.getProfilePictureURL() }
             httpSession.close()
             socket.emit(eventName, JSON.stringify(info))
@@ -75,7 +86,7 @@ export class User {
         const { socket } = params;
         try {
             const { cache, uniqueID } = cacheUtil.restore(socket.id)
-            const {account, httpSession} = await Authentication.loginWithJSESSIONID(cache.JSESSIONID) 
+            const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
             socket.emit(statusEventName, "Deslogando")
             await account.logoff()
             httpSession.close()

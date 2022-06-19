@@ -32,8 +32,10 @@ export class User {
                 const { uniqueID } = cacheUtil.restore(socket.id)
                 cacheUtil.merge(uniqueID, { JSESSIONID })
                 sigaaInstance.close()
+                this.logado = true;
+            } else {
+                this.logado = false;
             }
-            this.logado = true;
         } catch (error) {
             console.error(error);
             socket.emit(apiEventError, error.message)

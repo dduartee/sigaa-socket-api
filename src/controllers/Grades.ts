@@ -27,7 +27,7 @@ export class Grades {
       const BondsJSON = [];
       for (const bond of bonds) {
         if (bond.registration == received.registration) {
-          const courses = await new CourseSIGAA().getCourses(bond);
+          const courses = await new CourseSIGAA().getCourses(bond, received.inactive);
           const CoursesJSON = [];
           for (const course of courses) {
             pageCache.clearCachePage()

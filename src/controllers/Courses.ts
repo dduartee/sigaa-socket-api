@@ -35,7 +35,7 @@ export class Courses {
       const BondsJSON = [];
       for (const bond of bonds) {
         if (bond.registration == received.registration) {
-          const courses = await new CourseSIGAA().getCourses(bond);
+          const courses = await new CourseSIGAA().getCourses(bond, inactive);
           const CoursesJSON = [];
           for (const course of courses) {
             CoursesJSON.push(Courses.parser({ course }));

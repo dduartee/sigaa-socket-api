@@ -1,8 +1,8 @@
 import { CourseStudent, StudentBond } from "sigaa-api";
 
 export class CourseSIGAA {
-    async getCourses(bond: StudentBond) {
-        const courses = await bond.getCourses();
+    async getCourses(bond: StudentBond, allPeriods: boolean = false) {
+        const courses = await bond.getCourses(allPeriods);
         return courses;
     }
     async getHomeworks(course: CourseStudent) {

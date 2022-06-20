@@ -1,6 +1,5 @@
 import { Server } from "socket.io";
 import { Router } from "./Router";
-import { cacheService } from "./services/cacheService";
 
 const io = new Server({
     cors: {

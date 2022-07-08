@@ -1,10 +1,10 @@
 import { cacheUtil, jsonCache } from "../services/cacheUtil";
 import { StudentBond } from "sigaa-api";
-import { BondSIGAA } from "../services/sigaa-api/BondSIGAA";
+import { BondSIGAA } from "../services/sigaa-api/Bond.service";
 import { Socket } from "socket.io";
 import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
-import Authentication from "../services/sigaa-api/Authentication";
+import Authentication from "../services/sigaa-api/Authentication.service";
 export class Bonds {
   /**
    * Lista vinculos com inativos opcional

@@ -31,7 +31,7 @@ export class BondSIGAA {
       const activities = await bond.getActivities();
       return activities;
     } catch (error) {
-      console.log(`Error getting activities: ${error}`);
+      console.log(`Error getting activities: ${error} @ ${retryTimes}/3`);
       if (retryTimes < 3) {
         return this.getActivities(bond, retryTimes + 1);
       } else {

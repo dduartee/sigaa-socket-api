@@ -1,12 +1,12 @@
 import { Socket } from "socket.io";
-import { BondSIGAA } from "../services/sigaa-api/BondSIGAA";
+import { BondSIGAA } from "../services/sigaa-api/Bond.service";
 import { jsonCache, cacheUtil } from "../services/cacheUtil";
 import { Bonds } from "./Bonds";
 import { cacheHelper } from "../helpers/Cache";
 import { Courses } from "./Courses";
 import { events } from "../apiConfig.json";
-import { CourseSIGAA } from "../services/sigaa-api/CourseSIGAA";
-import Authentication from "../services/sigaa-api/Authentication";
+import { CourseSIGAA } from "../services/sigaa-api/Course.service";
+import Authentication from "../services/sigaa-api/Authentication.service";
 
 export class Grades {
   async list(params: { socket: Socket }, received: jsonCache["received"]) {

@@ -5,6 +5,7 @@ import { v4 } from 'uuid';
 import { session } from '../helpers/Session';
 import { cacheHelper } from '../helpers/Cache';
 import { events } from "../apiConfig.json"
+import { cacheService } from '../services/cacheService';
 export interface IAuth {
     secret: string;
     token: string;
@@ -57,7 +58,8 @@ class Auth implements IAuth {
                 const difftime = this.diffTime(time);
                 if (difftime < 6) {
                     this.token = token;
-                    session.update(sid, uniqueID)
+                    cacheService.del(sid);
+                    cacheService.set(sid, uniqueID);
                     return next();
                 }
             }
@@ -66,7 +68,10 @@ class Auth implements IAuth {
             const time = new Date().toISOString(); // CACHE
             const newToken: any = this.sign({ time, uniqueID, sid })
             this.token = newToken;
-            session.create(sid, uniqueID)
+            cacheService.set(sid, uniqueID);
+            cacheService.set(uniqueID, {
+                time,
+            });
             socket.emit(eventName, newToken)
             return next();
         } catch (err) {

@@ -2,10 +2,10 @@ import { Socket } from "socket.io";
 import { cacheUtil, jsonCache } from "../services/cacheUtil";
 import { events } from "../apiConfig.json";
 import { cacheHelper } from "../helpers/Cache";
-import { BondSIGAA } from "../services/sigaa-api/BondSIGAA";
+import { BondSIGAA } from "../services/sigaa-api/Bond.service";
 import { Bonds } from "./Bonds";
 import { Activity } from "sigaa-api/dist/activity/sigaa-activity-factory";
-import Authentication from "../services/sigaa-api/Authentication";
+import Authentication from "../services/sigaa-api/Authentication.service";
 
 export class Activities {
   async list(params: { socket: Socket }, received?: jsonCache["received"]) {

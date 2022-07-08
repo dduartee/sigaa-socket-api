@@ -30,7 +30,7 @@ class CacheUtil {
      * @returns 
      */
     restore(sid: string) {
-        const uniqueID: string = session.read(sid);
+        const uniqueID: string = cacheService.get(sid)
         const cache: CacheType = cacheService.get(uniqueID)
         return { cache, uniqueID };
     }

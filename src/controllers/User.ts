@@ -5,7 +5,7 @@ import { cacheService } from "../services/cacheService";
 import { Socket } from "socket.io";
 import { cacheUtil } from "../services/cacheUtil";
 import { events } from "../apiConfig.json"
-import Authentication from "../services/sigaa-api/Authentication";
+import Authentication from "../services/sigaa-api/Authentication.service";
 import { cacheHelper } from "../helpers/Cache";
 export class User {
     baseURL: string;
@@ -31,14 +31,14 @@ export class User {
                 socket.emit(statusEventName, "Logando")
                 const sigaaInstance = new Sigaa({ url: this.baseURL });
                 const { JSESSIONID } = await Authentication.loginWithCredentials(credentials, sigaaInstance);
-                const { uniqueID } = cacheUtil.restore(socket.id)
+                const uniqueID: string = cacheService.get(socket.id)
                 cacheUtil.merge(uniqueID, { JSESSIONID })
                 sigaaInstance.close()
                 this.logado = true;
             } else {
                 // login com o JSESSIONID
                 const { cache } = cacheUtil.restore(socket.id)
-                if(cache?.JSESSIONID) {
+                if (cache?.JSESSIONID) {
                     socket.emit(statusEventName, "Logando")
                     const { httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
                     httpSession.close()

@@ -107,7 +107,6 @@ export class Router {
       const connectedUsers = cacheService.get<string[]>("connectedUsers");
       connectedUsers.splice(connectedUsers.indexOf(socket.id), 1); // Remove o usuário da lista de usuários conectados
       cacheService.set("connectedUsers", connectedUsers);
-      console.log("Sessão finalizada");
       console.log("Connected users: ", connectedUsers.length);
     });
   }

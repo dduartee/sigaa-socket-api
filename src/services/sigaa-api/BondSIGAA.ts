@@ -26,13 +26,17 @@ export class BondSIGAA {
     }
   }
 
-  async getActivities(bond: StudentBond) {
+  async getActivities(bond: StudentBond, retryTimes = 0) {
     try {
       const activities = await bond.getActivities();
       return activities;
     } catch (error) {
-      console.error(error);
-      return [];
+      console.log(`Error getting activities: ${error}`);
+      if (retryTimes < 3) {
+        return this.getActivities(bond, retryTimes + 1);
+      } else {
+        return [];
+      }
     }
   }
 }

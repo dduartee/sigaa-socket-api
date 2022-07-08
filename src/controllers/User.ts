@@ -92,7 +92,6 @@ export class User {
             httpSession.close()
             session.delete(socket.id)
             cacheService.del(uniqueID)
-            console.log("Deslogado")
             this.logado = false;
             socket.emit(statusEventName, "Deslogado")
             return socket.emit(eventName, JSON.stringify({ logado: false }))

@@ -6,7 +6,7 @@ export class CourseSIGAA {
             const courses = await bond.getCourses(allPeriods);
             return courses;
         } catch (e) {
-            console.log(`Error getting courses: ${e}`);
+            console.log(`Error getting courses: ${e} @ ${retryTimes}/3`);
             if (retryTimes < 3) {
                 return this.getCourses(bond, allPeriods, retryTimes + 1);
             } else {

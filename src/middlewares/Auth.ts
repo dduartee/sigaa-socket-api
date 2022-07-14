@@ -30,7 +30,7 @@ class Auth implements IAuth {
             const hasCache = cacheHelper.getCache(uniqueID)
             const sid = socket.id;
             const difftime = this.diffTime(time);
-            if (difftime < 6) {
+            if (difftime < 6 && hasCache) {
                 this.token = token;
                 session.update(sid, uniqueID)
                 socket.emit(eventName, true)
@@ -51,12 +51,14 @@ class Auth implements IAuth {
         try {
             if (!event[1]) throw new Error("No token received");
             const { token } = event[1];
-            const valid = token && this.verify(token) && this.decode(token);
+            const verify = token && this.verify(token);
+            const valid = verify && this.decode(token);
             if (valid) {
                 const { time, uniqueID } = valid;
                 const sid = socket.id;
                 const difftime = this.diffTime(time);
-                if (difftime < 6) {
+                const hasCache = cacheHelper.getCache(uniqueID)
+                if (difftime < 6 && hasCache) {
                     this.token = token;
                     cacheService.del(sid);
                     cacheService.set(sid, uniqueID);

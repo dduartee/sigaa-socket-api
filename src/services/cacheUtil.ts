@@ -10,7 +10,7 @@ export type CacheType = {
 }
 export type jsonCache = {
     BondsJSON: any[],
-    received: {
+    query: {
         registration?: string,
         code?: string,
         inactive?: boolean,

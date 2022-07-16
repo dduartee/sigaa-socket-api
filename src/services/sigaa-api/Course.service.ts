@@ -1,56 +1,56 @@
 import { CourseStudent, StudentBond } from "sigaa-api";
+import RetryService from "../Retry.service";
 
-export class CourseSIGAA {
-    async getCourses(bond: StudentBond, allPeriods: boolean = false, retryTimes = 0) {
-        try {
-            const courses = await bond.getCourses(allPeriods);
-            return courses;
-        } catch (e) {
-            console.log(`Error getting courses: ${e} @ ${retryTimes}/3`);
-            if (retryTimes < 3) {
-                return this.getCourses(bond, allPeriods, retryTimes + 1);
-            } else {
-                return [];
-            }
-        }
+export class CourseService {
+    constructor(private course: CourseStudent) { }
+    async getHomeworks() {
+        return RetryService.retry(
+            async () => {
+                const homeworkList = await this.course.getHomeworks()
+                return homeworkList;
+            }, [])
     }
-    async getHomeworks(course: CourseStudent, retryTimes = 0) {
-        try {
-            const homeworkList = await course.getHomeworks()
-            return homeworkList;
-        } catch (error) {
-            console.log(`Error getting homeworks: ${error} @ ${retryTimes}/3`)
-            if (retryTimes < 3) {
-                return this.getHomeworks(course, retryTimes + 1);
-            } else {
-                return [];
-            }
-        }
+    async getGrades() {
+        return RetryService.retry(
+            async () => {
+                const grades = await this.course.getGrades();
+                return grades;
+            }, [])
     }
-    async getGrades(course: CourseStudent, retryTimes = 0) {
-        try {
-            const grades = await course.getGrades();
-            return grades;
-        } catch (error) {
-            console.log(`Error getting grades: ${error} @ ${retryTimes}/3`)
-            if (retryTimes < 3) {
-                return this.getGrades(course, retryTimes + 1);
-            } else {
-                return [];
-            }
-        }
+    async getNews() {
+        return RetryService.retry(
+            async () => {
+                const news = await this.course.getNews();
+                return news;
+            }, [])
     }
-    async getNews(course: CourseStudent, retryTimes = 0) {
-        try {
-            const news = await course.getNews();
-            return news;
-        } catch (error) {
-            console.log(`Error getting news: ${error} @ ${retryTimes}/3`)
-            if (retryTimes < 3) {
-                return this.getNews(course, retryTimes + 1);
-            } else {
-                return [];
-            }
-        }
+    async getLessons() {
+        return RetryService.retry(
+            async () => {
+                const lessons = await this.course.getLessons();
+                return lessons;
+            }, [])
     }
+    async getAbsence() {
+        return RetryService.retry(
+            async () => {
+                const absence = await this.course.getAbsence();
+                return absence;
+            }, [])
+    }
+    async getMembers() {
+        return RetryService.retry(
+            async () => {
+                const members = await this.course.getMembers();
+                return members;
+            }, [])
+    }
+    async getSyllabus() {
+        return RetryService.retry(
+            async () => {
+                const syllabus = await this.course.getSyllabus();
+                return syllabus;
+            }, [])
+    }
+
 };

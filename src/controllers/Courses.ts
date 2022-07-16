@@ -1,124 +1,71 @@
 import { CourseStudent } from "sigaa-api";
 import { Socket } from "socket.io";
-import { BondSIGAA } from "../services/sigaa-api/Bond.service";
-import { cacheUtil, jsonCache } from "../services/cacheUtil";
+import { cacheUtil } from "../services/cacheUtil";
 import { Bonds } from "./Bonds";
 import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
-import { Homeworks } from "./Homeworks";
-import { News } from "./News";
-import { CourseSIGAA } from "../services/sigaa-api/Course.service";
 import Authentication from "../services/sigaa-api/Authentication.service";
+import { AccountService } from "../services/sigaa-api/Account.service";
+import { BondService } from "../services/sigaa-api/Bond.service";
+import { BondDTO } from "../DTOs/Bond.DTO";
+import { CourseDTO } from "../DTOs/CourseDTO";
 export class Courses {
+  constructor(private socketService: Socket) { }
   /**
    * Lista matérias de um vinculo especificado pelo registration
    * @param params socket
-   * @param received registration
+   * @param query registration
    * @returns
    */
-  async list(params: { socket: Socket }, received: jsonCache["received"]) {
-    const { socket } = params;
+  async list(query: { inactive: boolean, allPeriods: boolean, cache: boolean, registration: string }) {
     const eventName = events.courses.list;
     const apiEventError = events.api.error;
-    const { inactive } = received;
     try {
-      const { cache, uniqueID } = cacheUtil.restore(socket.id);
+      const { cache, uniqueID } = cacheUtil.restore(this.socketService.id);
       const { JSESSIONID, jsonCache } = cache;
-      if (received.cache) {
-        const newest = cacheHelper.getNewest(jsonCache, received);
+      if (query.cache) {
+        const newest = cacheHelper.getNewest(jsonCache, query);
         if (newest) {
-          return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]));
+          return this.socketService.emit(eventName, JSON.stringify(newest["BondsJSON"]));
         }
       }
-      const {account, httpSession} = await Authentication.loginWithJSESSIONID(JSESSIONID) 
-      const bonds = await new BondSIGAA().getBonds(account, inactive);
-      const BondsJSON = [];
-      for (const bond of bonds) {
-        if (bond.registration == received.registration) {
-          const courses = await new CourseSIGAA().getCourses(bond, inactive);
-          const CoursesJSON = [];
-          for (const course of courses) {
-            CoursesJSON.push(Courses.parser({ course }));
-          }
-          BondsJSON.push(Bonds.parser({ bond, CoursesJSON }));
-          cacheHelper.storeCache(uniqueID, {
-            jsonCache: [
-              { BondsJSON, received, time: new Date().toISOString() },
-            ],
-            time: new Date().toISOString(),
-          });
-          return socket.emit(eventName, JSON.stringify(BondsJSON));
-        }
+      const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
+      const accountService = new AccountService(account);
+      const activeBonds = await accountService.getActiveBonds();
+      const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
+      const bonds = [...activeBonds, ...inactiveBonds];
+      const bond = bonds.find(b => b.registration === query.registration);
+      const bondService = new BondService(bond);
+      const period = await bondService.getCurrentPeriod()
+      const active = activeBonds.includes(bond);
+      const bondDTO = new BondDTO(bond, active, period)
+      const courses = await bondService.getCourses(query.allPeriods)
+      httpSession.close()
+      const coursesDTOs: CourseDTO[] = []
+      for (const course of courses) {
+        const courseDTO = new CourseDTO(course);
+        coursesDTOs.push(courseDTO)
       }
+      const bondJSON = bondDTO.toJSON({ coursesDTOs });
+      cacheHelper.storeCache(uniqueID, {
+        jsonCache: [
+          { BondsJSON: [bondJSON], query, time: new Date().toISOString() },
+        ],
+        time: new Date().toISOString(),
+      });
+      return this.socketService.emit(eventName, bondJSON);
     } catch (error) {
       console.error(error);
-      socket.emit(apiEventError, error.message);
+      this.socketService.emit(apiEventError, error.message);
       return false;
     }
   }
   /**
    * Lista detalhes de uma matéria especificado pelo code
    * @param params socket
-   * @param received registration
+   * @param query registration
    * @returns
    */
-  async details(params: { socket: Socket }, received: jsonCache["received"]) {
-    const { socket } = params;
-    const eventName = events.courses.details;
-    const apiEventError = events.api.error;
-    const { inactive } = received;
-    try {
-      const { cache, uniqueID } = cacheUtil.restore(socket.id);
-      const { JSESSIONID, jsonCache } = cache;
-      if (received.cache) {
-        const newest = cacheHelper.getNewest(jsonCache, received);
-        if (newest) {
-          return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]));
-        }
-      }
-      const {account, httpSession} = await Authentication.loginWithJSESSIONID(JSESSIONID) 
-      const bonds = await new BondSIGAA().getBonds(account, inactive);
-      const BondsJSON = [];
-      for (const bond of bonds) {
-        if (bond.registration == received.registration) {
-          const courses = await new CourseSIGAA().getCourses(bond);
-          const CoursesJSON = [];
-          for (const course of courses) {
-            if (course.code == received.code) {
-              const homeworksList = await new CourseSIGAA().getHomeworks(
-                course
-              );
-              const homeworks = await Homeworks.parser(
-                homeworksList,
-                received.fullDetails
-              );
-              const gradesGroups = await new CourseSIGAA().getGrades(course);
-              const grades = gradesGroups;
-              const newsList = await new CourseSIGAA().getNews(course);
-              const news = await News.parser(newsList, received.fullDetails);
-              CoursesJSON.push(
-                Courses.parser({ course, grades, news, homeworks })
-              );
-              BondsJSON.push(Bonds.parser({ bond, CoursesJSON }));
-              cacheHelper.storeCache(uniqueID, {
-                jsonCache: [
-                  { BondsJSON, received, time: new Date().toISOString() },
-                ],
-                time: new Date().toISOString(),
-              });
-              httpSession.close()
-              return socket.emit(eventName, JSON.stringify(BondsJSON));
-            }
-          }
-        }
-      }
-      httpSession.close()
-    } catch (error) {
-      console.error(error);
-      socket.emit(apiEventError, error.message);
-      return false;
-    }
-  }
 
   /**
    * Parser da matéria

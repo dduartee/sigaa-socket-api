@@ -1,75 +1,65 @@
-import { Socket } from "socket.io";
 import { cacheUtil, jsonCache } from "../services/cacheUtil";
 import { events } from "../apiConfig.json";
 import { cacheHelper } from "../helpers/Cache";
-import { BondSIGAA } from "../services/sigaa-api/Bond.service";
 import { Bonds } from "./Bonds";
 import { Activity } from "sigaa-api/dist/activity/sigaa-activity-factory";
 import Authentication from "../services/sigaa-api/Authentication.service";
+import { BondService } from "../services/sigaa-api/Bond.service";
+import { AccountService } from "../services/sigaa-api/Account.service";
+import { Socket } from "socket.io";
+import { BondDTO } from "../DTOs/Bond.DTO";
+import { ActivityDTO } from "../DTOs/Activity.DTO";
 
 export class Activities {
-  async list(params: { socket: Socket }, received?: jsonCache["received"]) {
-    const { socket } = params;
-
+  constructor(private socketService: Socket) { }
+  async list(query: {
+    cache: boolean,
+    registration: string,
+    inactive: boolean,
+  }) {
     const eventName = events.activities.list;
     const apiEventError = events.api.error;
-    const { inactive } = received;
     try {
-      const { cache, uniqueID } = cacheUtil.restore(socket.id);
+      const { cache, uniqueID } = cacheUtil.restore(this.socketService.id);
       const { JSESSIONID, jsonCache } = cache;
-      if (received.cache) {
-        const newest = cacheHelper.getNewest(jsonCache, received);
+      if(!JSESSIONID) {
+        throw new Error("API: No JSESSIONID found in cache.");
+      }
+      if (query.cache) {
+        const newest = cacheHelper.getNewest(jsonCache, query);
         if (newest) {
-          return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]));
+          const bond = newest["BondsJSON"].find(b => b.registration === query.registration);
+          return this.socketService.emit(eventName, bond);
         }
       }
-      const {account, httpSession} = await Authentication.loginWithJSESSIONID(JSESSIONID) 
-      const bonds = await new BondSIGAA().getBonds(account, inactive);
-      const BondsJSON = [];
-      const ActivitiesJSON = [];
-      for (const bond of bonds) {
-        if (received.registration === bond.registration) {
-          const activities = await new BondSIGAA().getActivities(bond);
-          for (const activity of activities) {
-            ActivitiesJSON.push(Activities.parser({ activity }));
-          }
-          BondsJSON.push(Bonds.parser({ bond, ActivitiesJSON }));
-        }
-      }
+      const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
+      const accountService = new AccountService(account);
+
+      const activeBonds = await accountService.getActiveBonds();
+      const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
+      const bonds = [...activeBonds, ...inactiveBonds];
+
+      const bond = bonds.find(bond => bond.registration === query.registration);
+      const bondService = new BondService(bond);
+
+      const period = await bondService.getCurrentPeriod()
+      const activities = await bondService.getActivities();
+
       httpSession.close()
+
+      const activitiesDTOs = activities.map(activity => new ActivityDTO(activity));
+      const active = activeBonds.includes(bond);
+      const bondDTO = new BondDTO(bond, active, period, { activitiesDTOs });
+      const bondJSON = bondDTO.toJSON()
       cacheHelper.storeCache(uniqueID, {
-        jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }],
+        jsonCache: [{ BondsJSON: [bondJSON], query, time: new Date().toISOString() }],
         time: new Date().toISOString(),
       });
-      return socket.emit(eventName, JSON.stringify(BondsJSON));
+      return this.socketService.emit(eventName, bondJSON);
     } catch (error) {
       console.error(error);
-      socket.emit(apiEventError, error.message);
+      this.socketService.emit(apiEventError, error.message);
       return false;
     }
-  }
-
-  static parser({ activity }: { activity: Activity }) {
-    let description = "";
-    switch (activity.type) {
-      case "exam":
-        description = activity.examDescription;
-        break;
-      case "homework":
-        description = activity.homeworkTitle;
-        break;
-      case "quiz":
-        description = activity.quizTitle;
-        break;
-      default:
-        break;
-    }
-    return {
-      type: activity.type,
-      description,
-      date: activity.date.toISOString(),
-      course: { title: activity.courseTitle },
-      done: activity.done,
-    };
   }
 }

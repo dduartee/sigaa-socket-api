@@ -2,25 +2,24 @@ import { session } from "../helpers/Session";
 import { baseURL } from "../apiConfig.json";
 import { Sigaa } from "sigaa-api";
 import { cacheService } from "../services/cacheService";
-import { Socket } from "socket.io";
 import { cacheUtil } from "../services/cacheUtil";
 import { events } from "../apiConfig.json"
 import Authentication from "../services/sigaa-api/Authentication.service";
-import { cacheHelper } from "../helpers/Cache";
+import { AccountService } from "../services/sigaa-api/Account.service";
+import { Socket } from "socket.io";
+import { UserDTO } from "../DTOs/User.DTO";
 export class User {
-    baseURL: string;
     logado: boolean;
-    constructor() {
-        this.baseURL = baseURL;
-    }
+    constructor(private socketService: Socket) { }
     /**
      * Realiza evento de login
      * @param credentials 
-     * @param params 
      * @returns 
      */
-    async login(credentials, params: { socket: Socket }) {
-        const { socket } = params;
+    async login(credentials: {
+        username: string;
+        password: string;
+    }) {
         const eventName = events.user.login;
         const statusEventName = events.user.status;
         const apiEventError = events.api.error;
@@ -28,18 +27,21 @@ export class User {
         try {
             // login com credenciais
             if (credentials.username && credentials.password) {
-                socket.emit(statusEventName, "Logando")
-                const sigaaInstance = new Sigaa({ url: this.baseURL });
+                this.socketService.emit(statusEventName, "Logando")
+                const sigaaInstance = new Sigaa({ url: baseURL });
                 const { JSESSIONID } = await Authentication.loginWithCredentials(credentials, sigaaInstance);
-                const uniqueID: string = cacheService.get(socket.id)
-                cacheUtil.merge(uniqueID, { JSESSIONID })
+                const uniqueID: string = cacheService.get(this.socketService.id)
+                cacheUtil.merge(uniqueID, { JSESSIONID, username: credentials.username })
                 sigaaInstance.close()
                 this.logado = true;
             } else {
                 // login com o JSESSIONID
-                const { cache } = cacheUtil.restore(socket.id)
-                if (cache?.JSESSIONID) {
-                    socket.emit(statusEventName, "Logando")
+                const { cache } = cacheUtil.restore(this.socketService.id)
+                if (cache) {
+                    if (!cache?.JSESSIONID) {
+                        throw new Error("API: No JSESSIONID found in cache.");
+                    }
+                    this.socketService.emit(statusEventName, "Logando")
                     const { httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
                     httpSession.close()
                     this.logado = true;
@@ -49,29 +51,36 @@ export class User {
             }
         } catch (error) {
             console.error(error);
-            socket.emit(apiEventError, error.message)
+            this.socketService.emit(apiEventError, error.message)
             this.logado = false;
         }
-        socket.emit(statusEventName, this.logado ? "Logado" : "Deslogado")
-        return socket.emit(eventName, JSON.stringify({ logado: this.logado }))
+        this.socketService.emit(statusEventName, this.logado ? "Logado" : "Deslogado")
+        return this.socketService.emit(eventName, { logado: this.logado })
     }
     /**
      *  Realiza evento de envio de informações do usuario
-     * @param params 
      */
-    async info(params: { socket: Socket }) {
-        const { socket } = params;
+    async info() {
         const eventName = events.user.info;
         const apiEventError = events.api.error;
         try {
-            const { cache, uniqueID } = cacheUtil.restore(socket.id)
+            const { cache, uniqueID } = cacheUtil.restore(this.socketService.id)
             const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
-            const info = { fullName: await account.getName(), profilePictureURL: await account.getProfilePictureURL() }
+            const accountService = new AccountService(account)
+            const fullName = await accountService.getFullName()
+            const { href: profilePictureURL } = await accountService.getProfilePictureURL()
+            const emails = await accountService.getEmails()
             httpSession.close()
-            socket.emit(eventName, JSON.stringify(info))
+            const userDTO = new UserDTO({
+                fullName,
+                profilePictureURL,
+                emails,
+                username: cache.username
+            })
+            this.socketService.emit(eventName, userDTO.toJSON())
         } catch (error) {
             console.error(error);
-            socket.emit(apiEventError, error.message)
+            this.socketService.emit(apiEventError, error.message)
         }
     }
     /**
@@ -79,25 +88,29 @@ export class User {
      * @param params 
      * @returns 
      */
-    async logoff(params: { socket: Socket }) {
+    async logoff() {
         const eventName = events.user.login;
         const statusEventName = events.user.status;
         const apiEventError = events.api.error;
-        const { socket } = params;
         try {
-            const { cache, uniqueID } = cacheUtil.restore(socket.id)
+            const { cache, uniqueID } = cacheUtil.restore(this.socketService.id)
+            if (!cache.JSESSIONID) {
+                throw new Error("API: No JSESSIONID found in cache.");
+            }
+            console.log(cache)
             const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
-            socket.emit(statusEventName, "Deslogando")
-            await account.logoff()
+            const accountService = new AccountService(account)
+            this.socketService.emit(statusEventName, "Deslogando")
+            accountService.logoff()
             httpSession.close()
-            session.delete(socket.id)
+            session.delete(this.socketService.id)
             cacheService.del(uniqueID)
             this.logado = false;
-            socket.emit(statusEventName, "Deslogado")
-            return socket.emit(eventName, JSON.stringify({ logado: false }))
+            this.socketService.emit(statusEventName, "Deslogado")
+            return this.socketService.emit(eventName, { logado: false })
         } catch (error) {
             console.error(error);
-            socket.emit(apiEventError, error.message)
+            this.socketService.emit(apiEventError, error.message)
             return false;
         }
     }

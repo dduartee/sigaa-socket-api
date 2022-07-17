@@ -46,15 +46,15 @@ class CacheHelper {
     /**
      * Realiza a logica de pegar o cache mais novo
      * @param jsonCache 
-     * @param received 
+     * @param query 
      * @returns 
      */
-    getNewest(jsonCache, received) {
+    getNewest(jsonCache, query) {
         const newests: jsonCache[] = jsonCache ? this.sortByDate(jsonCache) : [];
         for (const newest of newests) {
             const diffDateCache = this.diffDateCache(newest.time)
-            delete newest.received.cache // Deleta a propriedade de cache
-            delete received.cache
+            delete newest.query.cache // Deleta a propriedade de cache
+            delete query.cache
             const shallowEqual = (object1, object2) => {
                 const keys1 = Object.keys(object1);
                 const keys2 = Object.keys(object2);
@@ -62,8 +62,8 @@ class CacheHelper {
                 for (let key of keys1) if (object1[key] !== object2[key]) return false;
                 return true;
             }
-            const receivedEquals = shallowEqual(newest.received, received);
-            if (diffDateCache < 6 && receivedEquals) {
+            const queryEquals = shallowEqual(newest.query, query);
+            if (diffDateCache < 6 && queryEquals) {
                 return newest
             }
         }

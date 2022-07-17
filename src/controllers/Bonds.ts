@@ -1,69 +1,58 @@
-import { cacheUtil, jsonCache } from "../services/cacheUtil";
+import { cacheUtil } from "../services/cacheUtil";
 import { StudentBond } from "sigaa-api";
-import { BondSIGAA } from "../services/sigaa-api/Bond.service";
-import { Socket } from "socket.io";
 import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
 import Authentication from "../services/sigaa-api/Authentication.service";
+import { AccountService } from "../services/sigaa-api/Account.service";
+import { BondService } from "../services/sigaa-api/Bond.service";
+import { Socket } from "socket.io";
+import { BondDTO } from "../DTOs/Bond.DTO";
 export class Bonds {
-  /**
-   * Lista vinculos com inativos opcional
-   * @param params {socket}
-   * @param received {inactive}
-   * @returns
-   */
-  async list(params: { socket: Socket }, received?: jsonCache["received"]) {
-    const { socket } = params;
-
+  constructor(private socketService: Socket) { }
+  async list(query: {
+    inactive: boolean;
+    cache: boolean
+  }) {
     const eventName = events.bonds.list;
     const apiEventError = events.api.error;
-    const { inactive, registration } = received;
     try {
-      const { cache, uniqueID } = cacheUtil.restore(socket.id);
+      const { cache, uniqueID } = cacheUtil.restore(this.socketService.id);
       const { JSESSIONID, jsonCache } = cache;
-      if (received.cache) {
-        const newest = cacheHelper.getNewest(jsonCache, received);
+      if(!JSESSIONID) {
+        throw new Error("API: No JSESSIONID found in cache.");
+      }
+      if (query.cache) {
+        const newest = cacheHelper.getNewest(jsonCache, query);
         if (newest) {
-          return socket.emit(eventName, JSON.stringify(newest["BondsJSON"]));
+          const bonds = newest["BondsJSON"];
+          console.log(newest);
+          return this.socketService.emit(eventName, bonds);
         }
       }
-      const {account, httpSession} = await Authentication.loginWithJSESSIONID(JSESSIONID) 
-      const bonds = await new BondSIGAA().getBonds(account, inactive);
-      const BondsJSON = [];
+      const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
+      const accountService = new AccountService(account);
+      const activeBonds = await accountService.getActiveBonds();
+      const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
+      const bonds = [...activeBonds, ...inactiveBonds];
+      const BondsDTOs: BondDTO[] = []
       for (const bond of bonds) {
-        BondsJSON.push(Bonds.parser({ bond }));
+        const bondService = new BondService(bond)
+        const period = await bondService.getCurrentPeriod()
+        const active = activeBonds.includes(bond);
+        const bondDTO = new BondDTO(bond, active, period);
+        BondsDTOs.push(bondDTO)
       }
       httpSession.close()
+      const BondsJSON = BondsDTOs.map(b => b.toJSON())
       cacheHelper.storeCache(uniqueID, {
-        jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }],
+        jsonCache: [{ BondsJSON , query, time: new Date().toISOString() }],
         time: new Date().toISOString(),
       });
-      return socket.emit(eventName, JSON.stringify(BondsJSON));
+      return this.socketService.emit(eventName, BondsJSON);
     } catch (error) {
       console.error(error);
-      socket.emit(apiEventError, error.message);
+      this.socketService.emit(apiEventError, error.message);
       return false;
     }
-  }
-  /**
-   * Parser de Bonds
-   * @param params {bond: StudentBond, courses?: CourseStudent[]}
-   * @returns program, registration, courses
-   */
-  static parser({
-    bond,
-    CoursesJSON,
-    ActivitiesJSON,
-  }: {
-    bond: StudentBond;
-    CoursesJSON?: any;
-    ActivitiesJSON?: any;
-  }) {
-    return {
-      program: bond.program,
-      registration: bond.registration,
-      courses: CoursesJSON ?? [],
-      activities: ActivitiesJSON ?? [],
-    };
   }
 }

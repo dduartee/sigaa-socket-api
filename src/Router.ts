@@ -1,4 +1,3 @@
-import { Socket, Server } from "socket.io";
 
 import { Bonds } from "./controllers/Bonds";
 import { Courses } from "./controllers/Courses";
@@ -11,23 +10,17 @@ import { User } from "./controllers/User";
 import { Auth } from "./middlewares/Auth";
 import { Activities } from "./controllers/Activities";
 import { cacheService } from "./services/cacheService";
+import { Server, Socket } from "socket.io";
 export class Router {
-  socket: Socket;
-  io: Server;
-  constructor(params: { socket: Socket; io: Server }) {
-    const { socket, io } = params;
-    this.io = io;
-    this.socket = socket;
-  }
+  constructor(private socketService: Socket, private io: Server) { }
 
   async index() {
-    const { socket } = this;
     const connectedUsers = cacheService.get<string[]>("connectedUsers");
     if (!connectedUsers) {
       cacheService.set("connectedUsers", []);
       cacheService.set("maxConnectedUsers", 0);
-    } else if (!connectedUsers.includes(socket.id)) {
-      connectedUsers.push(socket.id);
+    } else if (!connectedUsers.includes(this.socketService.id)) {
+      connectedUsers.push(this.socketService.id);
       cacheService.set("connectedUsers", connectedUsers);
       const maxConnectedUsers = cacheService.get<number>("maxConnectedUsers");
       if (connectedUsers.length > maxConnectedUsers) {
@@ -41,71 +34,63 @@ export class Router {
     /**
      * Inicializações das classes dos eventos
      */
-    const user = new User();
-    const auth = new Auth();
-    const bonds = new Bonds();
-    const courses = new Courses();
-    const homework = new Homeworks();
-    const news = new News();
-    const grades = new Grades();
-    const activities = new Activities();
+    const user = new User(this.socketService);
+    const auth = new Auth(this.socketService);
+    const bonds = new Bonds(this.socketService);
+    const courses = new Courses(this.socketService);
+    const homework = new Homeworks(this.socketService);
+    const news = new News(this.socketService);
+    const grades = new Grades(this.socketService);
+    const activities = new Activities(this.socketService);
 
-    socket.use((event: any, next) => auth.middleware({ event, socket, next }));
+    this.socketService.use((event: any, next) => auth.middleware(event, next));
 
-    socket.on("auth::valid", async (received) => auth.valid(socket, received));
+    this.socketService.on("auth::valid", async (query) => auth.valid(query));
 
-    socket.on(
+    this.socketService.on(
       "user::login",
-      async (credentials) => await user.login(credentials, { socket })
+      async (credentials) => await user.login(credentials)
     );
-    socket.on("user::info", async (received) => await user.info({ socket }));
-    socket.on(
+    this.socketService.on("user::info", async (query) => await user.info());
+    this.socketService.on(
       "user::logoff",
-      async (received) => await user.logoff({ socket })
+      async (query) => await user.logoff()
     );
 
-    socket.on(
+    this.socketService.on(
       "bonds::list",
-      async (received) => await bonds.list({ socket }, received)
+      async (query) => await bonds.list(query)
     );
 
-    socket.on(
+    this.socketService.on(
       "courses::list",
-      async (received) => await courses.list({ socket }, received)
-    );
-    socket.on(
-      "courses::details",
-      async (received) => await courses.details({ socket }, received)
+      async (query) => await courses.list(query)
     );
 
-    socket.on(
-      "homeworks::specific",
-      async (received) => await homework.specific({ socket }, received)
-    );
-    socket.on(
+    this.socketService.on(
       "homeworks::list",
-      async (received) => await homework.list({ socket }, received)
+      async (query) => await homework.list(query)
     );
 
-    socket.on(
+    this.socketService.on(
       "activities::list",
-      async (received) => await activities.list({ socket }, received)
+      async (query) => await activities.list(query)
     );
 
-    socket.on(
+    this.socketService.on(
       "news::list",
-      async (received) => await news.list({ socket }, received)
+      async (query) => await news.list(query)
     );
 
-    socket.on(
+    this.socketService.on(
       "grades::list",
-      async (received) => await grades.list({ socket }, received)
+      async (query) => await grades.list(query)
     );
 
-    socket.on("disconnect", async (reason) => {
-      session.delete(socket.id);
+    this.socketService.on("disconnect", async (reason) => {
+      session.delete(this.socketService.id);
       const connectedUsers = cacheService.get<string[]>("connectedUsers");
-      connectedUsers.splice(connectedUsers.indexOf(socket.id), 1); // Remove o usuário da lista de usuários conectados
+      connectedUsers.splice(connectedUsers.indexOf(this.socketService.id), 1); // Remove o usuário da lista de usuários conectados
       cacheService.set("connectedUsers", connectedUsers);
       console.log("Connected users: ", connectedUsers.length);
     });

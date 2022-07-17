@@ -10,7 +10,10 @@ const io = new Server({
 
 const PORT = parseInt(process.env.PORT) || 5000;
 
-io.listen(PORT)
-console.log("Servidor Iniciado: " + PORT)
+io.listen(PORT);
+console.log("Servidor Iniciado: " + PORT);
 
-io.on('connection', async (socket) => await new Router({ socket, io }).index())
+io.on('connection', async (socket) => {
+    const router = new Router(socket, io);
+    await router.index();
+})

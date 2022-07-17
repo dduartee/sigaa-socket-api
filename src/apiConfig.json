@@ -19,7 +19,8 @@
             "specific": "grades::specific"
         },
         "news": {
-            "list": "news::list"
+            "list": "news::list",
+            "partial": "news::partial"
         },
         "homeworks": {
             "list": "homeworks::list",

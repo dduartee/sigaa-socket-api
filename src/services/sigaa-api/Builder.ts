@@ -45,10 +45,10 @@ class SigaaAPIBuilder {
      * @param pageCache SigaaPageCache
      * @returns httpSession
      */
-    public getHTTPSession(url: string, cookie: JSESSIONID, pageCache: SigaaPageCache) {
+    public getHTTPSession(url: string, JSESSIONID: JSESSIONID, pageCache: SigaaPageCache) {
         const cookiesController = new SigaaCookiesController()
         const { hostname } = new URL(url)
-        const cookiesControllerInjected = this.injectCookies(hostname, cookie, cookiesController)
+        const cookiesControllerInjected = this.injectCookies(hostname, JSESSIONID, cookiesController)
         const requestStack = new SigaaRequestStack<Request, Page>()
         return new SigaaHTTPSession(url, cookiesControllerInjected, pageCache, requestStack)
     }
@@ -60,8 +60,8 @@ class SigaaAPIBuilder {
      * @param cookiesController SigaaCookiesController
      * @returns CookiesController injected with the cookie
      */
-    private injectCookies(hostname: string, cookie: JSESSIONID, cookiesController: SigaaCookiesController) {
-        cookiesController.storeCookies(hostname, [cookie])
+    private injectCookies(hostname: string, JSESSIONID: JSESSIONID, cookiesController: SigaaCookiesController) {
+        cookiesController.storeCookies(hostname, [JSESSIONID])
         return cookiesController
     }
 

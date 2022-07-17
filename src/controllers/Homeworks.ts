@@ -1,127 +1,77 @@
-import { Socket } from "socket.io";
-import { BondSIGAA } from "../services/sigaa-api/Bond.service";
 import { cacheUtil, jsonCache } from "../services/cacheUtil";
 import { Bonds } from "./Bonds";
 import { cacheHelper } from "../helpers/Cache";
 import { Courses } from "./Courses";
 import { events } from "../apiConfig.json"
-import { CourseSIGAA } from "../services/sigaa-api/Course.service";
 import Authentication from "../services/sigaa-api/Authentication.service";
+import { AccountService } from "../services/sigaa-api/Account.service";
+import { BondService } from "../services/sigaa-api/Bond.service";
+import { CourseService } from "../services/sigaa-api/Course.service";
+import { Socket } from "socket.io";
+import { HomeworkDTO } from "../DTOs/Homework.DTO";
+import { CourseDTO } from "../DTOs/CourseDTO";
+import { BondDTO } from "../DTOs/Bond.DTO";
 export class Homeworks {
-    /**
-     * Lista homeworks de uma máteria especificado pelo code
-     * @param params socket
-     * @param received code
-     * @returns 
-     */
-    async specific( params: { socket: Socket }, received: jsonCache["received"] ) {
-        const { socket } = params;
-        const eventName = events.homeworks.specific;
-        const apiEventError = events.api.error;
-        const { inactive } = received;
-        try {
-
-            const { cache, uniqueID } = cacheUtil.restore( socket.id );
-            const { JSESSIONID, jsonCache } = cache
-
-            if ( received.cache ) {
-                const newest = cacheHelper.getNewest( jsonCache, received )
-                if ( newest ) {
-                    return socket.emit( eventName, JSON.stringify( newest["BondsJSON"] ) )
-                }
-            }
-            const {account, httpSession} = await Authentication.loginWithJSESSIONID(JSESSIONID)
-            const bonds = await new BondSIGAA().getBonds( account, inactive );
-            const BondsJSON = [];
-            for ( const bond of bonds ) {
-                const CoursesJSON = [];
-                const courses = await new CourseSIGAA().getCourses( bond );
-                for ( const course of courses ) {
-                    if ( course.code == received.code ) {
-                        const homeworksList: any = await new CourseSIGAA().getHomeworks( course )
-                        const homeworks = await Homeworks.parser( homeworksList, received.fullHW );
-                        CoursesJSON.push( Courses.parser( { course, homeworks } ) )
-                        BondsJSON.push( Bonds.parser( { bond, CoursesJSON } ) );
-                        cacheHelper.storeCache( uniqueID, { jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], time: new Date().toISOString() } )
-                        httpSession.close()
-                        return socket.emit( eventName, JSON.stringify( BondsJSON ) );
-                    }
-                }
-            }
-            httpSession.close()
-            throw new Error( "Nothing found with code: " + received.code )
-
-        } catch ( error ) {
-            console.error( error );
-            socket.emit( apiEventError, error.message )
-            return false;
-        }
-    }
+    constructor(private socketService: Socket) { }
     /**
      * Lista homeworks de todas as matérias de um vinculo especificado pelo registration
      * @param params 
-     * @param received 
+     * @param query 
      * @returns 
      */
-    async list( params: { socket: Socket }, received: jsonCache["received"] ) {
-        const { socket } = params;
+    async list(query: {
+        inactive: boolean,
+        allPeriods: boolean,
+        cache: boolean,
+        registration: string,
+        fullHW: boolean,
+    }) {
         const eventName = events.homeworks.list;
         const apiEventError = events.api.error;
-        const { inactive } = received;
         try {
 
-            const { cache, uniqueID } = cacheUtil.restore( socket.id );
+            const { cache, uniqueID } = cacheUtil.restore(this.socketService.id);
             const { JSESSIONID, jsonCache } = cache
-            if ( received.cache ) {
-                const newest = cacheHelper.getNewest( jsonCache, received )
-                if ( newest ) {
-                    return socket.emit( eventName, JSON.stringify( newest["BondsJSON"] ) )
+            if(!JSESSIONID) {
+                throw new Error("API: No JSESSIONID found in cache.");
+              }
+            if (query.cache) {
+                const newest = cacheHelper.getNewest(jsonCache, query)
+                if (newest) {
+                    const bond = newest["BondsJSON"]
+                    return this.socketService.emit(eventName, bond)
                 }
             }
-            const {account, httpSession} = await Authentication.loginWithJSESSIONID(JSESSIONID)
-            const bonds = await new BondSIGAA().getBonds( account, inactive );
-            const BondsJSON = [];
-            for ( const bond of bonds ) {
-                if ( bond.registration == received.registration ) {
-                    const CoursesJSON = [];
-                    const courses = await new CourseSIGAA().getCourses( bond );
-                    for ( const course of courses ) {
-                        const homeworksList: any = await new CourseSIGAA().getHomeworks( course )
-                        const homeworks = await Homeworks.parser( homeworksList, received.fullHW );
-                        CoursesJSON.push( Courses.parser( { course, homeworks } ) )
-                        socket.emit( "homeworks::listPartial", JSON.stringify( [Bonds.parser( { bond, CoursesJSON } )] ) )
-                    }
-                    BondsJSON.push( Bonds.parser( { bond, CoursesJSON } ) );
-                }
+            const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
+            const accountService = new AccountService(account)
+            const activeBonds = await accountService.getActiveBonds();
+            const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
+            const bonds = [...activeBonds, ...inactiveBonds];
+            const bond = bonds.find(b => b.registration === query.registration);
+            const bondService = new BondService(bond)
+            const period = await bondService.getCurrentPeriod()
+            const active = activeBonds.includes(bond)
+            const coursesDTOs = [];
+            const courses = await bondService.getCourses();
+            for (const course of courses) {
+                const courseService = new CourseService(course)
+                const homeworksList = await courseService.getHomeworks(query.fullHW)
+                const homeworksDTOs = homeworksList.map(homework => new HomeworkDTO(homework))
+                const courseDTO = new CourseDTO(course, { homeworksDTOs })
+                coursesDTOs.push(courseDTO)
+                const bondDTO = new BondDTO(bond, active, period, { coursesDTOs })
+                this.socketService.emit("homeworks::listPartial", bondDTO.toJSON())
             }
+            const bondDTO = new BondDTO(bond, active, period, { coursesDTOs })
+            const bondJSON = bondDTO.toJSON()
             httpSession.close()
-            cacheHelper.storeCache( uniqueID, { jsonCache: [{ BondsJSON, received, time: new Date().toISOString() }], time: new Date().toISOString() } )
-            return socket.emit( eventName, JSON.stringify( BondsJSON ) );
+            cacheHelper.storeCache(uniqueID, { jsonCache: [{ BondsJSON: [bondJSON], query, time: new Date().toISOString() }], time: new Date().toISOString() })
+            return this.socketService.emit(eventName, bondJSON);
 
-        } catch ( error ) {
-            console.error( error );
-            socket.emit( apiEventError, error.message )
+        } catch (error) {
+            console.error(error);
+            this.socketService.emit(apiEventError, error.message)
             return false;
         }
-    }
-    static async parser( homeworkList: any[], full?: boolean ) {
-        const homeworks = [];
-        for ( const homework of homeworkList ) {
-            const description = full ? ( await homework.getDescription() ) : null;
-            const haveGrade = full ? ( await homework.getFlagHaveGrade() ) : null;
-            const isGroup = full ? ( await homework.getFlagIsGroupHomework() ) : null;
-            const startDate = homework.startDate;
-            const endDate = homework.endDate;
-            const title = homework.title;
-            homeworks.push( {
-                title,
-                description,
-                startDate,
-                isGroup,
-                endDate,
-                haveGrade,
-            } );
-        }
-        return homeworks;
     }
 }

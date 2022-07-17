@@ -1,4 +1,3 @@
-import { Socket } from 'socket.io';
 import JWT from "jsonwebtoken";
 import dotenv from "dotenv";
 import { v4 } from 'uuid';
@@ -6,38 +5,29 @@ import { session } from '../helpers/Session';
 import { cacheHelper } from '../helpers/Cache';
 import { events } from "../apiConfig.json"
 import { cacheService } from '../services/cacheService';
-export interface IAuth {
-    secret: string;
+import { Socket } from "socket.io";
+dotenv.config()
+class Auth {
+    secret = process.env.SECRET
     token: string;
-    middleware(params: { event: { 0: string, 1: { username: string, password: string, token: string } }, socket: Socket, next: (err?: Error) => void }): void
-    verify(token: string): boolean
-    decode(token: string): any
-    diffTime(time: string): number
-}
-class Auth implements IAuth {
-    secret: string;
-    token: string;
-    constructor(secret?: string) {
-        dotenv.config()
-        this.secret = process.env.SECRET || secret;
-    }
-    valid(socket: Socket, { token }) {
+    constructor(private socketService: Socket) { }
+    valid({ token }) {
         const eventName = events.auth.valid;
         const verify = token && this.verify(token);
         const valid = verify && this.decode(token);
         if (valid) {
             const { time, uniqueID } = valid;
             const hasCache = cacheHelper.getCache(uniqueID)
-            const sid = socket.id;
+            const sid = this.socketService.id;
             const difftime = this.diffTime(time);
-            if (difftime < 6) {
+            if (difftime < 6 && hasCache) {
                 this.token = token;
                 session.update(sid, uniqueID)
-                socket.emit(eventName, true)
+                this.socketService.emit(eventName, true)
                 return true;
             }
         }
-        socket.emit(eventName, false)
+        this.socketService.emit(eventName, false)
         return false;
     }
     /**
@@ -45,18 +35,19 @@ class Auth implements IAuth {
      * @param params 
      * @returns 
      */
-    middleware(params: { event: { 0: string, 1: { token: string } }, socket: Socket, next: (err?: Error) => void }) {
-        const { event, socket, next } = params;
+    middleware(event: { 0: string, 1: { token: string } }, next: (err?: Error) => void) {
         const eventName = events.auth.store;
         try {
             if (!event[1]) throw new Error("No token received");
             const { token } = event[1];
-            const valid = token && this.verify(token) && this.decode(token);
+            const verify = token && this.verify(token);
+            const valid = verify && this.decode(token);
             if (valid) {
                 const { time, uniqueID } = valid;
-                const sid = socket.id;
+                const sid = this.socketService.id;
                 const difftime = this.diffTime(time);
-                if (difftime < 6) {
+                const hasCache = cacheHelper.getCache(uniqueID)
+                if (difftime < 6 && hasCache) {
                     this.token = token;
                     cacheService.del(sid);
                     cacheService.set(sid, uniqueID);
@@ -64,7 +55,7 @@ class Auth implements IAuth {
                 }
             }
             const uniqueID = v4(); // DATABASE
-            const sid = socket.id; // SESSION
+            const sid = this.socketService.id; // SESSION
             const time = new Date().toISOString(); // CACHE
             const newToken: any = this.sign({ time, uniqueID, sid })
             this.token = newToken;
@@ -72,7 +63,7 @@ class Auth implements IAuth {
             cacheService.set(uniqueID, {
                 time,
             });
-            socket.emit(eventName, newToken)
+            this.socketService.emit(eventName, newToken)
             return next();
         } catch (err) {
             console.error(err)
@@ -89,7 +80,7 @@ class Auth implements IAuth {
             const valid = JWT.verify(token, this.secret)
             return (valid ? true : false);
         } catch (error) {
-            console.error(error)
+            console.error(error.message)
             return false;
         }
     }

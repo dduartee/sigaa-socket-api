@@ -8,16 +8,18 @@ import Authentication from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { CourseService } from "../services/sigaa-api/Course.service";
+import { NewsDTO } from "../DTOs/News.DTO";
+import { CourseDTO } from "../DTOs/CourseDTO";
+import { BondDTO } from "../DTOs/Bond.DTO";
 
 export class News {
-    constructor(private socketService: Socket) {}
+    constructor(private socketService: Socket) { }
     async list(query: {
         cache: boolean,
         registration: string,
         inactive: boolean,
         allPeriods: boolean,
-        fullNews: boolean,
-        code: string,
+        full: boolean,
     }) {
         const eventName = events.homeworks.specific;
         const apiEventError = events.api.error;
@@ -28,7 +30,8 @@ export class News {
             if (query.cache) {
                 const newest = cacheHelper.getNewest(jsonCache, query)
                 if (newest) {
-                    return this.socketService.emit(eventName, JSON.stringify(newest["BondsJSON"]))
+                    const bond = newest["BondsJSON"].find(b => b.registration === query.registration)
+                    return this.socketService.emit(eventName, bond)
                 }
             }
             const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
@@ -40,13 +43,37 @@ export class News {
 
             const bondService = new BondService(bond)
             const period = await bondService.getCurrentPeriod()
+            const active = activeBonds.includes(bond);
+
             const courses = await bondService.getCourses();
-            const course = courses.find(course => course.code === query.code);
-            const courseService = new CourseService(course)
-            const newsList = await courseService.getNews()
-            const news = await News.parser(newsList, query.fullNews)
-            const courseJSON = Courses.parser({ course, news })
-            const bondJSON = Bonds.parser({ bond, CoursesJSON: [courseJSON], period });
+            const coursesDTOs: CourseDTO[] = []
+            for (const course of courses) {
+                const newsDTOs = []
+                const courseService = new CourseService(course)
+                const news = await courseService.getNews()
+                for (const n of news) {
+                    let content: string;
+                    let date: Date
+                    if(query.full) {
+                        content = await n.getContent()
+                        date = await n.getDate()
+                    }
+                    const newsDTO = new NewsDTO({
+                        id: n.id,
+                        title: n.title,
+                        content,
+                        date,
+                    })
+                    newsDTOs.push(newsDTO)
+                }
+                const courseDTO = new CourseDTO(course, { newsDTOs })
+                coursesDTOs.push(courseDTO)
+                const bondDTO = new BondDTO(bond, active, period, { coursesDTOs })
+                this.socketService.emit("news::listPartial", bondDTO)
+            }
+            httpSession.close()
+            const bondDTO = new BondDTO(bond, active, period, { coursesDTOs })
+            const bondJSON = bondDTO.toJSON();
             cacheHelper.storeCache(uniqueID, { jsonCache: [{ BondsJSON: [bondJSON], query, time: new Date().toISOString() }], time: new Date().toISOString() })
             return this.socketService.emit(eventName, bondJSON);
         } catch (error) {
@@ -54,18 +81,5 @@ export class News {
             this.socketService.emit(apiEventError, error.message)
             return false;
         }
-    }
-
-    static async parser(newsList: any[], full?: boolean) {
-        const newsJSON = [];
-        for (const news of newsList) {
-            newsJSON.push({
-                id: news.id,
-                title: news.title,
-                description: full ? await news.getContent() : "",
-                date: full ? (await news.getDate()).toISOString() : "",
-            });
-        }
-        return newsJSON;
     }
 }

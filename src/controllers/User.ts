@@ -7,6 +7,7 @@ import { events } from "../apiConfig.json"
 import Authentication from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { Socket } from "socket.io";
+import { UserDTO } from "../DTOs/User.DTO";
 export class User {
     logado: boolean;
     constructor(private socketService: Socket) {}
@@ -30,7 +31,7 @@ export class User {
                 const sigaaInstance = new Sigaa({ url: baseURL });
                 const { JSESSIONID } = await Authentication.loginWithCredentials(credentials, sigaaInstance);
                 const uniqueID: string = cacheService.get(this.socketService.id)
-                cacheUtil.merge(uniqueID, { JSESSIONID })
+                cacheUtil.merge(uniqueID, { JSESSIONID, username: credentials.username })
                 sigaaInstance.close()
                 this.logado = true;
             } else {
@@ -51,7 +52,7 @@ export class User {
             this.logado = false;
         }
         this.socketService.emit(statusEventName, this.logado ? "Logado" : "Deslogado")
-        return this.socketService.emit(eventName, JSON.stringify({ logado: this.logado }))
+        return this.socketService.emit(eventName, { logado: this.logado })
     }
     /**
      *  Realiza evento de envio de informações do usuario
@@ -62,9 +63,18 @@ export class User {
         try {
             const { cache, uniqueID } = cacheUtil.restore(this.socketService.id)
             const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
-            const info = { fullName: await account.getName(), profilePictureURL: await account.getProfilePictureURL() }
+            const accountService = new AccountService(account)
+            const fullName = await accountService.getFullName()
+            const {href: profilePictureURL} = await accountService.getProfilePictureURL()
+            const emails = await accountService.getEmails()
             httpSession.close()
-            this.socketService.emit(eventName, JSON.stringify(info))
+            const userDTO = new UserDTO({
+                fullName,
+                profilePictureURL,
+                emails,
+                username: cache.username
+            })
+            this.socketService.emit(eventName, userDTO.toJSON())
         } catch (error) {
             console.error(error);
             this.socketService.emit(apiEventError, error.message)
@@ -90,7 +100,7 @@ export class User {
             cacheService.del(uniqueID)
             this.logado = false;
             this.socketService.emit(statusEventName, "Deslogado")
-            return this.socketService.emit(eventName, JSON.stringify({ logado: false }))
+            return this.socketService.emit(eventName, { logado: false })
         } catch (error) {
             console.error(error);
             this.socketService.emit(apiEventError, error.message)

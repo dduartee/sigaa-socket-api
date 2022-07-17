@@ -11,7 +11,7 @@ export class Bonds {
   constructor(private socketService: Socket) { }
   async list(query: {
     inactive: boolean;
-    cache: boolean;
+    cache: boolean
   }) {
     const eventName = events.bonds.list;
     const apiEventError = events.api.error;
@@ -21,7 +21,9 @@ export class Bonds {
       if (query.cache) {
         const newest = cacheHelper.getNewest(jsonCache, query);
         if (newest) {
-          return this.socketService.emit(eventName, JSON.stringify(newest["BondsJSON"]));
+          const bonds = newest["BondsJSON"];
+          console.log(newest);
+          return this.socketService.emit(eventName, bonds);
         }
       }
       const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)

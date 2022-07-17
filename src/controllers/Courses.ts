@@ -9,6 +9,7 @@ import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { BondDTO } from "../DTOs/Bond.DTO";
 import { CourseDTO } from "../DTOs/CourseDTO";
+import { CourseService } from "../services/sigaa-api/Course.service";
 export class Courses {
   constructor(private socketService: Socket) { }
   /**
@@ -26,7 +27,8 @@ export class Courses {
       if (query.cache) {
         const newest = cacheHelper.getNewest(jsonCache, query);
         if (newest) {
-          return this.socketService.emit(eventName, JSON.stringify(newest["BondsJSON"]));
+          const bond = newest["BondsJSON"].find(bond => bond.registration === query.registration);
+          return this.socketService.emit(eventName, bond);
         }
       }
       const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
@@ -35,10 +37,10 @@ export class Courses {
       const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
       const bonds = [...activeBonds, ...inactiveBonds];
       const bond = bonds.find(b => b.registration === query.registration);
+      if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
       const bondService = new BondService(bond);
       const period = await bondService.getCurrentPeriod()
       const active = activeBonds.includes(bond);
-      const bondDTO = new BondDTO(bond, active, period)
       const courses = await bondService.getCourses(query.allPeriods)
       httpSession.close()
       const coursesDTOs: CourseDTO[] = []
@@ -46,7 +48,8 @@ export class Courses {
         const courseDTO = new CourseDTO(course);
         coursesDTOs.push(courseDTO)
       }
-      const bondJSON = bondDTO.toJSON({ coursesDTOs });
+      const bondDTO = new BondDTO(bond, active, period, { coursesDTOs })
+      const bondJSON = bondDTO.toJSON();
       cacheHelper.storeCache(uniqueID, {
         jsonCache: [
           { BondsJSON: [bondJSON], query, time: new Date().toISOString() },
@@ -60,12 +63,6 @@ export class Courses {
       return false;
     }
   }
-  /**
-   * Lista detalhes de uma matéria especificado pelo code
-   * @param params socket
-   * @param query registration
-   * @returns
-   */
 
   /**
    * Parser da matéria

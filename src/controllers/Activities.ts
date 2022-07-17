@@ -25,7 +25,8 @@ export class Activities {
       if (query.cache) {
         const newest = cacheHelper.getNewest(jsonCache, query);
         if (newest) {
-          return this.socketService.emit(eventName, JSON.stringify(newest["BondsJSON"]));
+          const bond = newest["BondsJSON"].find(b => b.registration === query.registration);
+          return this.socketService.emit(eventName, bond);
         }
       }
       const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
@@ -45,8 +46,8 @@ export class Activities {
 
       const activitiesDTOs = activities.map(activity => new ActivityDTO(activity));
       const active = activeBonds.includes(bond);
-      const bondDTO = new BondDTO(bond, active, period);
-      const bondJSON = bondDTO.toJSON({ activitiesDTOs })
+      const bondDTO = new BondDTO(bond, active, period, { activitiesDTOs });
+      const bondJSON = bondDTO.toJSON()
       cacheHelper.storeCache(uniqueID, {
         jsonCache: [{ BondsJSON: [bondJSON], query, time: new Date().toISOString() }],
         time: new Date().toISOString(),

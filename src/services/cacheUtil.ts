@@ -4,6 +4,7 @@ import { session } from "../helpers/Session";
 import { cacheService } from "./cacheService";
 export type CacheType = {
     jsonCache?: jsonCache[],
+    username?: string,
     JSESSIONID?: string,
     registration?: string,
     time?: string

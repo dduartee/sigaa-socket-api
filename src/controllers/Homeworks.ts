@@ -8,8 +8,11 @@ import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { CourseService } from "../services/sigaa-api/Course.service";
 import { Socket } from "socket.io";
+import { HomeworkDTO } from "../DTOs/Homework.DTO";
+import { CourseDTO } from "../DTOs/CourseDTO";
+import { BondDTO } from "../DTOs/Bond.DTO";
 export class Homeworks {
-    constructor(private socketService: Socket) {}
+    constructor(private socketService: Socket) { }
     /**
      * Lista homeworks de todas as matérias de um vinculo especificado pelo registration
      * @param params 
@@ -32,7 +35,8 @@ export class Homeworks {
             if (query.cache) {
                 const newest = cacheHelper.getNewest(jsonCache, query)
                 if (newest) {
-                    return this.socketService.emit(eventName, JSON.stringify(newest["BondsJSON"]))
+                    const bond = newest["BondsJSON"]
+                    return this.socketService.emit(eventName, bond)
                 }
             }
             const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
@@ -43,16 +47,20 @@ export class Homeworks {
             const bond = bonds.find(b => b.registration === query.registration);
             const bondService = new BondService(bond)
             const period = await bondService.getCurrentPeriod()
-            const CoursesJSON = [];
+            const active = activeBonds.includes(bond)
+            const coursesDTOs = [];
             const courses = await bondService.getCourses();
             for (const course of courses) {
                 const courseService = new CourseService(course)
-                const homeworksList: any = await courseService.getHomeworks()
-                const homeworks = await Homeworks.parser(homeworksList, query.fullHW);
-                CoursesJSON.push(Courses.parser({ course, homeworks }))
-                this.socketService.emit("homeworks::listPartial", Bonds.parser({ bond, CoursesJSON, period }))
+                const homeworksList = await courseService.getHomeworks(query.fullHW)
+                const homeworksDTOs = homeworksList.map(homework => new HomeworkDTO(homework))
+                const courseDTO = new CourseDTO(course, { homeworksDTOs })
+                coursesDTOs.push(courseDTO)
+                const bondDTO = new BondDTO(bond, active, period, { coursesDTOs })
+                this.socketService.emit("homeworks::listPartial", bondDTO.toJSON())
             }
-            const bondJSON = Bonds.parser({ bond, CoursesJSON, period });
+            const bondDTO = new BondDTO(bond, active, period, { coursesDTOs })
+            const bondJSON = bondDTO.toJSON()
             httpSession.close()
             cacheHelper.storeCache(uniqueID, { jsonCache: [{ BondsJSON: [bondJSON], query, time: new Date().toISOString() }], time: new Date().toISOString() })
             return this.socketService.emit(eventName, bondJSON);
@@ -62,25 +70,5 @@ export class Homeworks {
             this.socketService.emit(apiEventError, error.message)
             return false;
         }
-    }
-    static async parser(homeworkList: any[], full?: boolean) {
-        const homeworks = [];
-        for (const homework of homeworkList) {
-            const description = full ? (await homework.getDescription()) : null;
-            const haveGrade = full ? (await homework.getFlagHaveGrade()) : null;
-            const isGroup = full ? (await homework.getFlagIsGroupHomework()) : null;
-            const startDate = homework.startDate;
-            const endDate = homework.endDate;
-            const title = homework.title;
-            homeworks.push({
-                title,
-                description,
-                startDate,
-                isGroup,
-                endDate,
-                haveGrade,
-            });
-        }
-        return homeworks;
     }
 }

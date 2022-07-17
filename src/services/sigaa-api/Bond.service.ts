@@ -1,16 +1,44 @@
 import { Activity, CourseStudent, StudentBond } from "sigaa-api";
 export class BondService {
   constructor(private bond: StudentBond) { }
-  async getActivities() {
-    const activities = await this.bond.getActivities()
-    return activities;
+  async getActivities(retryTimes = 0) {
+    try {
+
+      const activities = await this.bond.getActivities()
+      return activities;
+    } catch (error) {
+      console.log(`Error: ${error} @ ${retryTimes}/3`);
+      if (retryTimes < 3) {
+        return this.getActivities(retryTimes + 1);
+      } else {
+        return [];
+      }
+    }
   }
-  async getCourses(allPeriods = false) {
-    const courses = await this.bond.getCourses(allPeriods)
-    return courses;
+  async getCourses(allPeriods = false, retryTimes = 0) {
+    try {
+      const courses = await this.bond.getCourses(allPeriods)
+      return courses;
+    } catch (error) {
+      console.log(`Error: ${error} @ ${retryTimes}/3`);
+      if (retryTimes < 3) {
+        return this.getCourses(allPeriods, retryTimes + 1);
+      } else {
+        return [];
+      }
+    }
   }
-  async getCurrentPeriod() {
-    const currentPeriod = await this.bond.getCurrentPeriod()
-    return currentPeriod;
+  async getCurrentPeriod(retryTimes = 0): Promise<string> {
+    try {
+      const currentPeriod = await this.bond.getCurrentPeriod()
+      return currentPeriod;
+    } catch (error) {
+      console.log(`Error: ${error} @ ${retryTimes}/3`);
+      if (retryTimes < 3) {
+        return this.getCurrentPeriod(retryTimes + 1);
+      } else {
+        return "";
+      }
+    }
   }
 }

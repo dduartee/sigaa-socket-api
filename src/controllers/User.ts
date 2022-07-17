@@ -10,7 +10,7 @@ import { Socket } from "socket.io";
 import { UserDTO } from "../DTOs/User.DTO";
 export class User {
     logado: boolean;
-    constructor(private socketService: Socket) {}
+    constructor(private socketService: Socket) { }
     /**
      * Realiza evento de login
      * @param credentials 
@@ -37,7 +37,10 @@ export class User {
             } else {
                 // login com o JSESSIONID
                 const { cache } = cacheUtil.restore(this.socketService.id)
-                if (cache?.JSESSIONID) {
+                if (cache) {
+                    if (!cache?.JSESSIONID) {
+                        throw new Error("API: No JSESSIONID found in cache.");
+                    }
                     this.socketService.emit(statusEventName, "Logando")
                     const { httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
                     httpSession.close()
@@ -65,7 +68,7 @@ export class User {
             const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
             const accountService = new AccountService(account)
             const fullName = await accountService.getFullName()
-            const {href: profilePictureURL} = await accountService.getProfilePictureURL()
+            const { href: profilePictureURL } = await accountService.getProfilePictureURL()
             const emails = await accountService.getEmails()
             httpSession.close()
             const userDTO = new UserDTO({
@@ -91,6 +94,10 @@ export class User {
         const apiEventError = events.api.error;
         try {
             const { cache, uniqueID } = cacheUtil.restore(this.socketService.id)
+            if (!cache.JSESSIONID) {
+                throw new Error("API: No JSESSIONID found in cache.");
+            }
+            console.log(cache)
             const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
             const accountService = new AccountService(account)
             this.socketService.emit(statusEventName, "Deslogando")

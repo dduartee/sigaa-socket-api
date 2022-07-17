@@ -80,7 +80,7 @@ class Auth {
             const valid = JWT.verify(token, this.secret)
             return (valid ? true : false);
         } catch (error) {
-            console.error(error)
+            console.error(error.message)
             return false;
         }
     }

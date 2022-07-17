@@ -27,6 +27,9 @@ export class News {
 
             const { cache, uniqueID } = cacheUtil.restore(this.socketService.id);
             const { JSESSIONID, jsonCache } = cache
+            if(!JSESSIONID) {
+                throw new Error("API: No JSESSIONID found in cache.");
+              }
             if (query.cache) {
                 const newest = cacheHelper.getNewest(jsonCache, query)
                 if (newest) {

@@ -81,7 +81,6 @@ class AuthenticationService {
         url: "https://sigaa.ifsc.edu.br",
         institution: "IFSC" as InstitutionType
     }) {
-        if(!JSESSIONID) throw new Error("JSESSIONID is required")
         /**
          * Injeta o JSESSIONID no Sigaa
          */

@@ -20,7 +20,7 @@ class Auth {
             const hasCache = cacheHelper.getCache(uniqueID)
             const sid = this.socketService.id;
             const difftime = this.diffTime(time);
-            if (difftime < 6 && hasCache) {
+            if (difftime < 6 && hasCache?.JSESSIONID) {
                 this.token = token;
                 session.update(sid, uniqueID)
                 this.socketService.emit(eventName, true)
@@ -47,7 +47,7 @@ class Auth {
                 const sid = this.socketService.id;
                 const difftime = this.diffTime(time);
                 const hasCache = cacheHelper.getCache(uniqueID)
-                if (difftime < 6 && hasCache) {
+                if (difftime < 6 && hasCache?.JSESSIONID) {
                     this.token = token;
                     cacheService.del(sid);
                     cacheService.set(sid, uniqueID);

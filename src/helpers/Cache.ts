@@ -16,7 +16,7 @@ class CacheHelper {
      * @param uniqueID 
      * @returns 
      */
-    getCache(uniqueID): CacheType {
+    getCache(uniqueID): CacheType | undefined {
         return cacheService.get(uniqueID)
     }
     /**

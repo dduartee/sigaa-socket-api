@@ -65,6 +65,9 @@ export class User {
         const apiEventError = events.api.error;
         try {
             const { cache, uniqueID } = cacheUtil.restore(this.socketService.id)
+            if (!cache?.JSESSIONID) {
+                throw new Error("API: No JSESSIONID found in cache.");
+            }
             const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
             const accountService = new AccountService(account)
             const fullName = await accountService.getFullName()
@@ -97,7 +100,6 @@ export class User {
             if (!cache.JSESSIONID) {
                 throw new Error("API: No JSESSIONID found in cache.");
             }
-            console.log(cache)
             const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
             const accountService = new AccountService(account)
             this.socketService.emit(statusEventName, "Deslogando")

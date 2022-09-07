@@ -13,7 +13,6 @@ export class Bonds {
     inactive: boolean;
     cache: boolean
   }) {
-    const eventName = events.bonds.list;
     const apiEventError = events.api.error;
     try {
       const { cache, uniqueID } = cacheUtil.restore(this.socketService.id);
@@ -26,7 +25,7 @@ export class Bonds {
         if (newest) {
           const bonds = newest["BondsJSON"];
           console.log(newest);
-          return this.socketService.emit(eventName, bonds);
+          return this.socketService.emit("bonds::list", bonds);
         }
       }
       const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
@@ -48,7 +47,7 @@ export class Bonds {
         jsonCache: [{ BondsJSON , query, time: new Date().toISOString() }],
         time: new Date().toISOString(),
       });
-      return this.socketService.emit(eventName, BondsJSON);
+      return this.socketService.emit("bonds::list", BondsJSON);
     } catch (error) {
       console.error(error);
       this.socketService.emit(apiEventError, error.message);

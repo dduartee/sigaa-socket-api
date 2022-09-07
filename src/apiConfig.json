@@ -19,11 +19,13 @@
             "specific": "grades::specific"
         },
         "news": {
+            "latest": "news::latest",
             "list": "news::list",
             "partial": "news::partial"
         },
         "homeworks": {
             "list": "homeworks::list",
+            "latest": "homeworks::latest",
             "specific": "homeworks::specific"
         },
         "activities": {

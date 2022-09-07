@@ -17,7 +17,6 @@ export class Activities {
     registration: string,
     inactive: boolean,
   }) {
-    const eventName = events.activities.list;
     const apiEventError = events.api.error;
     try {
       const { cache, uniqueID } = cacheUtil.restore(this.socketService.id);
@@ -29,7 +28,7 @@ export class Activities {
         const newest = cacheHelper.getNewest(jsonCache, query);
         if (newest) {
           const bond = newest["BondsJSON"].find(b => b.registration === query.registration);
-          return this.socketService.emit(eventName, bond);
+          return this.socketService.emit("activities::list", bond);
         }
       }
       const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
@@ -44,7 +43,7 @@ export class Activities {
 
       const period = await bondService.getCurrentPeriod()
       const activities = await bondService.getActivities();
-
+      
       httpSession.close()
 
       const activitiesDTOs = activities.map(activity => new ActivityDTO(activity));
@@ -55,7 +54,7 @@ export class Activities {
         jsonCache: [{ BondsJSON: [bondJSON], query, time: new Date().toISOString() }],
         time: new Date().toISOString(),
       });
-      return this.socketService.emit(eventName, bondJSON);
+      return this.socketService.emit("activities::list", bondJSON);
     } catch (error) {
       console.error(error);
       this.socketService.emit(apiEventError, error.message);

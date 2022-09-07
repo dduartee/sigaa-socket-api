@@ -6,11 +6,11 @@ import { events } from "../apiConfig.json"
 import Authentication from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
-import { CourseService } from "../services/sigaa-api/Course.service";
 import { Socket } from "socket.io";
 import { HomeworkDTO } from "../DTOs/Homework.DTO";
-import { CourseDTO } from "../DTOs/CourseDTO";
-import { BondDTO } from "../DTOs/Bond.DTO";
+import { Activity, CourseStudent, SigaaFile, SigaaHomework } from "sigaa-api";
+import { FileDTO } from "../DTOs/File.DTO";
+import { ActivityDTO } from "../DTOs/Activity.DTO";
 export class Homeworks {
     constructor(private socketService: Socket) { }
     /**
@@ -19,28 +19,19 @@ export class Homeworks {
      * @param query 
      * @returns 
      */
-    async list(query: {
+    async content(query: {
         inactive: boolean,
-        allPeriods: boolean,
         cache: boolean,
         registration: string,
-        fullHW: boolean,
+        activityTitle: string,
     }) {
-        const eventName = events.homeworks.list;
         const apiEventError = events.api.error;
         try {
 
             const { cache, uniqueID } = cacheUtil.restore(this.socketService.id);
             const { JSESSIONID, jsonCache } = cache
-            if(!JSESSIONID) {
+            if (!JSESSIONID) {
                 throw new Error("API: No JSESSIONID found in cache.");
-              }
-            if (query.cache) {
-                const newest = cacheHelper.getNewest(jsonCache, query)
-                if (newest) {
-                    const bond = newest["BondsJSON"]
-                    return this.socketService.emit(eventName, bond)
-                }
             }
             const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
             const accountService = new AccountService(account)
@@ -49,24 +40,40 @@ export class Homeworks {
             const bonds = [...activeBonds, ...inactiveBonds];
             const bond = bonds.find(b => b.registration === query.registration);
             const bondService = new BondService(bond)
-            const period = await bondService.getCurrentPeriod()
-            const active = activeBonds.includes(bond)
-            const coursesDTOs = [];
-            const courses = await bondService.getCourses();
-            for (const course of courses) {
-                const courseService = new CourseService(course)
-                const homeworksList = await courseService.getHomeworks(query.fullHW)
-                const homeworksDTOs = homeworksList.map(homework => new HomeworkDTO(homework))
-                const courseDTO = new CourseDTO(course, { homeworksDTOs })
+            //const period = await bondService.getCurrentPeriod()
+            //const active = activeBonds.includes(bond)
+            const courses = await bondService.getCourses() as CourseStudent[]
+            const lastActivities = (await bondService.getActivities() as Activity[]).filter(a => a.type === "homework")
+            //const coursesDTOs = []
+            for (const activity of lastActivities) {
+                const activityJSON = new ActivityDTO(activity).toJSON()
+                if (activityJSON.title !== query.activityTitle) continue;
+                const course = courses.find(c => c.title === activity.courseTitle)
+                const homeworks = await course.getHomeworks() as SigaaHomework[]
+                const homework = homeworks.find(h => h.title === activityJSON.title)
+                if (!homework) continue;
+                const attachmentFileDTO = await (homework.getAttachmentFile().then(file => new FileDTO(file as SigaaFile).toJSON()).catch(() => null))
+                const homeworkDTO = new HomeworkDTO({
+                    id: homework.id,
+                    title: homework.title,
+                    content: await homework.getDescription(),
+                    endDate: homework.endDate,
+                    startDate: homework.startDate,
+                    haveGrade: await homework.getFlagHaveGrade(),
+                    isGroup: await homework.getFlagIsGroupHomework(),
+                    fileDTO: attachmentFileDTO ? new FileDTO(attachmentFileDTO) : null
+                })
+                httpSession.close()
+                return this.socketService.emit("homework::content", homeworkDTO.toJSON());
+                /*
+                const courseDTO = new CourseDTO(course, { homeworksDTOs: [homeworkDTO] })
                 coursesDTOs.push(courseDTO)
                 const bondDTO = new BondDTO(bond, active, period, { coursesDTOs })
-                this.socketService.emit("homeworks::listPartial", bondDTO.toJSON())
+                const bondJSON = bondDTO.toJSON()
+                cacheHelper.storeCache(uniqueID, { jsonCache: [{ BondsJSON: [bondJSON], query, time: new Date().toISOString() }], time: new Date().toISOString() })
+                */
             }
-            const bondDTO = new BondDTO(bond, active, period, { coursesDTOs })
-            const bondJSON = bondDTO.toJSON()
-            httpSession.close()
-            cacheHelper.storeCache(uniqueID, { jsonCache: [{ BondsJSON: [bondJSON], query, time: new Date().toISOString() }], time: new Date().toISOString() })
-            return this.socketService.emit(eventName, bondJSON);
+
 
         } catch (error) {
             console.error(error);

@@ -1,4 +1,5 @@
 import { File } from "sigaa-api";
+import { FileDTO, IFileDTOProps } from "./File.DTO";
 
 export type FullHomework = {
     id: string,
@@ -8,6 +9,7 @@ export type FullHomework = {
     endDate: Date,
     haveGrade?: boolean,
     isGroup?: boolean,
+    fileDTO?: FileDTO
 }
 export interface IHomeworkDTOProps {
     id: string,
@@ -17,6 +19,7 @@ export interface IHomeworkDTOProps {
     haveGrade?: boolean,
     isGroup?: boolean,
     content?: string
+    attachment?: IFileDTOProps
 }
 
 export interface IHomeworkDTO {
@@ -34,6 +37,7 @@ export class HomeworkDTO implements IHomeworkDTO {
             endDate: this.homework.endDate.toISOString(),
             haveGrade: this.homework.haveGrade,
             isGroup: this.homework.isGroup,
+            attachment: this.homework.fileDTO?.toJSON()
         }
     }
 }

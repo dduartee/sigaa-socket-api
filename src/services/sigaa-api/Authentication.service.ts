@@ -1,4 +1,6 @@
-import { Account, InstitutionType, Page, Sigaa } from "sigaa-api";
+import { Account, InstitutionType, Page, Request, Sigaa, SigaaCookiesController } from "sigaa-api";
+import { SigaaRequestStack } from "sigaa-api/dist/helpers/sigaa-request-stack";
+import { cacheService } from "../cacheService";
 import Builder, { JSESSIONID } from "./Builder";
 const expectedErrors = [
     'SIGAA: Invalid response after login attempt.',
@@ -60,12 +62,13 @@ class AuthenticationService {
             return { account: undefined, error: errorMessage }
         }
     }
-    public async loginWithCredentials(credentials, sigaaInstance: Sigaa) {
+    public async loginWithCredentials(credentials, sigaaInstance: Sigaa, requestStackController: SigaaRequestStack<Request, Page>) {
         const attemptLogin = await this.attemptLogin(credentials, sigaaInstance)
         if (attemptLogin.page) {
             const attemptGetAccount = await this.attemptGetAccount(attemptLogin.page, sigaaInstance)
             if (attemptGetAccount.account) {
-                const JSESSIONID = attemptLogin.page.requestHeaders.Cookie 
+                const JSESSIONID = attemptLogin.page.requestHeaders.Cookie
+                cacheService.set(`requestStackInstance@${JSESSIONID}`, requestStackController)
                 return {
                     account: attemptGetAccount.account,
                     JSESSIONID
@@ -85,16 +88,15 @@ class AuthenticationService {
          * Injeta o JSESSIONID no Sigaa
          */
         const { url, institution } = options
-        const { pageCache, pageCacheWithBond } = Builder.getPagesCache(100)
-        const httpSession = Builder.getHTTPSession(url, JSESSIONID, pageCache)
-        const httpFactory = Builder.getHTTPFactory(url, JSESSIONID, pageCacheWithBond, httpSession)
-        const http = httpFactory.createHttp()
-        const parser = Builder.getSIGAAParser()
-        const bondFactory = Builder.getBondFactory(http, httpFactory, parser)
-        const accountFactory = Builder.getAccountFactory(http, parser, bondFactory, institution)
+        const cookiesController = new SigaaCookiesController()
+        const { hostname } = new URL(url)
+        cookiesController.storeCookies(hostname, [JSESSIONID])
+        const requestStackController = cacheService.get(`requestStackInstance@${JSESSIONID}`) as SigaaRequestStack<Request, Page>
+        const sigaaInstance = new Sigaa({ url, institution, cookiesController, requestStackController })
+        const http = sigaaInstance.httpFactory.createHttp()
         const page = await http.get('/sigaa/vinculos.jsf')
-        const account = await accountFactory.getAccount(page)
-        return { account, page, httpSession, pageCache, pageCacheWithBond }
+        const account = await sigaaInstance.accountFactory.getAccount(page)
+        return { account, page, httpSession: sigaaInstance.httpSession }
     }
 }
 

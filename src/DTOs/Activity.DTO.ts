@@ -2,7 +2,7 @@ import { Activity } from "sigaa-api";
 
 export interface IActivityDTOProps {
     type: string;
-    description: string;
+    title: string;
     date: string;
     done: boolean;
     course: { title: string };
@@ -15,21 +15,21 @@ export class ActivityDTO implements IActivityDTO {
     constructor(public activity: Activity) { }
 
     toJSON(): IActivityDTOProps {
-        let description = "";
+        let title = "";
         switch (this.activity.type) {
             case "exam":
-                description = this.activity.examDescription;
+                title = this.activity.examDescription;
                 break;
             case "homework":
-                description = this.activity.homeworkTitle;
+                title = this.activity.homeworkTitle;
                 break;
             case "quiz":
-                description = this.activity.quizTitle;
+                title = this.activity.quizTitle;
                 break;
         }
         return {
             type: this.activity.type,
-            description,
+            title,
             date: this.activity.date.toISOString(),
             done: this.activity.done,
             course: { title: this.activity.courseTitle }

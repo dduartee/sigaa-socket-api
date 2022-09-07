@@ -19,7 +19,6 @@ export class Courses {
    * @returns
    */
   async list(query: { inactive: boolean, allPeriods: boolean, cache: boolean, registration: string }) {
-    const eventName = events.courses.list;
     const apiEventError = events.api.error;
     try {
       const { cache, uniqueID } = cacheUtil.restore(this.socketService.id);
@@ -31,7 +30,7 @@ export class Courses {
         const newest = cacheHelper.getNewest(jsonCache, query);
         if (newest) {
           const bond = newest["BondsJSON"].find(bond => bond.registration === query.registration);
-          return this.socketService.emit(eventName, bond);
+          return this.socketService.emit("courses::list", bond);
         }
       }
       const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
@@ -59,7 +58,7 @@ export class Courses {
         ],
         time: new Date().toISOString(),
       });
-      return this.socketService.emit(eventName, bondJSON);
+      return this.socketService.emit("courses::list", bondJSON);
     } catch (error) {
       console.error(error);
       this.socketService.emit(apiEventError, error.message);

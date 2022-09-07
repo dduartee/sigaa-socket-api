@@ -19,7 +19,6 @@ import { BondDTO } from "../DTOs/Bond.DTO";
 export class Grades {
   constructor(private socketService: Socket) { }
   async list(query: { cache: boolean, registration: string, inactive: boolean, allPeriods: boolean }) {
-    const eventName = events.grades.list;
     try {
       const { cache, uniqueID } = cacheUtil.restore(this.socketService.id);
       const { JSESSIONID, jsonCache } = cache;
@@ -30,10 +29,10 @@ export class Grades {
         const newest = cacheHelper.getNewest(jsonCache, query);
         if (newest) {
           const bond = newest["BondsJSON"].find(bond => bond.registration === query.registration);
-          return this.socketService.emit(eventName, bond);
+          return this.socketService.emit("grades::list", bond);
         }
       }
-      const { account, httpSession, pageCache, pageCacheWithBond } = await Authentication.loginWithJSESSIONID(JSESSIONID)
+      const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
       const accountService = new AccountService(account);
       const activeBonds = await accountService.getActiveBonds();
       const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
@@ -79,7 +78,7 @@ export class Grades {
         time: new Date().toISOString(),
       });
       httpSession.close();
-      this.socketService.emit(eventName, bondDTO.toJSON());
+      this.socketService.emit("grades::list", bondDTO.toJSON());
     } catch (error) {
       console.error(error);
       this.socketService.emit("api::error", error.message);

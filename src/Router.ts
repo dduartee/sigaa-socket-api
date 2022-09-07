@@ -68,8 +68,8 @@ export class Router {
     );
 
     this.socketService.on(
-      "homeworks::list",
-      async (query) => await homework.list(query)
+      "homework::content",
+      async (query) => await homework.content(query)
     );
 
     this.socketService.on(
@@ -78,8 +78,8 @@ export class Router {
     );
 
     this.socketService.on(
-      "news::list",
-      async (query) => await news.list(query)
+      "news::latest",
+      async (query) => await news.latest(query)
     );
 
     this.socketService.on(

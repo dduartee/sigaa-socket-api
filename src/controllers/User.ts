@@ -70,7 +70,7 @@ export class User {
             const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
             const accountService = new AccountService(account)
             const fullName = await accountService.getFullName()
-            const { href: profilePictureURL } = await accountService.getProfilePictureURL()
+            const { href: profilePictureURL } = await accountService.getProfilePictureURL() ?? new URL("https://sigaa.ifsc.edu.br/sigaa/img/no_picture.png");
             const emails = await accountService.getEmails()
             httpSession.close()
             const userDTO = new UserDTO({

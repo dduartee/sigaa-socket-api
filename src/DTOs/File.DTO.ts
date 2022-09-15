@@ -1,4 +1,4 @@
-import { File, SigaaFile } from "sigaa-api";
+import { SigaaFile } from "sigaa-api";
 
 export interface IFileDTOProps {
     id: string;

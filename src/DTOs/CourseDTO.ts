@@ -1,4 +1,5 @@
 import { CourseStudent } from "sigaa-api";
+import { AbsencesDTO, IAbsencesDTOProps } from "./Absences.DTO";
 import { GradeGroupDTO, IGradeGroupDTOProps } from "./GradeGroup/GradeGroup.DTO";
 import { HomeworkDTO, IHomeworkDTOProps } from "./Homework.DTO";
 import { INewsDTOProps, NewsDTO } from "./News.DTO";
@@ -13,6 +14,7 @@ export interface ICourseDTOProps {
     grades?: IGradeGroupDTOProps[];
     news?: INewsDTOProps[]
     homeworks?: IHomeworkDTOProps[];
+    absences?: IAbsencesDTOProps
 }
 export interface ICourseDTO {
     toJSON(): ICourseDTOProps;
@@ -24,6 +26,7 @@ export class CourseDTO implements ICourseDTO {
             gradeGroupsDTOs?: GradeGroupDTO[],
             newsDTOs?: NewsDTO[],
             homeworksDTOs?: HomeworkDTO[],
+            absencesDTO?: AbsencesDTO
         }
     ) { }
 
@@ -41,6 +44,7 @@ export class CourseDTO implements ICourseDTO {
             grades: gradeGroupsDTOs.map(dto => dto.toJSON()),
             news: newsDTOs.map(dto => dto.toJSON()),
             homeworks: homeworksDTOs.map(dto => dto.toJSON()),
+            absences: this.additionals?.absencesDTO?.toJSON()
         }
     }
 }

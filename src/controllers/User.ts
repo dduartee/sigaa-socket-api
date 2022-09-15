@@ -33,6 +33,7 @@ export class User {
                 const uniqueID: string = cacheService.get(this.socketService.id)
                 cacheUtil.merge(uniqueID, { JSESSIONID, username: credentials.username })
                 sigaaInstance.close()
+                console.log(`[${credentials.username} - ${this.socketService.id}] Logado (senha) com sucesso`)
                 this.logado = true;
             } else {
                 // login com o JSESSIONID
@@ -44,6 +45,7 @@ export class User {
                     this.socketService.emit("user::status", "Logando")
                     const { httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
                     httpSession.close()
+                    console.log(`[${cache.username} - ${this.socketService.id}] Logado (sessão) com sucesso`)
                     this.logado = true;
                 } else {
                     this.logado = false;

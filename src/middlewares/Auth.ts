@@ -51,6 +51,7 @@ class Auth {
                     this.token = token;
                     cacheService.del(sid);
                     cacheService.set(sid, uniqueID);
+                    console.log(`[${Date.now()} - ${token.substring(10, 15)} - ${this.socketService.id}] -> [${event[0]}]`) // log para identificacao
                     return next();
                 }
             }

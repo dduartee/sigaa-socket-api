@@ -1,4 +1,4 @@
-import { CourseStudent, File, News, NewsData, SigaaFile, SigaaHomework, SigaaNews, StudentBond } from "sigaa-api";
+import { CourseStudent, File, Lesson, News, NewsData, SigaaFile, SigaaHomework, SigaaNews, StudentBond } from "sigaa-api";
 import { FullHomework } from "../../DTOs/Homework.DTO";
 import { FullNews } from "../../DTOs/News.DTO";
 export class CourseService {
@@ -62,29 +62,7 @@ export class CourseService {
             }
         }
     }
-    async getFullNews(news: SigaaNews[], retryTimes = 0): Promise<FullNews[]> {
-        try {
-            const newsParsed: FullNews[] = []
-            for (const n of news) {
-                const content = await n.getContent();
-                const date = await n.getDate();
-                newsParsed.push({
-                    id: n.id,
-                    title: n.title,
-                    content,
-                    date,
-                })
-            }
-        } catch (error) {
-            console.log(`Error: ${error} @ ${retryTimes}/3`);
-            if (retryTimes < 3) {
-                return this.getFullNews(news, retryTimes + 1);
-            } else {
-                return [];
-            }
-        }
-    }
-    async getLessons(retryTimes = 0) {
+    async getLessons(retryTimes = 0): Promise<Lesson[]> {
         try {
             const lessons = await this.course.getLessons();
             return lessons;
@@ -97,14 +75,14 @@ export class CourseService {
             }
         }
     }
-    async getAbsence(retryTimes = 0) {
+    async getAbsences(retryTimes = 0) {
         try {
             const absence = await this.course.getAbsence();
             return absence;
         } catch (error) {
             console.log(`Error: ${error} @ ${retryTimes}/3`);
             if (retryTimes < 3) {
-                return this.getAbsence(retryTimes + 1);
+                return this.getAbsences(retryTimes + 1);
             } else {
                 return [];
             }

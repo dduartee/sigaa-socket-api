@@ -102,7 +102,7 @@ export class User {
             const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
             const accountService = new AccountService(account)
             this.socketService.emit("user::status", "Deslogando")
-            accountService.logoff()
+            //accountService.logoff()
             httpSession.close()
             session.delete(this.socketService.id)
             cacheService.del(uniqueID)

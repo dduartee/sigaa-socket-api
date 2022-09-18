@@ -1305,9 +1305,9 @@ shebang-regex@^3.0.0:
   resolved "https://registry.yarnpkg.com/shebang-regex/-/shebang-regex-3.0.0.tgz#ae16f1644d873ecad843b0307b143362d4c42172"
   integrity sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==
 
-"sigaa-api@git+https://github.com/dduartee/sigaa-api#patch-arithmetic-average":
+"sigaa-api@git+https://github.com/dduartee/sigaa-api":
   version "1.0.34"
-  resolved "git+https://github.com/dduartee/sigaa-api#c345a46a18eb1b0dd0ce97727e1d817522f26c0b"
+  resolved "git+https://github.com/dduartee/sigaa-api#0f2f728746fa9f11d5e81ebe6af770c829e70f46"
   dependencies:
     cheerio "^1.0.0-rc.10"
     formdata-node "^3.6.3"

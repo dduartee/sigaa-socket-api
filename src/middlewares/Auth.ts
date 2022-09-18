@@ -1,4 +1,4 @@
-import JWT from "jsonwebtoken";
+import JWT, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 import { v4 } from 'uuid';
 import { session } from '../helpers/Session';
@@ -7,6 +7,11 @@ import { events } from "../apiConfig.json"
 import { cacheService } from '../services/cacheService';
 import { Socket } from "socket.io";
 dotenv.config()
+type tokenPayload = {
+    time: string,
+    uniqueID: string,
+    sid: string
+}
 class Auth {
     secret = process.env.SECRET
     token: string;
@@ -16,7 +21,7 @@ class Auth {
         const verify = token && this.verify(token);
         const valid = verify && this.decode(token);
         if (valid) {
-            const { time, uniqueID } = valid;
+            const { time, uniqueID } = valid
             const hasCache = cacheHelper.getCache(uniqueID)
             const sid = this.socketService.id;
             const difftime = this.diffTime(time);
@@ -41,7 +46,7 @@ class Auth {
             if (!event[1]) throw new Error("No token received");
             const { token } = event[1];
             const verify = token && this.verify(token);
-            const valid = verify && this.decode(token);
+            const valid = verify && this.decode(token) as JwtPayload;
             if (valid) {
                 const { time, uniqueID } = valid;
                 const sid = this.socketService.id;
@@ -51,14 +56,15 @@ class Auth {
                     this.token = token;
                     cacheService.del(sid);
                     cacheService.set(sid, uniqueID);
-                    console.log(`[${Date.now()} - ${token.substring(10, 15)} - ${this.socketService.id}] -> [${event[0]}]`) // log para identificacao
+                    const time = `${new Date().getDate()}/${new Date().getMonth()+1}/${new Date().getFullYear()} ${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`
+                    console.log(`[${time} - ${token.slice(-5)}] -> [${event[0]}]`) // log para identificacao
                     return next();
                 }
             }
             const uniqueID = v4(); // DATABASE
             const sid = this.socketService.id; // SESSION
             const time = new Date().toISOString(); // CACHE
-            const newToken: any = this.sign({ time, uniqueID, sid })
+            const newToken = this.sign({ time, uniqueID, sid }) || "";
             this.token = newToken;
             cacheService.set(sid, uniqueID);
             cacheService.set(uniqueID, {
@@ -92,7 +98,7 @@ class Auth {
      */
     decode(token: string) {
         try {
-            const decoded: any = JWT.decode(token);
+            const decoded = JWT.decode(token) as tokenPayload
             return decoded;
         } catch (error) {
             console.error(error)
@@ -104,7 +110,7 @@ class Auth {
      * @param payload 
      * @returns 
      */
-    sign(payload: {}) {
+    sign(payload: tokenPayload) {
         try {
             const token = JWT.sign(payload, this.secret);
             return token;

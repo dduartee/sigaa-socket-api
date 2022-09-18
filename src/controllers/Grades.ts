@@ -1,9 +1,6 @@
 
-import { jsonCache, cacheUtil } from "../services/cacheUtil";
-import { Bonds } from "./Bonds";
+import { cacheUtil } from "../services/cacheUtil";
 import { cacheHelper } from "../helpers/Cache";
-import { Courses } from "./Courses";
-import { events } from "../apiConfig.json";
 import Authentication from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
@@ -15,6 +12,7 @@ import { SumOfGradesDTO } from "../DTOs/GradeGroup/SumOfGrades.DTO";
 import { SubGradeDTO } from "../DTOs/GradeGroup/SubGrade.DTO";
 import { CourseDTO } from "../DTOs/CourseDTO";
 import { BondDTO } from "../DTOs/Bond.DTO";
+import { ArithmeticAverageDTO } from "../DTOs/GradeGroup/ArithmeticAverage.DTO";
 
 export class Grades {
   constructor(private socketService: Socket) { }
@@ -57,6 +55,9 @@ export class Grades {
               break;
             case "weighted-average":
               subGradesDTOs = gradeGroup.grades.map(weightedAverage => new WeightedAverageDTO(weightedAverage))
+              break;
+            case "arithmetic-average":
+              subGradesDTOs = gradeGroup.grades.map(arithmeticAverage => new ArithmeticAverageDTO(arithmeticAverage))
               break;
             default:
               subGradesDTOs = []

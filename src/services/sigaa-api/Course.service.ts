@@ -1,4 +1,4 @@
-import { CourseStudent, File, Lesson, News, NewsData, SigaaFile, SigaaHomework, SigaaNews, StudentBond } from "sigaa-api";
+import { CourseStudent, File, GradeGroup, Lesson, News, NewsData, SigaaFile, SigaaHomework, SigaaNews, StudentBond } from "sigaa-api";
 import { FullHomework } from "../../DTOs/Homework.DTO";
 import { FullNews } from "../../DTOs/News.DTO";
 export class CourseService {
@@ -36,7 +36,7 @@ export class CourseService {
             }
         }
     }
-    async getGrades(retryTimes = 0) {
+    async getGrades(retryTimes = 0): Promise<GradeGroup[]> {
         try {
             const grades = await this.course.getGrades();
             return grades;

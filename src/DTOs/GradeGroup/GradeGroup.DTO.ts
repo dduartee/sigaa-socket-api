@@ -2,7 +2,7 @@ import { GradeGroup } from "sigaa-api";
 import { ISubGradeDTOProps, SubGradeDTO } from "./SubGrade.DTO";
 
 export interface IGradeGroupDTOProps {
-    type: 'sum-of-grades'|'only-average'|'weighted-average',
+    type: 'sum-of-grades'|'only-average'|'weighted-average'|'arithmetic-average'
     value: number,
     name: string,
     subGrades: ISubGradeDTOProps[]

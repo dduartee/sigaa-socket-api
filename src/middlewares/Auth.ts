@@ -41,7 +41,6 @@ class Auth {
      * @returns 
      */
     middleware(event: { 0: string, 1: { token: string } }, next: (err?: Error) => void) {
-        const eventName = events.auth.store;
         try {
             if (!event[1]) throw new Error("No token received");
             const { token } = event[1];
@@ -57,7 +56,7 @@ class Auth {
                     cacheService.del(sid);
                     cacheService.set(sid, uniqueID);
                     const time = `${new Date().getDate()}/${new Date().getMonth()+1}/${new Date().getFullYear()} ${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`
-                    console.log(`[${time} - ${token.slice(-5)}] -> [${event[0]}]`) // log para identificacao
+                    console.log(`[${time} - ${token.slice(-5)} - ${this.socketService.id}] -> [${event[0]}]`) // log para identificacao
                     return next();
                 }
             }
@@ -70,7 +69,7 @@ class Auth {
             cacheService.set(uniqueID, {
                 time,
             });
-            this.socketService.emit(eventName, newToken)
+            this.socketService.emit(events.auth.store, newToken)
             return next();
         } catch (err) {
             console.error(err)

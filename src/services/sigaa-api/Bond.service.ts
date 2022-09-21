@@ -1,6 +1,19 @@
 import { Activity, CourseStudent, StudentBond } from "sigaa-api";
 export class BondService {
   constructor(private bond: StudentBond) { }
+  async getCampus(retryTimes = 0): Promise<string> {
+    try {
+      const campus = await this.bond.getCampus()
+      return campus;
+    } catch (error) {
+      console.log(`Error: ${error} @ ${retryTimes}/3`);
+      if (retryTimes < 3) {
+        return this.getCampus(retryTimes + 1);
+      } else {
+        return "";
+      }
+    }
+  }
   async getActivities(retryTimes = 0) {
     try {
 

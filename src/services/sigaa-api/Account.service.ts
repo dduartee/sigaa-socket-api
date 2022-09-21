@@ -78,6 +78,6 @@ class AccountService {
             }
         }
     }
-};
+}
 
 export { AccountService }

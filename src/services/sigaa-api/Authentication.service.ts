@@ -1,12 +1,12 @@
 import { Account, InstitutionType, Page, Request, Sigaa, SigaaCookiesController } from "sigaa-api";
 import { SigaaRequestStack } from "sigaa-api/dist/helpers/sigaa-request-stack";
 import { cacheService } from "../cacheService";
-import Builder, { JSESSIONID } from "./Builder";
 const expectedErrors = [
     'SIGAA: Invalid response after login attempt.',
     'SIGAA: Invalid homepage, the system behaved unexpectedly.',
     'SIGAA: Unknown homepage format.'
 ]
+type JSESSIONID = string;
 class AuthenticationService {
     private async attemptLogin(credentials: {
         username: string;

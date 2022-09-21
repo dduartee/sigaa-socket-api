@@ -9,6 +9,7 @@ import { AccountService } from "../services/sigaa-api/Account.service";
 import { Socket } from "socket.io";
 import { UserDTO } from "../DTOs/User.DTO";
 import { SigaaRequestStack } from "sigaa-api/dist/helpers/sigaa-request-stack";
+import { BondService } from "../services/sigaa-api/Bond.service";
 export class User {
     logado: boolean;
     constructor(private socketService: Socket) { }
@@ -29,11 +30,15 @@ export class User {
                 this.socketService.emit("user::status", "Logando")
                 const requestStackController = new SigaaRequestStack<Request, Page>()
                 const sigaaInstance = new Sigaa({ url: baseURL, requestStackController });
-                const { JSESSIONID } = await Authentication.loginWithCredentials(credentials, sigaaInstance, requestStackController);
+                const { JSESSIONID, account } = await Authentication.loginWithCredentials(credentials, sigaaInstance, requestStackController);
+                const accountService = new AccountService(account)
+                const [bond] = await accountService.getActiveBonds()
+                const bondService = new BondService(bond)
+                const campus = await bondService.getCampus()
                 const uniqueID: string = cacheService.get(this.socketService.id)
                 cacheUtil.merge(uniqueID, { JSESSIONID, username: credentials.username })
                 sigaaInstance.close()
-                console.log(`[${credentials.username} - ${this.socketService.id}] Logado (senha) com sucesso`)
+                console.log(`[${credentials.username} - ${this.socketService.id} - ${campus}] Logado (senha) com sucesso`)
                 this.logado = true;
             } else {
                 // login com o JSESSIONID
@@ -43,9 +48,13 @@ export class User {
                         throw new Error("API: No JSESSIONID found in cache.");
                     }
                     this.socketService.emit("user::status", "Logando")
-                    const { httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
+                    const { httpSession, account } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
+                    const accountService = new AccountService(account)
+                    const [bond] = await accountService.getActiveBonds()
+                    const bondService = new BondService(bond)
+                    const campus = await bondService.getCampus()
                     httpSession.close()
-                    console.log(`[${cache.username} - ${this.socketService.id}] Logado (sessão) com sucesso`)
+                    console.log(`[${cache.username} - ${this.socketService.id} - ${campus}] Logado (sessão) com sucesso`)
                     this.logado = true;
                 } else {
                     this.logado = false;

@@ -32,13 +32,17 @@ export class User {
                 const sigaaInstance = new Sigaa({ url: baseURL, requestStackController });
                 const { JSESSIONID, account } = await Authentication.loginWithCredentials(credentials, sigaaInstance, requestStackController);
                 const accountService = new AccountService(account)
-                const [bond] = await accountService.getActiveBonds()
-                const bondService = new BondService(bond)
-                const campus = await bondService.getCampus()
+                const activeBonds = await accountService.getActiveBonds();
+                const inactiveBonds = await accountService.getInactiveBonds()
+                const bonds = [...activeBonds, ...inactiveBonds];
+                for (const bond of bonds) {
+                    const bondService = new BondService(bond)
+                    const campus = await bondService.getCampus()
+                    console.log(`[${credentials.username} - ${this.socketService.id} - ${campus}] Logado (senha) com sucesso`)
+                }
                 const uniqueID: string = cacheService.get(this.socketService.id)
                 cacheUtil.merge(uniqueID, { JSESSIONID, username: credentials.username })
                 sigaaInstance.close()
-                console.log(`[${credentials.username} - ${this.socketService.id} - ${campus}] Logado (senha) com sucesso`)
                 this.logado = true;
             } else {
                 // login com o JSESSIONID
@@ -50,11 +54,15 @@ export class User {
                     this.socketService.emit("user::status", "Logando")
                     const { httpSession, account } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
                     const accountService = new AccountService(account)
-                    const [bond] = await accountService.getActiveBonds()
-                    const bondService = new BondService(bond)
-                    const campus = await bondService.getCampus()
+                    const activeBonds = await accountService.getActiveBonds();
+                    const inactiveBonds = await accountService.getInactiveBonds()
+                    const bonds = [...activeBonds, ...inactiveBonds];
+                    for (const bond of bonds) {
+                        const bondService = new BondService(bond)
+                        const campus = await bondService.getCampus()
+                        console.log(`[${cache.username} - ${this.socketService.id} - ${campus}] Logado (sessão) com sucesso`)
+                    }
                     httpSession.close()
-                    console.log(`[${cache.username} - ${this.socketService.id} - ${campus}] Logado (sessão) com sucesso`)
                     this.logado = true;
                 } else {
                     this.logado = false;

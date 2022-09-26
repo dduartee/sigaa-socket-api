@@ -80,19 +80,15 @@ class AuthenticationService {
             throw new Error(attemptLogin.error)
         }
     }
-    public async loginWithJSESSIONID(JSESSIONID: JSESSIONID, options = {
-        url: "https://sigaa.ifsc.edu.br",
-        institution: "IFSC" as InstitutionType
-    }) {
+    public async loginWithJSESSIONID(JSESSIONID: JSESSIONID, url: string) {
         /**
          * Injeta o JSESSIONID no Sigaa
          */
-        const { url, institution } = options
         const cookiesController = new SigaaCookiesController()
         const { hostname } = new URL(url)
         cookiesController.storeCookies(hostname, [JSESSIONID])
         const requestStackController = cacheService.get(`requestStackInstance@${JSESSIONID}`) as SigaaRequestStack<Request, Page>
-        const sigaaInstance = new Sigaa({ url, institution, cookiesController, requestStackController })
+        const sigaaInstance = new Sigaa({ url, cookiesController, requestStackController })
         const http = sigaaInstance.httpFactory.createHttp()
         const page = await http.get('/sigaa/vinculos.jsf')
         const account = await sigaaInstance.accountFactory.getAccount(page)

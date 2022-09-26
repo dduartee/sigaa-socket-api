@@ -30,7 +30,7 @@ export class Grades {
           return this.socketService.emit("grades::list", bond);
         }
       }
-      const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
+      const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, cache.sigaaURL)
       const accountService = new AccountService(account);
       const activeBonds = await accountService.getActiveBonds();
       const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];

@@ -7,6 +7,7 @@ export type CacheType = {
     username?: string,
     JSESSIONID?: string,
     registration?: string,
+    sigaaURL?: string,
     time?: string
 }
 export type jsonCache = {

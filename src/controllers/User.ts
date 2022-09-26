@@ -1,5 +1,5 @@
 import { session } from "../helpers/Session";
-import { baseURL } from "../apiConfig.json";
+import { sigaaIfscURL } from "../apiConfig.json";
 import { Page, Request, Sigaa } from "sigaa-api";
 import { cacheService } from "../services/cacheService";
 import { cacheUtil } from "../services/cacheUtil";
@@ -23,6 +23,7 @@ export class User {
         password: string;
         sigaaURL: string;
     }) {
+        const sigaaURL = new URL(credentials.sigaaURL || sigaaIfscURL)
         const apiEventError = events.api.error;
         if (this.logado) return "Usuario já esta logado";
         try {
@@ -30,7 +31,6 @@ export class User {
             if (credentials.username && credentials.password) {
                 this.socketService.emit("user::status", "Logando")
                 const requestStackController = new SigaaRequestStack<Request, Page>()
-                const sigaaURL = new URL(credentials.sigaaURL || baseURL)
                 const sigaaInstance = new Sigaa({ url: sigaaURL.toString(), requestStackController });
                 const { JSESSIONID, account } = await Authentication.loginWithCredentials(credentials, sigaaInstance, requestStackController);
                 const accountService = new AccountService(account)
@@ -43,7 +43,7 @@ export class User {
                     console.log(`[${credentials.username} - ${this.socketService.id} - ${campus} - ${sigaaURL.origin}] Logado (senha) com sucesso`)
                 }
                 const uniqueID: string = cacheService.get(this.socketService.id)
-                cacheUtil.merge(uniqueID, { JSESSIONID, username: credentials.username })
+                cacheUtil.merge(uniqueID, { JSESSIONID, username: credentials.username, sigaaURL: sigaaURL.origin })
                 sigaaInstance.close()
                 this.logado = true;
             } else {
@@ -54,7 +54,7 @@ export class User {
                         throw new Error("API: No JSESSIONID found in cache.");
                     }
                     this.socketService.emit("user::status", "Logando")
-                    const { httpSession, account } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
+                    const { httpSession, account } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, sigaaURL.toString())
                     const accountService = new AccountService(account)
                     const activeBonds = await accountService.getActiveBonds();
                     const inactiveBonds = await accountService.getInactiveBonds()
@@ -88,7 +88,7 @@ export class User {
             if (!cache?.JSESSIONID) {
                 throw new Error("API: No JSESSIONID found in cache.");
             }
-            const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
+            const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, cache.sigaaURL)
             const accountService = new AccountService(account)
             const fullName = await accountService.getFullName()
             const { href: profilePictureURL } = await accountService.getProfilePictureURL() ?? new URL("https://sigaa.ifsc.edu.br/sigaa/img/no_picture.png");
@@ -118,7 +118,7 @@ export class User {
             if (!cache.JSESSIONID) {
                 throw new Error("API: No JSESSIONID found in cache.");
             }
-            const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID)
+            const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, cache.sigaaURL)
             const accountService = new AccountService(account)
             this.socketService.emit("user::status", "Deslogando")
             //accountService.logoff()

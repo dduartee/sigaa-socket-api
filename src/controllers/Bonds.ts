@@ -28,7 +28,7 @@ export class Bonds {
           return this.socketService.emit("bonds::list", bonds);
         }
       }
-      const { account, httpSession } = await Authentication.loginWithJSESSIONID(JSESSIONID)
+      const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, cache.sigaaURL)
       const accountService = new AccountService(account);
       const activeBonds = await accountService.getActiveBonds();
       const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];

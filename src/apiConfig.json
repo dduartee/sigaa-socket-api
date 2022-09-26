@@ -1,5 +1,5 @@
 {
-    "baseURL": "https://sigaa.ifsc.edu.br/",
+    "sigaaIfscURL": "https://sigaa.ifsc.edu.br/",
     "events": {
         "user": {
             "login": "user::login",

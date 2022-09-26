@@ -52,6 +52,7 @@ export class Homeworks {
                 const homeworks = await course.getHomeworks() as SigaaHomework[]
                 const homework = homeworks.find(h => h.title === activityJSON.title)
                 if (!homework) continue;
+                console.log(`[homework - content] - ${homework.id}`)
                 const attachmentFileDTO = await (homework.getAttachmentFile().then(file => new FileDTO(file as SigaaFile).toJSON()).catch(() => null))
                 const homeworkDTO = new HomeworkDTO({
                     id: homework.id,

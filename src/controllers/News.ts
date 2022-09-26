@@ -48,7 +48,6 @@ export class News {
             // const active = activeBonds.includes(bond);
 
             const courses = await bondService.getCourses();
-            const coursesDTOs: CourseDTO[] = []
             for (const course of courses) {
                 if (course.id === query.courseId) {
                     const courseService = new CourseService(course)
@@ -61,6 +60,7 @@ export class News {
                         content,
                         date,
                     })
+                    console.log(`[news - latest] - ${newsDTO.news.id}`);
                     httpSession.close()
                     const courseDTO = new CourseDTO(course, { newsDTOs: [newsDTO] })
                     return this.socketService.emit("news::latest", courseDTO.toJSON())

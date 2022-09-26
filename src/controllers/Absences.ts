@@ -47,6 +47,7 @@ export class Absences {
       for (const course of courses) {
         const courseService = new CourseService(course);
         const absences = await courseService.getAbsences();
+        console.log(`[absences - list] - ${absences.list.length}`)
         const absencesDTO = new AbsencesDTO(absences);
         const courseDTO = new CourseDTO(course, { absencesDTO })
         coursesDTOs.push(courseDTO)

@@ -44,6 +44,7 @@ export class Grades {
       for (const course of courses) {
         const courseService = new CourseService(course);
         const gradeGroups = await courseService.getGrades();
+        console.log(`[grades - list] - ${gradeGroups.length}`)
         const gradeGroupsDTOs = gradeGroups.map(gradeGroup => {
           let subGradesDTOs: SubGradeDTO[] = []
           switch (gradeGroup.type) {

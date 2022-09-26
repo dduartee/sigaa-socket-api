@@ -21,6 +21,7 @@ export class User {
     async login(credentials: {
         username: string;
         password: string;
+        sigaaURL: string;
     }) {
         const apiEventError = events.api.error;
         if (this.logado) return "Usuario já esta logado";
@@ -29,16 +30,17 @@ export class User {
             if (credentials.username && credentials.password) {
                 this.socketService.emit("user::status", "Logando")
                 const requestStackController = new SigaaRequestStack<Request, Page>()
-                const sigaaInstance = new Sigaa({ url: baseURL, requestStackController });
+                const sigaaURL = new URL(credentials.sigaaURL || baseURL)
+                const sigaaInstance = new Sigaa({ url: sigaaURL.toString(), requestStackController });
                 const { JSESSIONID, account } = await Authentication.loginWithCredentials(credentials, sigaaInstance, requestStackController);
                 const accountService = new AccountService(account)
                 const activeBonds = await accountService.getActiveBonds();
-                const inactiveBonds = await accountService.getInactiveBonds()
+                const inactiveBonds = await accountService.getInactiveBonds();
                 const bonds = [...activeBonds, ...inactiveBonds];
                 for (const bond of bonds) {
                     const bondService = new BondService(bond)
                     const campus = await bondService.getCampus()
-                    console.log(`[${credentials.username} - ${this.socketService.id} - ${campus}] Logado (senha) com sucesso`)
+                    console.log(`[${credentials.username} - ${this.socketService.id} - ${campus} - ${sigaaURL.origin}] Logado (senha) com sucesso`)
                 }
                 const uniqueID: string = cacheService.get(this.socketService.id)
                 cacheUtil.merge(uniqueID, { JSESSIONID, username: credentials.username })

@@ -43,7 +43,7 @@ export class Activities {
 
       const period = await bondService.getCurrentPeriod()
       const activities = await bondService.getActivities();
-      
+      console.log(`[activities - list] - ${activities.length}`)
       httpSession.close()
 
       const activitiesDTOs = activities.map(activity => new ActivityDTO(activity));

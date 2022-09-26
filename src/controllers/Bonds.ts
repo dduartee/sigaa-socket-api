@@ -33,6 +33,7 @@ export class Bonds {
       const activeBonds = await accountService.getActiveBonds();
       const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
       const bonds = [...activeBonds, ...inactiveBonds];
+      console.log(`[bonds - list] - ${bonds.length}`)
       const BondsDTOs: BondDTO[] = []
       for (const bond of bonds) {
         const bondService = new BondService(bond)

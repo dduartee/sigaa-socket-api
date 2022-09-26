@@ -1,4 +1,4 @@
-import { CourseStudent } from "sigaa-api";
+import { CourseStudent, StudentBond } from "sigaa-api";
 import { Socket } from "socket.io";
 import { cacheUtil } from "../services/cacheUtil";
 import { Bonds } from "./Bonds";
@@ -9,7 +9,7 @@ import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { BondDTO } from "../DTOs/Bond.DTO";
 import { CourseDTO } from "../DTOs/CourseDTO";
-import { CourseService } from "../services/sigaa-api/Course.service";
+
 export class Courses {
   constructor(private socketService: Socket) { }
   /**
@@ -38,12 +38,13 @@ export class Courses {
       const activeBonds = await accountService.getActiveBonds();
       const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
       const bonds = [...activeBonds, ...inactiveBonds];
-      const bond = bonds.find(b => b.registration === query.registration);
+      const bond = bonds.find(b => b.registration === query.registration) as StudentBond | undefined;
       if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
       const bondService = new BondService(bond);
       const period = await bondService.getCurrentPeriod()
       const active = activeBonds.includes(bond);
       const courses = await bondService.getCourses(query.allPeriods)
+      console.log(`[courses - list] - ${courses.length}`)
       httpSession.close()
       const coursesDTOs: CourseDTO[] = []
       for (const course of courses) {

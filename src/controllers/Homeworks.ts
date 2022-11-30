@@ -9,7 +9,7 @@ import { BondService } from "../services/sigaa-api/Bond.service";
 import { Socket } from "socket.io";
 import { HomeworkDTO } from "../DTOs/Homework.DTO";
 import { Activity, CourseStudent, SigaaFile, SigaaHomework } from "sigaa-api";
-import { FileDTO } from "../DTOs/File.DTO";
+import { FileDTO } from "../DTOs/Attachments/File.DTO";
 import { ActivityDTO } from "../DTOs/Activity.DTO";
 export class Homeworks {
     constructor(private socketService: Socket) { }
@@ -53,17 +53,13 @@ export class Homeworks {
                 const homework = homeworks.find(h => h.title === activityJSON.title)
                 if (!homework) continue;
                 console.log(`[homework - content] - ${homework.id}`)
+                
                 const attachmentFileDTO = await (homework.getAttachmentFile().then(file => new FileDTO(file as SigaaFile).toJSON()).catch(() => null))
-                const homeworkDTO = new HomeworkDTO({
-                    id: homework.id,
-                    title: homework.title,
-                    content: await homework.getDescription(),
-                    endDate: homework.endDate,
-                    startDate: homework.startDate,
-                    haveGrade: await homework.getFlagHaveGrade(),
-                    isGroup: await homework.getFlagIsGroupHomework(),
-                    fileDTO: attachmentFileDTO ? new FileDTO(attachmentFileDTO) : null
-                })
+                const fileDTO = attachmentFileDTO ?new FileDTO(attachmentFileDTO): null
+                const content = await homework.getDescription()
+                const haveGrade = await homework.getFlagHaveGrade()
+                const isGroup = await homework.getFlagIsGroupHomework()
+                const homeworkDTO = new HomeworkDTO(homework, fileDTO, content, haveGrade, isGroup)
                 httpSession.close()
                 return this.socketService.emit("homework::content", homeworkDTO.toJSON());
                 /*

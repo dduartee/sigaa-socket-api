@@ -66,28 +66,4 @@ export class Courses {
       return false;
     }
   }
-
-  /**
-   * Parser da matéria
-   * @param params
-   * @returns
-   */
-  static parser(params: {
-    course: CourseStudent;
-    news?: any;
-    grades?: any;
-    homeworks?: any;
-  }) {
-    const { course, grades, homeworks, news } = params;
-    return {
-      id: course.id,
-      title: course.title,
-      code: course.code,
-      period: course.period,
-      schedule: course.schedule,
-      news: news ?? [],
-      grades: grades ?? [],
-      homeworks: homeworks ?? [],
-    };
-  }
 }

@@ -1,8 +1,10 @@
 import { Lesson, LinkAttachment, SigaaCourseForum, SigaaFile, SigaaHomework, SigaaQuiz, SigaaSurvey, SigaaWebContent, StudentBond, VideoAttachment } from "sigaa-api";
+import { HyperlinkAttachment } from "sigaa-api/dist/courses/resources/attachments/sigaa-hyperlink-student";
 import { Socket } from "socket.io";
 import { AttachmentDTO } from "../DTOs/Attachments/Attachment.DTO";
 import { FileDTO } from "../DTOs/Attachments/File.DTO";
 import { ForumDTO } from "../DTOs/Attachments/Forum.DTO";
+import { HyperLinkDTO } from "../DTOs/Attachments/Hyperlink.DTO";
 import { LinkDTO } from "../DTOs/Attachments/Link.DTO";
 import { QuizDTO } from "../DTOs/Attachments/Quiz.DTO";
 import { SurveyDTO } from "../DTOs/Attachments/Survey.DTO";
@@ -101,6 +103,13 @@ export class Lessons {
                     attachmentsDTOs.push(attachmentDTO)
                     break;
                 }
+                case "hyperlink": {
+                    const hyperlinkAttachment = attachment as HyperlinkAttachment;
+                    const hyperlinkDTO = new HyperLinkDTO(hyperlinkAttachment);
+                    const attachmentDTO = new AttachmentDTO(hyperlinkDTO, "hyperlink")
+                    attachmentsDTOs.push(attachmentDTO)
+                    break;
+                }
                 case "video": {
                     const videoAttachment = attachment as VideoAttachment;
                     const videoDTO = new VideoDTO(videoAttachment);
@@ -115,54 +124,54 @@ export class Lessons {
                     const numOfTopics = await forumAttachment.getNumOfTopics();
                     const flagMonitorReading = await forumAttachment.getFlagMonitorReading();
                     const file = await forumAttachment.getFile();
-                    const fileDTO = new FileDTO(file as SigaaFile);
+                    const fileDTO = file ? new FileDTO(file as SigaaFile) : null;
                     const forumType = await forumAttachment.getForumType();
                     const description = await forumAttachment.getDescription();
                     const forumDTO = new ForumDTO(forumAttachment, description, author, forumType, creationDate, numOfTopics, flagMonitorReading, fileDTO);
                     const attachmentDTO = new AttachmentDTO(forumDTO, "forum")
                     attachmentsDTOs.push(attachmentDTO)
                     break;
-                }
-                case "quiz": {
-                    const quizAttachment = attachment as SigaaQuiz;
-                    const quizDTO = new QuizDTO(quizAttachment);
-                    const attachmentDTO = new AttachmentDTO(quizDTO, "quiz")
-                    attachmentsDTOs.push(attachmentDTO)
-                    break;
-                }
-                case "homework": {
-                    const homework = attachment as SigaaHomework;
-                    const attachmentFileDTO = await (homework.getAttachmentFile().then(file => new FileDTO(file as SigaaFile).toJSON()).catch(() => null))
-                    const fileDTO = attachmentFileDTO ? new FileDTO(attachmentFileDTO) : null
-                    const content = await homework.getDescription();
-                    const haveGrade = await homework.getFlagHaveGrade();
-                    const isGroup = await homework.getFlagIsGroupHomework()
-                    const homeworkDTO = new HomeworkDTO(homework, fileDTO, content, haveGrade, isGroup);
-                    const attachmentDTO = new AttachmentDTO(homeworkDTO, "homework")
-                    attachmentsDTOs.push(attachmentDTO)
-                    break;
-                }
-                case "webcontent": {
-                    const webContent = attachment as SigaaWebContent;
-                    const content = await webContent.getContent();
-                    const date = await webContent.getDate();
-                    const webContentDTO = new WebContentDTO(webContent, content, date);
-
-                    const attachmentDTO = new AttachmentDTO(webContentDTO, "webcontent")
-                    attachmentsDTOs.push(attachmentDTO)
-                    break;
-                }
-                case "survey": {
-                    const surveyAttachment = attachment as SigaaSurvey;
-                    const surveyDTO = new SurveyDTO(surveyAttachment);
-                    const attachmentDTO = new AttachmentDTO(surveyDTO, "survey")
-                    attachmentsDTOs.push(attachmentDTO)
-                    break;
-                }
-                default:
-                    break;
             }
+                case "quiz": {
+                const quizAttachment = attachment as SigaaQuiz;
+                const quizDTO = new QuizDTO(quizAttachment);
+                const attachmentDTO = new AttachmentDTO(quizDTO, "quiz")
+                attachmentsDTOs.push(attachmentDTO)
+                break;
+            }
+                case "homework": {
+                const homework = attachment as SigaaHomework;
+                const attachmentFileDTO = await (homework.getAttachmentFile().then(file => new FileDTO(file as SigaaFile).toJSON()).catch(() => null))
+                const fileDTO = attachmentFileDTO ? new FileDTO(attachmentFileDTO) : null
+                const content = await homework.getDescription();
+                const haveGrade = await homework.getFlagHaveGrade();
+                const isGroup = await homework.getFlagIsGroupHomework()
+                const homeworkDTO = new HomeworkDTO(homework, fileDTO, content, haveGrade, isGroup);
+                const attachmentDTO = new AttachmentDTO(homeworkDTO, "homework")
+                attachmentsDTOs.push(attachmentDTO)
+                break;
+            }
+                case "webcontent": {
+                const webContent = attachment as SigaaWebContent;
+                const content = await webContent.getContent();
+                const date = await webContent.getDate();
+                const webContentDTO = new WebContentDTO(webContent, content, date);
+
+                const attachmentDTO = new AttachmentDTO(webContentDTO, "webcontent")
+                attachmentsDTOs.push(attachmentDTO)
+                break;
+            }
+                case "survey": {
+                const surveyAttachment = attachment as SigaaSurvey;
+                const surveyDTO = new SurveyDTO(surveyAttachment);
+                const attachmentDTO = new AttachmentDTO(surveyDTO, "survey")
+                attachmentsDTOs.push(attachmentDTO)
+                break;
+            }
+                default:
+        break;
+}
         }
-        return attachmentsDTOs;
+return attachmentsDTOs;
     }
 }

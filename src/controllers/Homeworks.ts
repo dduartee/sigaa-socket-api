@@ -1,7 +1,4 @@
-import { cacheUtil, jsonCache } from "../services/cacheUtil";
-import { Bonds } from "./Bonds";
-import { cacheHelper } from "../helpers/Cache";
-import { Courses } from "./Courses";
+import { cacheUtil } from "../services/cacheUtil";
 import { events } from "../apiConfig.json"
 import Authentication from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
@@ -23,7 +20,8 @@ export class Homeworks {
         inactive: boolean,
         cache: boolean,
         registration: string,
-        activityTitle: string,
+        hid?: string
+        activityTitle?: string,
     }) {
         const apiEventError = events.api.error;
         try {
@@ -46,29 +44,25 @@ export class Homeworks {
             const lastActivities = (await bondService.getActivities() as Activity[]).filter(a => a.type === "homework")
             //const coursesDTOs = []
             for (const activity of lastActivities) {
-                const activityJSON = new ActivityDTO(activity).toJSON()
-                if (activityJSON.title !== query.activityTitle) continue;
+                const activityJSON = new ActivityDTO(activity).toJSON();
+
+                if (query.activityTitle && query.activityTitle !== activityJSON.title) continue;
+
                 const course = courses.find(c => c.title === activity.courseTitle)
                 const homeworks = await course.getHomeworks() as SigaaHomework[]
-                const homework = homeworks.find(h => h.title === activityJSON.title)
+
+                const homework = homeworks.find(h => h.title === activityJSON.title || (query.hid && query.hid === h.id))
                 if (!homework) continue;
                 console.log(`[homework - content] - ${homework.id}`)
-                
+
                 const attachmentFileDTO = await (homework.getAttachmentFile().then(file => new FileDTO(file as SigaaFile).toJSON()).catch(() => null))
-                const fileDTO = attachmentFileDTO ?new FileDTO(attachmentFileDTO): null
+                const fileDTO = attachmentFileDTO ? new FileDTO(attachmentFileDTO) : null
                 const content = await homework.getDescription()
                 const haveGrade = await homework.getFlagHaveGrade()
                 const isGroup = await homework.getFlagIsGroupHomework()
                 const homeworkDTO = new HomeworkDTO(homework, fileDTO, content, haveGrade, isGroup)
                 httpSession.close()
                 return this.socketService.emit("homework::content", homeworkDTO.toJSON());
-                /*
-                const courseDTO = new CourseDTO(course, { homeworksDTOs: [homeworkDTO] })
-                coursesDTOs.push(courseDTO)
-                const bondDTO = new BondDTO(bond, active, period, { coursesDTOs })
-                const bondJSON = bondDTO.toJSON()
-                cacheHelper.storeCache(uniqueID, { jsonCache: [{ BondsJSON: [bondJSON], query, time: new Date().toISOString() }], time: new Date().toISOString() })
-                */
             }
 
 

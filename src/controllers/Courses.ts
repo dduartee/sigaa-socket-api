@@ -1,7 +1,6 @@
-import { CourseStudent, StudentBond } from "sigaa-api";
+import { StudentBond } from "sigaa-api";
 import { Socket } from "socket.io";
 import { cacheUtil } from "../services/cacheUtil";
-import { Bonds } from "./Bonds";
 import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
 import Authentication from "../services/sigaa-api/Authentication.service";

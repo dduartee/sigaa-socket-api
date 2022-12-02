@@ -1,8 +1,6 @@
-import { cacheUtil, jsonCache } from "../services/cacheUtil";
+import { cacheUtil } from "../services/cacheUtil";
 import { events } from "../apiConfig.json";
 import { cacheHelper } from "../helpers/Cache";
-import { Bonds } from "./Bonds";
-import { Activity } from "sigaa-api/dist/activity/sigaa-activity-factory";
 import Authentication from "../services/sigaa-api/Authentication.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { AccountService } from "../services/sigaa-api/Account.service";

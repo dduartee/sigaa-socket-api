@@ -1,18 +1,11 @@
 
-import { jsonCache, cacheUtil } from "../services/cacheUtil";
-import { Bonds } from "./Bonds";
+import { cacheUtil } from "../services/cacheUtil";
 import { cacheHelper } from "../helpers/Cache";
-import { Courses } from "./Courses";
-import { events } from "../apiConfig.json";
 import Authentication from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { CourseService } from "../services/sigaa-api/Course.service";
 import { Socket } from "socket.io";
-import { GradeGroupDTO } from "../DTOs/GradeGroup/GradeGroup.DTO";
-import { WeightedAverageDTO } from "../DTOs/GradeGroup/WeightedAverage.DTO";
-import { SumOfGradesDTO } from "../DTOs/GradeGroup/SumOfGrades.DTO";
-import { SubGradeDTO } from "../DTOs/GradeGroup/SubGrade.DTO";
 import { CourseDTO } from "../DTOs/CourseDTO";
 import { BondDTO } from "../DTOs/Bond.DTO";
 import { AbsencesDTO } from "../DTOs/Absences.DTO";

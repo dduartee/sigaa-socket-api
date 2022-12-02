@@ -1,5 +1,4 @@
 import { cacheUtil } from "../services/cacheUtil";
-import { StudentBond } from "sigaa-api";
 import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
 import Authentication from "../services/sigaa-api/Authentication.service";

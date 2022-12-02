@@ -1,8 +1,6 @@
-import { cacheUtil, jsonCache } from "../services/cacheUtil";
+import { cacheUtil } from "../services/cacheUtil";
 import { events } from "../apiConfig.json";
 import { cacheHelper } from "../helpers/Cache";
-import { Bonds } from "./Bonds";
-import { Activity } from "sigaa-api/dist/activity/sigaa-activity-factory";
 import Authentication from "../services/sigaa-api/Authentication.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
@@ -42,10 +40,12 @@ export class Activities {
       const bondService = new BondService(bond);
 
       const period = await bondService.getCurrentPeriod()
-      const activities = await bondService.getActivities();
+      let activities = await bondService.getActivities();
+      if(activities.length === 0) {
+        activities = await bondService.getActivities();
+      }
       console.log(`[activities - list] - ${activities.length}`)
       httpSession.close()
-
       const activitiesDTOs = activities.map(activity => new ActivityDTO(activity));
       const active = activeBonds.includes(bond);
       const bondDTO = new BondDTO(bond, active, period, { activitiesDTOs });

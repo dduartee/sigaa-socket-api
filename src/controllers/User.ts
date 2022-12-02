@@ -71,9 +71,21 @@ export class User {
                 }
             }
         } catch (error) {
-            console.error(error);
-            this.socketService.emit(apiEventError, error.message)
-            this.logado = false;
+            if(error.message === "SIGAA: Invalid credentials.") {
+                this.socketService.emit("user::login", {
+                    logado: false,
+                    error: "Credenciais inválidas"
+                })
+            } else if(error.message === "SIGAA: Session expired.") {
+                this.socketService.emit("user::login", {
+                    logado: false,
+                    error: "eita, alguma coisa aconteceu!"
+                })
+            } else {
+                console.error(error);
+                this.socketService.emit(apiEventError, error.message)
+            }
+            return this.socketService.emit("user::status", "Deslogado")
         }
         this.socketService.emit("user::status", this.logado ? "Logado" : "Deslogado")
         return this.socketService.emit("user::login", { logado: this.logado })

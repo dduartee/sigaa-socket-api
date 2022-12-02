@@ -1,8 +1,6 @@
 import { Socket } from "socket.io";
-import { cacheUtil, jsonCache } from "../services/cacheUtil";
-import { Bonds } from "./Bonds";
+import { cacheUtil } from "../services/cacheUtil";
 import { cacheHelper } from "../helpers/Cache";
-import { Courses } from "./Courses";
 import { events } from "../apiConfig.json"
 import Authentication from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
@@ -10,7 +8,6 @@ import { BondService } from "../services/sigaa-api/Bond.service";
 import { CourseService } from "../services/sigaa-api/Course.service";
 import { NewsDTO } from "../DTOs/News.DTO";
 import { CourseDTO } from "../DTOs/CourseDTO";
-import { BondDTO } from "../DTOs/Bond.DTO";
 
 export class News {
     constructor(private socketService: Socket) { }

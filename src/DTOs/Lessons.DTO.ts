@@ -1,4 +1,5 @@
-import { IFileDTOProps } from "./File.DTO";
+import { Lesson } from "sigaa-api";
+import { AttachmentDTO, AttachmentProps } from "./Attachments/Attachment.DTO";
 
 export interface ILessonDTOProps {
     title: string;
@@ -6,7 +7,7 @@ export interface ILessonDTOProps {
     content: string;
     startDate: Date;
     endDate: Date;
-    attachments: IFileDTOProps[] | any[]
+    attachments: (AttachmentProps & { type: string })[];
 }
 
 export interface ILessonDTO {
@@ -14,23 +15,16 @@ export interface ILessonDTO {
 }
 
 export class LessonDTO implements ILessonDTO {
-    constructor(public lesson: any) { }
+    constructor(public lesson: Lesson, public attachmentsDTOs: AttachmentDTO[]) { }
 
     toJSON(): ILessonDTOProps {
         return {
-            title: this.lesson.title,
             id: this.lesson.id,
+            title: this.lesson.title,
             content: this.lesson.contentText,
             startDate: this.lesson.startDate,
             endDate: this.lesson.endDate,
-            attachments: this.lesson.attachments.map((attachment: any) => {
-                return {
-                    id: attachment.id,
-                    title: attachment.title,
-                    description: attachment.description,
-                    key: attachment.key,
-                }
-            }),
+            attachments: this.attachmentsDTOs.map(attachmentDTO => attachmentDTO.unify()),
         }
     }
 }

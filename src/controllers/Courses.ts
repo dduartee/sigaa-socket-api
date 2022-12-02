@@ -1,7 +1,6 @@
-import { CourseStudent, StudentBond } from "sigaa-api";
+import { StudentBond } from "sigaa-api";
 import { Socket } from "socket.io";
 import { cacheUtil } from "../services/cacheUtil";
-import { Bonds } from "./Bonds";
 import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
 import Authentication from "../services/sigaa-api/Authentication.service";
@@ -65,29 +64,5 @@ export class Courses {
       this.socketService.emit(apiEventError, error.message);
       return false;
     }
-  }
-
-  /**
-   * Parser da matéria
-   * @param params
-   * @returns
-   */
-  static parser(params: {
-    course: CourseStudent;
-    news?: any;
-    grades?: any;
-    homeworks?: any;
-  }) {
-    const { course, grades, homeworks, news } = params;
-    return {
-      id: course.id,
-      title: course.title,
-      code: course.code,
-      period: course.period,
-      schedule: course.schedule,
-      news: news ?? [],
-      grades: grades ?? [],
-      homeworks: homeworks ?? [],
-    };
   }
 }

@@ -11,14 +11,14 @@ export interface IFileDTO {
 }
 
 export class FileDTO implements IFileDTO {
-    constructor(public file: SigaaFile) {}
+	constructor(public file: SigaaFile) {}
 
-    toJSON(): IFileDTOProps {
-        return {
-            id: this.file.id,
-            title: this.file.title,
-            description: this.file.description,
-            key: this.file.key,
-        }
-    }
+	toJSON(): IFileDTOProps {
+		return {
+			id: this.file.id,
+			title: this.file.title,
+			description: this.file.description,
+			key: this.file.key,
+		};
+	}
 }

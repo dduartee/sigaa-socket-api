@@ -11,13 +11,13 @@ export interface IVideoDTO {
 }
 
 export class VideoDTO implements IVideoDTO {
-    constructor(public video: VideoAttachment) {}
+	constructor(public video: VideoAttachment) {}
 
-    toJSON(): IVideoDTOProps {
-        return {
-            title: this.video.title,
-            src: this.video.src,
-            description: this.video.description,
-        }
-    }
+	toJSON(): IVideoDTOProps {
+		return {
+			title: this.video.title,
+			src: this.video.src,
+			description: this.video.description,
+		};
+	}
 }

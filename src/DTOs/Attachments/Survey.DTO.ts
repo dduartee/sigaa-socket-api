@@ -10,12 +10,12 @@ export interface ISurveyDTO {
 }
 
 export class SurveyDTO implements ISurveyDTO {
-    constructor(public survey: SigaaSurvey) {}
+	constructor(public survey: SigaaSurvey) {}
 
-    toJSON(): ISurveyDTOProps {
-        return {
-            id: this.survey.id,
-            title: this.survey.title,
-        }
-    }
+	toJSON(): ISurveyDTOProps {
+		return {
+			id: this.survey.id,
+			title: this.survey.title,
+		};
+	}
 }

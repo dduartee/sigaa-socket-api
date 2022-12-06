@@ -10,12 +10,12 @@ export interface IHyperLinkDTO {
 }
 
 export class HyperLinkDTO implements IHyperLinkDTO {
-    constructor(public hyperlinkAttachment: HyperlinkAttachment) {}
+	constructor(public hyperlinkAttachment: HyperlinkAttachment) {}
 
-    toJSON(): IHyperLinkDTOProps {
-        return {
-            title: this.hyperlinkAttachment.title,
-            href: this.hyperlinkAttachment.href,
-        }
-    }
+	toJSON(): IHyperLinkDTOProps {
+		return {
+			title: this.hyperlinkAttachment.title,
+			href: this.hyperlinkAttachment.href,
+		};
+	}
 }

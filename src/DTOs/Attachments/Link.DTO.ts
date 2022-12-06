@@ -11,13 +11,13 @@ export interface ILinkDTO {
 }
 
 export class LinkDTO implements ILinkDTO {
-    constructor(public linkAttachment: LinkAttachment) {}
+	constructor(public linkAttachment: LinkAttachment) {}
 
-    toJSON(): ILinkDTOProps {
-        return {
-            title: this.linkAttachment.title,
-            href: this.linkAttachment.href,
-            description: this.linkAttachment.description,
-        }
-    }
+	toJSON(): ILinkDTOProps {
+		return {
+			title: this.linkAttachment.title,
+			href: this.linkAttachment.href,
+			description: this.linkAttachment.description,
+		};
+	}
 }

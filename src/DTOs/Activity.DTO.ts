@@ -12,27 +12,27 @@ export interface IActivityDTO {
 }
 
 export class ActivityDTO implements IActivityDTO {
-    constructor(public activity: Activity) { }
+	constructor(public activity: Activity) { }
 
-    toJSON(): IActivityDTOProps {
-        let title = "";
-        switch (this.activity.type) {
-            case "exam":
-                title = this.activity.examDescription;
-                break;
-            case "homework":
-                title = this.activity.homeworkTitle;
-                break;
-            case "quiz":
-                title = this.activity.quizTitle;
-                break;
-        }
-        return {
-            type: this.activity.type,
-            title,
-            date: this.activity.date.toISOString(),
-            done: this.activity.done,
-            course: { title: this.activity.courseTitle }
-        }
-    }
+	toJSON(): IActivityDTOProps {
+		let title = "";
+		switch (this.activity.type) {
+		case "exam":
+			title = this.activity.examDescription;
+			break;
+		case "homework":
+			title = this.activity.homeworkTitle;
+			break;
+		case "quiz":
+			title = this.activity.quizTitle;
+			break;
+		}
+		return {
+			type: this.activity.type,
+			title,
+			date: this.activity.date.toISOString(),
+			done: this.activity.done,
+			course: { title: this.activity.courseTitle }
+		};
+	}
 }

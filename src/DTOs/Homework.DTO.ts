@@ -1,4 +1,4 @@
-import { File, SigaaHomework } from "sigaa-api";
+import { SigaaHomework } from "sigaa-api";
 import { FileDTO, IFileDTOProps } from "./Attachments/File.DTO";
 
 export type FullHomework = {
@@ -26,24 +26,24 @@ export interface IHomeworkDTO {
     toJSON(): IHomeworkDTOProps;
 }
 export class HomeworkDTO implements IHomeworkDTO {
-    constructor(
+	constructor(
         private homework: SigaaHomework,
         private fileDTO: FileDTO,
         private content: string,
         private haveGrade: boolean,
         private isGroup: boolean
-        ) { }
+	) { }
 
-    toJSON(): IHomeworkDTOProps {
-        return {
-            id: this.homework.id,
-            title: this.homework.title,
-            content: this.content,
-            startDate: this.homework.startDate.toISOString(),
-            endDate: this.homework.endDate.toISOString(),
-            haveGrade: this.haveGrade,
-            isGroup: this.isGroup,
-            attachment: this.fileDTO?.toJSON()
-        }
-    }
+	toJSON(): IHomeworkDTOProps {
+		return {
+			id: this.homework.id,
+			title: this.homework.title,
+			content: this.content,
+			startDate: this.homework.startDate.toISOString(),
+			endDate: this.homework.endDate.toISOString(),
+			haveGrade: this.haveGrade,
+			isGroup: this.isGroup,
+			attachment: this.fileDTO?.toJSON()
+		};
+	}
 }

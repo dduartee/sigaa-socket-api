@@ -14,14 +14,14 @@ export interface IWebContentDTO {
 
 
 export class WebContentDTO implements IWebContentDTO {
-    constructor(public webContent: SigaaWebContent, private content: string, private date: Date) { }
+	constructor(public webContent: SigaaWebContent, private content: string, private date: Date) { }
 
-    toJSON(): IWebContentDTOProps {
-        return {
-            id: this.webContent.id,
-            title: this.webContent.title,
-            content: this.content,
-            date: this.date.toISOString()
-        }
-    }
+	toJSON(): IWebContentDTOProps {
+		return {
+			id: this.webContent.id,
+			title: this.webContent.title,
+			content: this.content,
+			date: this.date.toISOString()
+		};
+	}
 }

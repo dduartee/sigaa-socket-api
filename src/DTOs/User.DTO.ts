@@ -8,14 +8,14 @@ export interface IUserDTO {
   toJSON (): IUserDTOProps;
 }
 export class UserDTO implements IUserDTO {
-  constructor (public user: IUserDTOProps) {}
+	constructor (public user: IUserDTOProps) {}
 
-  toJSON (): IUserDTOProps {
-    return {
-      username: this.user.username,
-      fullName: this.user.fullName,
-      emails: this.user.emails,
-      profilePictureURL: this.user.profilePictureURL
-    }
-  }
+	toJSON (): IUserDTOProps {
+		return {
+			username: this.user.username,
+			fullName: this.user.fullName,
+			emails: this.user.emails,
+			profilePictureURL: this.user.profilePictureURL
+		};
+	}
 }

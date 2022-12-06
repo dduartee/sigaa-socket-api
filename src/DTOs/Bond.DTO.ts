@@ -18,19 +18,19 @@ export interface IBondDTO {
     }): IBondDTOProps;
 }
 export class BondDTO implements IBondDTO {
-    constructor(public bond: StudentBond, public active: boolean, public period: string, public additionals?: { activitiesDTOs?: ActivityDTO[], coursesDTOs?: CourseDTO[] }) { }
+	constructor(public bond: StudentBond, public active: boolean, public period: string, public additionals?: { activitiesDTOs?: ActivityDTO[], coursesDTOs?: CourseDTO[] }) { }
 
-    toJSON(): IBondDTOProps {
-        const coursesDTOs = this.additionals?.coursesDTOs || [];
-        const activitiesDTOs = this.additionals?.activitiesDTOs || [];
-        return {
-            program: this.bond.program,
-            registration: this.bond.registration,
-            type: this.bond.type,
-            active: this.active,
-            period: this.period,
-            activities: activitiesDTOs.map(a => a.toJSON()),
-            courses: coursesDTOs.map(c => c.toJSON())
-        }
-    }
+	toJSON(): IBondDTOProps {
+		const coursesDTOs = this.additionals?.coursesDTOs || [];
+		const activitiesDTOs = this.additionals?.activitiesDTOs || [];
+		return {
+			program: this.bond.program,
+			registration: this.bond.registration,
+			type: this.bond.type,
+			active: this.active,
+			period: this.period,
+			activities: activitiesDTOs.map(a => a.toJSON()),
+			courses: coursesDTOs.map(c => c.toJSON())
+		};
+	}
 }

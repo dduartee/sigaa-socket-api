@@ -15,16 +15,16 @@ export interface ILessonDTO {
 }
 
 export class LessonDTO implements ILessonDTO {
-    constructor(public lesson: Lesson, public attachmentsDTOs: AttachmentDTO[]) { }
+	constructor(public lesson: Lesson, public attachmentsDTOs: AttachmentDTO[]) { }
 
-    toJSON(): ILessonDTOProps {
-        return {
-            id: this.lesson.id,
-            title: this.lesson.title,
-            content: this.lesson.contentText,
-            startDate: this.lesson.startDate,
-            endDate: this.lesson.endDate,
-            attachments: this.attachmentsDTOs.map(attachmentDTO => attachmentDTO.unify()),
-        }
-    }
+	toJSON(): ILessonDTOProps {
+		return {
+			id: this.lesson.id,
+			title: this.lesson.title,
+			content: this.lesson.contentText,
+			startDate: this.lesson.startDate,
+			endDate: this.lesson.endDate,
+			attachments: this.attachmentsDTOs.map(attachmentDTO => attachmentDTO.unify()),
+		};
+	}
 }

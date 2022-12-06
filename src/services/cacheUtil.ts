@@ -1,6 +1,5 @@
-import { Account, CourseStudent, Homework, StudentBond } from "sigaa-api";
 import merge from "ts-deepmerge";
-import { session } from "../helpers/Session";
+import { IBondDTOProps } from "../DTOs/Bond.DTO";
 import { cacheService } from "./cacheService";
 export type CacheType = {
     jsonCache?: jsonCache[],
@@ -11,42 +10,35 @@ export type CacheType = {
     time?: string
 }
 export type jsonCache = {
-    BondsJSON: any[],
+    BondsJSON: IBondDTOProps[],
     query: {
-        registration?: string,
-        code?: string,
-        inactive?: boolean,
-        fullHW?: boolean,
-        fullNews?: boolean,
-        fullDetails?: boolean
-        limit?: number
-        cache?: boolean
-    },
+        [key: string]: string | number | boolean
+    }
     time: string
 }
 
 class CacheUtil {
-    /**
+	/**
      * Restaura cache pelo socket.id retornando o cache e uniqueID
      * @param sid 
      * @returns 
      */
-    restore(sid: string) {
-        const uniqueID: string = cacheService.get(sid)
-        const cache: CacheType = cacheService.get(uniqueID)
-        return { cache, uniqueID };
-    }
-    /**
+	restore(sid: string) {
+		const uniqueID: string = cacheService.get(sid);
+		const cache: CacheType = cacheService.get(uniqueID);
+		return { cache, uniqueID };
+	}
+	/**
      * Merge cache existente com o novo
      * @param key 
      * @param obj 
      * @returns 
      */
-    merge(key: string, obj: CacheType) {
-        const cache: any = cacheService.get(key) ?? []
-        const cacheMerged: CacheType = merge(cache, obj)
-        cacheService.set(key, cacheMerged)
-        return cacheMerged;
-    }
+	merge(key: string, obj: CacheType) {
+		const cache: any = cacheService.get(key) ?? [];
+		const cacheMerged: CacheType = merge(cache, obj);
+		cacheService.set(key, cacheMerged);
+		return cacheMerged;
+	}
 }
-export const cacheUtil = new CacheUtil()
+export const cacheUtil = new CacheUtil();

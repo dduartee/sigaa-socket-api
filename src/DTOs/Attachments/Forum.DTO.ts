@@ -30,7 +30,7 @@ export interface IForumDTO {
 }
 
 export class ForumDTO implements IForumDTO {
-    constructor(
+	constructor(
         public fullForum: SigaaCourseForum,
         public description: string,
         public author: string,
@@ -39,19 +39,19 @@ export class ForumDTO implements IForumDTO {
         public numOfTopics: number,
         public flagMonitorReading: boolean,
         public file: FileDTO
-        ) { }
+	) { }
 
-    toJSON(): IForumDTOProps {
-        return {
-            id: this.fullForum.id,
-            title: this.fullForum.title,
-            description: this.description,
-            author: this.author,
-            forumType: this.forumType,
-            creationDate: this.creationDate.toISOString(),
-            numOfTopics: this.numOfTopics,
-            flagMonitorReading: this.flagMonitorReading,
-            file: this.file
-        }
-    }
+	toJSON(): IForumDTOProps {
+		return {
+			id: this.fullForum.id,
+			title: this.fullForum.title,
+			description: this.description,
+			author: this.author,
+			forumType: this.forumType,
+			creationDate: this.creationDate.toISOString(),
+			numOfTopics: this.numOfTopics,
+			flagMonitorReading: this.flagMonitorReading,
+			file: this.file
+		};
+	}
 }

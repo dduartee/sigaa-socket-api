@@ -10,14 +10,14 @@ export interface ISumOfGradesDTO {
     toJSON(): ISumOfGradesDTOProps;
 }
 export class SumOfGradesDTO implements ISumOfGradesDTO {
-    constructor(private sumOfGrades: SubGradeSumOfGrades) { }
+	constructor(private sumOfGrades: SubGradeSumOfGrades) { }
 
-    toJSON(): ISumOfGradesDTOProps {
-        return {
-            name: this.sumOfGrades.name,
-            code: this.sumOfGrades.code,
-            value: this.sumOfGrades.value,
-            maxValue: this.sumOfGrades.maxValue
-        }
-    }
+	toJSON(): ISumOfGradesDTOProps {
+		return {
+			name: this.sumOfGrades.name,
+			code: this.sumOfGrades.code,
+			value: this.sumOfGrades.value,
+			maxValue: this.sumOfGrades.maxValue
+		};
+	}
 }

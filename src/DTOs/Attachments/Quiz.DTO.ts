@@ -13,15 +13,15 @@ export interface IQuizDTO {
 }
 
 export class QuizDTO implements IQuizDTO {
-    constructor(public quiz: SigaaQuiz) { }
+	constructor(public quiz: SigaaQuiz) { }
 
-    toJSON(): IQuizDTOProps {
-        return {
-            id: this.quiz.id,
-            title: this.quiz.title,
-            type: this.quiz.type,
-            startDate: this.quiz.startDate.toISOString(),
-            endDate: this.quiz.endDate.toISOString()
-        }
-    }
+	toJSON(): IQuizDTOProps {
+		return {
+			id: this.quiz.id,
+			title: this.quiz.title,
+			type: this.quiz.type,
+			startDate: this.quiz.startDate.toISOString(),
+			endDate: this.quiz.endDate.toISOString()
+		};
+	}
 }

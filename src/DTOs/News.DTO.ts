@@ -1,4 +1,4 @@
-import { News } from "sigaa-api";
+
 export type FullNews = {
     id: string,
     title: string,
@@ -15,14 +15,14 @@ export interface INewsDTO {
     toJSON(): INewsDTOProps;
 }
 export class NewsDTO implements INewsDTO {
-    constructor(public news: FullNews) {}
+	constructor(public news: FullNews) {}
 
-    toJSON(): INewsDTOProps {
-        return {
-            id: this.news.id,
-            title: this.news.title,
-            date: this.news.date.toISOString(),
-            content: this.news.content
-        }
-    }
+	toJSON(): INewsDTOProps {
+		return {
+			id: this.news.id,
+			title: this.news.title,
+			date: this.news.date.toISOString(),
+			content: this.news.content
+		};
+	}
 }

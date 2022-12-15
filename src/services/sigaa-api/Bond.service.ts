@@ -18,7 +18,6 @@ export class BondService {
 		try {
 
 			const activities = await this.bond.getActivities();
-			if(activities.length === 0) return this.getActivities(retryTimes + 1);
 			return activities;
 		} catch (error) {
 			console.log(`Error: ${error} @ ${retryTimes}/3`);

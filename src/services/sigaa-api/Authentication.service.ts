@@ -80,15 +80,15 @@ class AuthenticationService {
 			throw new Error(attemptLogin.error);
 		}
 	}
-	public async loginWithJSESSIONID(JSESSIONID: JSESSIONID, url: string) {
+	public async loginWithJSESSIONID(JSESSIONID: JSESSIONID, url: URL) {
 		/**
          * Injeta o JSESSIONID no Sigaa
          */
 		const cookiesController = new SigaaCookiesController();
-		const { hostname } = new URL(url);
-		cookiesController.storeCookies(hostname, [JSESSIONID]);
+		const sigaaURL = new URL(url);
+		cookiesController.storeCookies(sigaaURL.hostname, [JSESSIONID]);
 		const requestStackController = cacheService.get(`requestStackInstance@${JSESSIONID}`) as SigaaRequestStack<Request, Page>;
-		const sigaaInstance = new Sigaa({ url, cookiesController, requestStackController });
+		const sigaaInstance = new Sigaa({ url: sigaaURL.href, cookiesController, requestStackController });
 		const http = sigaaInstance.httpFactory.createHttp();
 		const page = await http.get("/sigaa/vinculos.jsf");
 		const account = await sigaaInstance.accountFactory.getAccount(page);

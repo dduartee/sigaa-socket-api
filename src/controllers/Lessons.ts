@@ -45,7 +45,7 @@ export class Lessons {
 				}
 			}
 
-			const { account, httpSession } = await AuthenticationService.loginWithJSESSIONID(cache.JSESSIONID, cache.sigaaURL);
+			const { account, httpSession } = await AuthenticationService.loginWithJSESSIONID(cache.JSESSIONID, new URL(cache.sigaaURL));
 			const accountService = new AccountService(account);
 			const activeBonds = await accountService.getActiveBonds();
 			const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];

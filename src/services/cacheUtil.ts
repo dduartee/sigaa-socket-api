@@ -3,10 +3,10 @@ import { IBondDTOProps } from "../DTOs/Bond.DTO";
 import { cacheService } from "./cacheService";
 export type CacheType = {
     jsonCache?: jsonCache[],
-    username?: string,
-    JSESSIONID?: string,
+    username: string,
+    JSESSIONID: string,
     registration?: string,
-    sigaaURL?: string,
+    sigaaURL: string,
     time?: string
 }
 export type jsonCache = {
@@ -24,8 +24,8 @@ class CacheUtil {
      * @param obj 
      * @returns 
      */
-	merge(key: string, obj: CacheType) {
-		const cache = cacheService.get(key) ?? [];
+	merge(key: string, obj: Partial<CacheType>) {
+		const cache = cacheService.get<CacheType>(key) ?? [];
 		const cacheMerged: CacheType = merge(cache, obj);
 		cacheService.set(key, cacheMerged);
 		return cacheMerged;

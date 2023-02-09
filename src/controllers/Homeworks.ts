@@ -1,6 +1,6 @@
 import { CacheType } from "../services/cacheUtil";
 import { events } from "../apiConfig.json";
-import Authentication from "../services/sigaa-api/Authentication.service";
+import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { Socket } from "socket.io";
@@ -30,11 +30,13 @@ export class Homeworks {
 
 			const uniqueID = cacheService.get<string>(this.socketService.id);
 			const cache = cacheService.get<CacheType>(uniqueID);
-			const { JSESSIONID, jsonCache } = cache;
-			if (!JSESSIONID) {
-				throw new Error("API: No JSESSIONID found in cache.");
-			}
-			const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, new URL(cache.sigaaURL));
+			const { JSESSIONID } = cache;
+
+			const sigaaURL = new URL(cache.sigaaURL);
+			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
+			const page = await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
+			const account = await AuthenticationService.parseAccount(sigaaInstance, page);
+
 			const accountService = new AccountService(account);
 			const activeBonds = await accountService.getActiveBonds();
 			const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
@@ -65,7 +67,7 @@ export class Homeworks {
 				const isGroup = await homework.getFlagIsGroupHomework();
 				const homeworkDTO = new HomeworkDTO(homework, fileDTO, content, haveGrade, isGroup);
 				const courseDTO = new CourseDTO(course, {homeworksDTOs: [homeworkDTO]});
-				httpSession.close();
+				sigaaInstance.close();
 				return this.socketService.emit("homework::content", courseDTO.toJSON());
 			}
 

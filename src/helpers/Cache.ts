@@ -1,30 +1,12 @@
-import { cacheService } from "../services/cacheService";
-import { CacheType, cacheUtil, jsonCache } from "../services/cacheUtil";
+import { jsonCache } from "../services/cacheUtil";
 
 class CacheHelper {
 	/**
-     * Armazena cache mergindo com o original
-     * @param uniqueID 
-     * @param object 
-     * @returns 
-     */
-	storeCache(uniqueID, object: CacheType) {
-		return cacheUtil.merge(uniqueID, object);
-	}
-	/**
-     * Resgata cache pelo uniqueID
-     * @param uniqueID 
-     * @returns 
-     */
-	getCache(uniqueID): CacheType | undefined {
-		return cacheService.get(uniqueID);
-	}
-	/**
-     * Reordena o cache de jsons pela data
-     * @param jsonCache 
-     * @returns 
-     */
-	sortByDate(jsonCache: jsonCache[]): jsonCache | any {
+	 * Reordena o cache de jsons pela data
+	 * @param jsonCache 
+	 * @returns 
+	 */
+	sortByDate(jsonCache: jsonCache[]): jsonCache[] {
 		const newests = (jsonCache).sort((a, b) => {
 			const time1 = new Date(a.time).getTime();
 			const time2 = new Date(b.time).getTime();
@@ -33,10 +15,10 @@ class CacheHelper {
 		return newests;
 	}
 	/**
-     * Calcula a diferença de tempo entre os caches
-     * @param time 
-     * @returns 
-     */
+	 * Calcula a diferença de tempo entre os caches
+	 * @param time 
+	 * @returns 
+	 */
 	diffDateCache(time) {
 		const past = new Date(time).getTime();
 		const now = new Date().getTime();
@@ -44,11 +26,11 @@ class CacheHelper {
 		return diff;
 	}
 	/**
-     * Realiza a logica de pegar o cache mais novo
-     * @param jsonCache 
-     * @param query 
-     * @returns 
-     */
+	 * Realiza a logica de pegar o cache mais novo
+	 * @param jsonCache 
+	 * @param query 
+	 * @returns 
+	 */
 	getNewest(jsonCache: jsonCache[], query) {
 		const newests: jsonCache[] = jsonCache ? this.sortByDate(jsonCache) : [];
 		for (const newest of newests) {

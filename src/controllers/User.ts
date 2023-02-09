@@ -1,15 +1,19 @@
-import { session } from "../helpers/Session";
 import { sigaaIfscURL } from "../apiConfig.json";
 import { Page, Request, Sigaa } from "sigaa-api";
 import { cacheService } from "../services/cacheService";
 import { CacheType, cacheUtil } from "../services/cacheUtil";
 import { events } from "../apiConfig.json";
-import Authentication from "../services/sigaa-api/Authentication.service";
+import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { Socket } from "socket.io";
 import { UserDTO } from "../DTOs/User.DTO";
 import { SigaaRequestStack } from "sigaa-api/dist/helpers/sigaa-request-stack";
-import { BondService } from "../services/sigaa-api/Bond.service";
+
+export type LoginCredentials = {
+	username: string;
+	password: string;
+	sigaaURL: string;
+}
 export class User {
 	logado: boolean;
 	constructor(private socketService: Socket) { }
@@ -18,11 +22,7 @@ export class User {
 	 * @param credentials 
 	 * @returns 
 	 */
-	async login(credentials: {
-		username: string;
-		password: string;
-		sigaaURL: string;
-	}) {
+	async login(credentials: LoginCredentials) {
 		const sigaaURL = new URL(credentials.sigaaURL || sigaaIfscURL);
 		const apiEventError = events.api.error;
 		try {
@@ -31,7 +31,7 @@ export class User {
 				this.socketService.emit("user::status", "Logando");
 				const requestStackController = new SigaaRequestStack<Request, Page>();
 				const sigaaInstance = new Sigaa({ url: sigaaURL.toString(), requestStackController });
-				const { JSESSIONID } = await Authentication.loginWithCredentials(credentials, sigaaInstance, requestStackController);
+				const { JSESSIONID } = await AuthenticationService.loginWithCredentials(credentials, sigaaInstance, requestStackController);
 				console.log(`[${credentials.username} - ${this.socketService.id} - ${sigaaURL.origin}] Logado (senha) com sucesso`);
 				const uniqueID: string = cacheService.get(this.socketService.id);
 				cacheUtil.merge(uniqueID, { JSESSIONID, username: credentials.username, sigaaURL: sigaaURL.origin });
@@ -41,17 +41,17 @@ export class User {
 				// login com o JSESSIONID
 				const uniqueID: string = cacheService.get(this.socketService.id);
 				const cache = cacheService.get<CacheType>(uniqueID);
-				if (cache) {
-					if (!cache?.JSESSIONID) {
-						throw new Error("API: No JSESSIONID found in cache.");
-					}
-					this.socketService.emit("user::status", "Logando");
-					const { httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, sigaaURL);
-					console.log(`[${cache.username} - ${this.socketService.id}] Logado (sessão) com sucesso`);
-					httpSession.close();
-					this.logado = true;
-				} else {
+				if (!cache) {
 					this.logado = false;
+				} else {
+					if (!cache.JSESSIONID) throw new Error("API: No JSESSIONID found in cache.");
+					this.socketService.emit("user::status", "Logando");
+					const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, cache.JSESSIONID);
+					await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
+					// const account = await AuthenticationService.parseAccount(sigaaInstance, page);
+					console.log(`[${cache.username} - ${this.socketService.id}] Logado (sessão) com sucesso`);
+					sigaaInstance.close();
+					this.logado = true;
 				}
 			}
 		} catch (error) {
@@ -82,25 +82,29 @@ export class User {
 		try {
 			const uniqueID: string = cacheService.get(this.socketService.id);
 			const cache = cacheService.get<CacheType>(uniqueID);
-			if (!cache?.JSESSIONID) {
-				throw new Error("API: No JSESSIONID found in cache.");
-			}
-			const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, new URL(cache.sigaaURL));
+
+			const sigaaURL = new URL(cache.sigaaURL);
+			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, cache.JSESSIONID);
+			const page = await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
+			const account = await AuthenticationService.parseAccount(sigaaInstance, page);
+
 			const accountService = new AccountService(account);
 			const fullName = await accountService.getFullName();
-			const { href: profilePictureURL } = await accountService.getProfilePictureURL() ?? new URL("https://sigaa.ifsc.edu.br/sigaa/img/no_picture.png");
+			const defaultProfilePictureURL = new URL("https://sigaa.ifsc.edu.br/sigaa/img/no_picture.png");
+			const profilePictureURL = await accountService.getProfilePictureURL();
 			const emails = await accountService.getEmails();
-			httpSession.close();
+
+			sigaaInstance.close();
 			const userDTO = new UserDTO({
 				fullName,
-				profilePictureURL,
+				profilePictureURL: profilePictureURL.href ?? defaultProfilePictureURL.href,
 				emails,
 				username: cache.username
 			});
-			this.socketService.emit("user::info", userDTO.toJSON());
+			return this.socketService.emit("user::info", userDTO.toJSON());
 		} catch (error) {
 			console.error(error);
-			this.socketService.emit(apiEventError, error.message);
+			return this.socketService.emit(apiEventError, error.message);
 		}
 	}
 	/**
@@ -113,15 +117,15 @@ export class User {
 		try {
 			const uniqueID: string = cacheService.get(this.socketService.id);
 			const cache = cacheService.get<CacheType>(uniqueID);
-			if (!cache.JSESSIONID) {
-				throw new Error("API: No JSESSIONID found in cache.");
-			}
-			const { httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, new URL(cache.sigaaURL));
+			// const sigaaURL = new URL(cache.sigaaURL);
+			// const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, cache.JSESSIONID);
+			// const page = await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
+			// const account = await AuthenticationService.parseAccount(sigaaInstance, page);
 			// const accountService = new AccountService(account);
 			this.socketService.emit("user::status", "Deslogando");
 			//accountService.logoff()
-			httpSession.close();
-			session.delete(this.socketService.id);
+			// httpSession.close();
+			cacheService.del(this.socketService.id);
 			cacheService.del(uniqueID);
 			cacheService.del(`requestStackInstance@${cache.JSESSIONID}`);
 			this.logado = false;

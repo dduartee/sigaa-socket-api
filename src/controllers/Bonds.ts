@@ -1,7 +1,7 @@
-import { CacheType } from "../services/cacheUtil";
+import { CacheType, cacheUtil } from "../services/cacheUtil";
 import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
-import Authentication from "../services/sigaa-api/Authentication.service";
+import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { Socket } from "socket.io";
@@ -18,18 +18,19 @@ export class Bonds {
 			const uniqueID = cacheService.get<string>(this.socketService.id);
 			const cache = cacheService.get<CacheType>(uniqueID);
 			const { JSESSIONID, jsonCache } = cache;
-			if(!JSESSIONID) {
-				throw new Error("API: No JSESSIONID found in cache.");
-			}
 			if (query.cache) {
 				const newest = cacheHelper.getNewest(jsonCache, query);
 				if (newest) {
 					const bonds = newest["BondsJSON"];
-					console.log(newest);
 					return this.socketService.emit("bonds::list", bonds);
 				}
 			}
-			const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, new URL(cache.sigaaURL));
+
+			const sigaaURL = new URL(cache.sigaaURL);
+			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
+			const page = await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
+			const account = await AuthenticationService.parseAccount(sigaaInstance, page);
+
 			const accountService = new AccountService(account);
 			const activeBonds = await accountService.getActiveBonds();
 			const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
@@ -43,9 +44,9 @@ export class Bonds {
 				const bondDTO = new BondDTO(bond, active, period);
 				BondsDTOs.push(bondDTO);
 			}
-			httpSession.close();
+			sigaaInstance.close();
 			const BondsJSON = BondsDTOs.map(b => b.toJSON());
-			cacheHelper.storeCache(uniqueID, {
+			cacheUtil.merge(uniqueID, {
 				jsonCache: [{ BondsJSON , query, time: new Date().toISOString() }],
 				time: new Date().toISOString(),
 			});

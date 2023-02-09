@@ -2,7 +2,7 @@ import { Socket } from "socket.io";
 import { CacheType } from "../services/cacheUtil";
 import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
-import Authentication from "../services/sigaa-api/Authentication.service";
+import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { CourseService } from "../services/sigaa-api/Course.service";
@@ -25,9 +25,6 @@ export class News {
 			const uniqueID = cacheService.get<string>(this.socketService.id);
 			const cache = cacheService.get<CacheType>(uniqueID);
 			const { JSESSIONID, jsonCache } = cache;
-			if (!JSESSIONID) {
-				throw new Error("API: No JSESSIONID found in cache.");
-			}
 			if (query.cache) {
 				const newest = cacheHelper.getNewest(jsonCache, query);
 				if (newest) {
@@ -35,7 +32,11 @@ export class News {
 					return this.socketService.emit("news::latest", bond);
 				}
 			}
-			const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, new URL(cache.sigaaURL));
+			const sigaaURL = new URL(cache.sigaaURL);
+			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
+			const page = await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
+			const account = await AuthenticationService.parseAccount(sigaaInstance, page);
+
 			const accountService = new AccountService(account);
 			const activeBonds = await accountService.getActiveBonds();
 			const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
@@ -60,7 +61,7 @@ export class News {
 						date,
 					});
 					console.log(`[news - latest] - ${newsDTO.news.id}`);
-					httpSession.close();
+					sigaaInstance.close();
 					const courseDTO = new CourseDTO(course, { newsDTOs: [newsDTO] });
 					return this.socketService.emit("news::latest", courseDTO.toJSON());
 					/*

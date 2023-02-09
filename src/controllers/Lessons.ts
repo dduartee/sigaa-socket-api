@@ -16,11 +16,11 @@ import { HomeworkDTO } from "../DTOs/Homework.DTO";
 import { LessonDTO } from "../DTOs/Lessons.DTO";
 import { cacheHelper } from "../helpers/Cache";
 import { cacheService } from "../services/cacheService";
-import { CacheType } from "../services/cacheUtil";
+import { CacheType, cacheUtil } from "../services/cacheUtil";
 import { AccountService } from "../services/sigaa-api/Account.service";
-import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { CourseService } from "../services/sigaa-api/Course.service";
+import AuthenticationService from "../services/sigaa-api/Authentication.service";
 
 
 export class Lessons {
@@ -35,7 +35,7 @@ export class Lessons {
 		try {
 			const uniqueID = cacheService.get<string>(this.socketService.id);
 			const cache = cacheService.get<CacheType>(uniqueID);
-			if (!cache.JSESSIONID) throw new Error("API: No JSESSIONID found in cache.");
+			const { JSESSIONID } = cache;
 			if (query.cache) {
 				const newest = cacheHelper.getNewest(cache.jsonCache, query);
 				if (newest) {
@@ -45,7 +45,11 @@ export class Lessons {
 				}
 			}
 
-			const { account, httpSession } = await AuthenticationService.loginWithJSESSIONID(cache.JSESSIONID, new URL(cache.sigaaURL));
+			const sigaaURL = new URL(cache.sigaaURL);
+			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
+			const page = await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
+			const account = await AuthenticationService.parseAccount(sigaaInstance, page);
+
 			const accountService = new AccountService(account);
 			const activeBonds = await accountService.getActiveBonds();
 			const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
@@ -71,13 +75,13 @@ export class Lessons {
 			}
 			const bondDTO = new BondDTO(bond, active, period, { coursesDTOs: [courseDTO] });
 			const bondJSON = bondDTO.toJSON();
-			cacheHelper.storeCache(uniqueID, {
+			cacheUtil.merge(uniqueID, {
 				jsonCache: [
 					{ BondsJSON: [bondJSON], query, time: new Date().toISOString() },
 				],
 				time: new Date().toISOString(),
 			});
-			httpSession.close();
+			sigaaInstance.close();
 			return this.socketService.emit("lessons::list", courseDTO.toJSON());
 		} catch (error) {
 			console.error(error);

@@ -1,7 +1,7 @@
 
-import { CacheType } from "../services/cacheUtil";
+import { CacheType, cacheUtil } from "../services/cacheUtil";
 import { cacheHelper } from "../helpers/Cache";
-import Authentication from "../services/sigaa-api/Authentication.service";
+import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { CourseService } from "../services/sigaa-api/Course.service";
@@ -22,9 +22,6 @@ export class Grades {
 			const uniqueID = cacheService.get<string>(this.socketService.id);
 			const cache = cacheService.get<CacheType>(uniqueID);
 			const { JSESSIONID, jsonCache } = cache;
-			if(!JSESSIONID) {
-				throw new Error("API: No JSESSIONID found in cache.");
-			}
 			if (query.cache) {
 				const newest = cacheHelper.getNewest(jsonCache, query);
 				if (newest) {
@@ -32,7 +29,11 @@ export class Grades {
 					return this.socketService.emit("grades::list", bond);
 				}
 			}
-			const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, new URL(cache.sigaaURL));
+			const sigaaURL = new URL(cache.sigaaURL);
+			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
+			const page = await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
+			const account = await AuthenticationService.parseAccount(sigaaInstance, page);
+
 			const accountService = new AccountService(account);
 			const activeBonds = await accountService.getActiveBonds();
 			const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
@@ -76,12 +77,12 @@ export class Grades {
 					"grades::listPartial", bondDTO.toJSON()
 				);
 			}
+			sigaaInstance.close();
 			const bondDTO = new BondDTO(bond, active, period, { coursesDTOs });
-			cacheHelper.storeCache(uniqueID, {
+			cacheUtil.merge(uniqueID, {
 				jsonCache: [{ BondsJSON: [bondDTO.toJSON()], query, time: new Date().toISOString() }],
 				time: new Date().toISOString(),
 			});
-			httpSession.close();
 			this.socketService.emit("grades::list", bondDTO.toJSON());
 		} catch (error) {
 			console.error(error);

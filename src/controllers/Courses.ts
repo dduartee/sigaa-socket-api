@@ -1,9 +1,9 @@
 import { StudentBond } from "sigaa-api";
 import { Socket } from "socket.io";
-import { CacheType } from "../services/cacheUtil";
+import { CacheType, cacheUtil } from "../services/cacheUtil";
 import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
-import Authentication from "../services/sigaa-api/Authentication.service";
+import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { BondDTO } from "../DTOs/Bond.DTO";
@@ -24,9 +24,6 @@ export class Courses {
 			const uniqueID = cacheService.get<string>(this.socketService.id);
 			const cache = cacheService.get<CacheType>(uniqueID);
 			const { JSESSIONID, jsonCache } = cache;
-			if(!JSESSIONID) {
-				throw new Error("API: No JSESSIONID found in cache.");
-			}
 			if (query.cache) {
 				const newest = cacheHelper.getNewest(jsonCache, query);
 				if (newest) {
@@ -34,7 +31,12 @@ export class Courses {
 					return this.socketService.emit("courses::list", bond);
 				}
 			}
-			const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, new URL(cache.sigaaURL));
+
+			const sigaaURL = new URL(cache.sigaaURL);
+			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
+			const page = await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
+			const account = await AuthenticationService.parseAccount(sigaaInstance, page);
+
 			const accountService = new AccountService(account);
 			const activeBonds = await accountService.getActiveBonds();
 			const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
@@ -46,7 +48,7 @@ export class Courses {
 			const active = activeBonds.includes(bond);
 			const courses = await bondService.getCourses(query.allPeriods);
 			console.log(`[courses - list] - ${courses.length}`);
-			httpSession.close();
+			sigaaInstance.close();
 			const coursesDTOs: CourseDTO[] = [];
 			for (const course of courses) {
 				const courseDTO = new CourseDTO(course);
@@ -54,7 +56,7 @@ export class Courses {
 			}
 			const bondDTO = new BondDTO(bond, active, period, { coursesDTOs });
 			const bondJSON = bondDTO.toJSON();
-			cacheHelper.storeCache(uniqueID, {
+			cacheUtil.merge(uniqueID, {
 				jsonCache: [
 					{ BondsJSON: [bondJSON], query, time: new Date().toISOString() },
 				],

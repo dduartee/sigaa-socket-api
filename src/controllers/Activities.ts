@@ -1,7 +1,7 @@
-import { CacheType } from "../services/cacheUtil";
+import { CacheType, cacheUtil } from "../services/cacheUtil";
 import { events } from "../apiConfig.json";
 import { cacheHelper } from "../helpers/Cache";
-import Authentication from "../services/sigaa-api/Authentication.service";
+import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { Socket } from "socket.io";
@@ -21,9 +21,6 @@ export class Activities {
 			const uniqueID = cacheService.get<string>(this.socketService.id);
 			const cache = cacheService.get<CacheType>(uniqueID);
 			const { JSESSIONID, jsonCache } = cache;
-			if(!JSESSIONID) {
-				throw new Error("API: No JSESSIONID found in cache.");
-			}
 			if (query.cache) {
 				const newest = cacheHelper.getNewest(jsonCache, query);
 				if (newest) {
@@ -31,7 +28,12 @@ export class Activities {
 					return this.socketService.emit("activities::list", bond);
 				}
 			}
-			const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, new URL(cache.sigaaURL));
+
+			const sigaaURL = new URL(cache.sigaaURL);
+			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
+			const page = await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
+			const account = await AuthenticationService.parseAccount(sigaaInstance, page);
+
 			const accountService = new AccountService(account);
 
 			const activeBonds = await accountService.getActiveBonds();
@@ -44,12 +46,12 @@ export class Activities {
 			const period = await bondService.getCurrentPeriod();
 			const activities = await bondService.getActivities();
 			console.log(`[activities - list] - ${activities.length}`);
-			httpSession.close();
+			sigaaInstance.close();
 			const activitiesDTOs = activities.map(activity => new ActivityDTO(activity));
 			const active = activeBonds.includes(bond);
 			const bondDTO = new BondDTO(bond, active, period, { activitiesDTOs });
 			const bondJSON = bondDTO.toJSON();
-			cacheHelper.storeCache(uniqueID, {
+			cacheUtil.merge(uniqueID, {
 				jsonCache: [{ BondsJSON: [bondJSON], query, time: new Date().toISOString() }],
 				time: new Date().toISOString(),
 			});

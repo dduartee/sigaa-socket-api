@@ -4,21 +4,22 @@ import { Courses } from "./controllers/Courses";
 import { Grades } from "./controllers/Grades";
 import { Homeworks } from "./controllers/Homeworks";
 import { News } from "./controllers/News";
-import { session } from "./helpers/Session";
-import { User } from "./controllers/User";
+import { LoginCredentials, User } from "./controllers/User";
 
 import { Auth } from "./middlewares/Auth";
 import { Activities } from "./controllers/Activities";
 import { Server, Socket } from "socket.io";
 import { Absences } from "./controllers/Absences";
 import { Lessons } from "./controllers/Lessons";
+import { cacheService } from "./services/cacheService";
+import { CacheType } from "./services/cacheUtil";
 export class Router {
 	constructor(private socketService: Socket, private io: Server) { }
 
 	async index() {
 		/**
-     * Inicializações das classes dos eventos
-     */
+	 * Inicializações das classes dos eventos
+	 */
 		const user = new User(this.socketService);
 		const auth = new Auth(this.socketService);
 		const bonds = new Bonds(this.socketService);
@@ -29,24 +30,25 @@ export class Router {
 		const activities = new Activities(this.socketService);
 		const absences = new Absences(this.socketService);
 		const lessons = new Lessons(this.socketService);
-		this.socketService.use((event: any, next) => auth.middleware(event, next));
-
+		this.socketService.use((event, next) => auth.middleware(event, next));
 		this.socketService.on("auth::valid", async (query) => auth.valid(query));
 
-		this.socketService.on(
-			"user::login",
-			async (credentials) => await user.login(credentials)
-		);
-		this.socketService.on("user::info", async (query) => await user.info());
-		this.socketService.on(
-			"user::logoff",
-			async (query) => await user.logoff()
-		);
+		this.socketService.use((event, next) => {
+			const events = ["auth::valid", "user::login"];
+			const eventName = event[0];
+			if (events.includes(eventName)) return next();
+			const uniqueID: string = cacheService.get(this.socketService.id);
+			const cache = cacheService.get<CacheType>(uniqueID);
+			if (!cache) return this.socketService.emit("api::error", "API: No cache found.");
+			if (!cache.JSESSIONID) return this.socketService.emit("api::error", "API: No JSESSIONID found in cache.");
+			return next();
+		});
 
-		this.socketService.on(
-			"bonds::list",
-			async (query) => await bonds.list(query)
-		);
+		this.socketService.on("user::login", async (credentials: LoginCredentials) => await user.login(credentials));
+		this.socketService.on("user::info", async () => await user.info());
+		this.socketService.on("user::logoff", async () => await user.logoff());
+
+		this.socketService.on("bonds::list", async (query) => await bonds.list(query));
 
 		this.socketService.on(
 			"courses::list",
@@ -84,7 +86,7 @@ export class Router {
 		);
 
 		this.socketService.on("disconnect", async (reason) => {
-			session.delete(this.socketService.id);
+			cacheService.del(this.socketService.id);
 		});
 	}
 }

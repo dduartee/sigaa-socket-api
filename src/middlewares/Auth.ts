@@ -1,74 +1,59 @@
-import JWT, { JwtPayload } from "jsonwebtoken";
+import JWT from "jsonwebtoken";
 import dotenv from "dotenv";
 import { v4 } from "uuid";
-import { session } from "../helpers/Session";
-import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
 import { cacheService } from "../services/cacheService";
-import { Socket } from "socket.io";
+import { Event, Socket } from "socket.io";
+import { CacheType } from "../services/cacheUtil";
 dotenv.config();
 type tokenPayload = {
-    time: string,
-    uniqueID: string,
-    sid: string
+	time: string,
+	uniqueID: string,
 }
 class Auth {
 	secret = process.env.SECRET;
 	token: string;
 	constructor(private socketService: Socket) { }
-	valid({ token }) {
+	valid(params: { token: string }) {
 		const eventName = events.auth.valid;
-		const verify = token && this.verify(token);
-		const valid = verify && this.decode(token);
-		if (valid) {
-			const { time, uniqueID } = valid;
-			const hasCache = cacheHelper.getCache(uniqueID);
-			const sid = this.socketService.id;
-			const difftime = this.diffTime(time);
-			if (difftime < 6 && hasCache?.JSESSIONID) {
-				this.token = token;
-				session.update(sid, uniqueID);
-				this.socketService.emit(eventName, true);
-				return true;
-			}
+		try {
+			this.handleTokenManagement(params.token);
+			return this.socketService.emit(eventName, true);
+		} catch (error) {
+			return this.socketService.emit(eventName, false);
 		}
-		this.socketService.emit(eventName, false);
-		return false;
 	}
+	private handleTokenManagement(token: string) {
+		const verify = token && this.verify(token);
+		const decoded = verify && this.decode(token);
+		if (!decoded) return false;
+		const cache = cacheService.get<CacheType>(decoded.uniqueID);
+		if (!cache) return false;
+		const sid = this.socketService.id;
+		const difftime = this.diffTime(decoded.time);
+		if (!(difftime < 6 && cache.JSESSIONID)) return false;
+		cacheService.del(sid);
+		cacheService.set(sid, decoded.uniqueID);
+		return true;
+	}
+
 	/**
-     * Autentica socket, verifica se tem o token e se é valido, caso não for ele enviará um valido para o client
-     * @param params 
-     * @returns 
-     */
-	middleware(event: { 0: string, 1: { token: string } }, next: (err?: Error) => void) {
+	 * Autentica socket, verifica se tem o token e se é valido, caso não for ele enviará um valido para o client
+	 * @param params 
+	 * @returns 
+	 */
+	middleware(event: Event, next: (err?: Error) => void) {
 		try {
 			if (!event[1]) throw new Error("No token received");
 			const { token } = event[1];
-			const verify = token && this.verify(token);
-			const valid = verify && this.decode(token) as JwtPayload;
-			if (valid) {
-				const { time, uniqueID } = valid;
-				const sid = this.socketService.id;
-				const difftime = this.diffTime(time);
-				const hasCache = cacheHelper.getCache(uniqueID);
-				if (difftime < 6 && hasCache?.JSESSIONID) {
-					this.token = token;
-					cacheService.del(sid);
-					cacheService.set(sid, uniqueID);
-					const time = `${new Date().getDate()}/${new Date().getMonth()+1}/${new Date().getFullYear()} ${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`;
-					console.log(`[${time} - ${token.slice(-5)} - ${this.socketService.id}] -> [${event[0]}]`); // log para identificacao
-					return next();
-				}
-			}
-			const uniqueID = v4(); // DATABASE
-			const sid = this.socketService.id; // SESSION
-			const time = new Date().toISOString(); // CACHE
-			const newToken = this.sign({ time, uniqueID, sid }) || "";
-			this.token = newToken;
+			const valid = this.handleTokenManagement(token);
+			if (valid) return next();
+			const uniqueID = v4();
+			const sid = this.socketService.id;
+			const time = new Date().toISOString();
+			const newToken = this.sign({ time, uniqueID }) || "";
 			cacheService.set(sid, uniqueID);
-			cacheService.set(uniqueID, {
-				time,
-			});
+			cacheService.set(uniqueID, { time });
 			this.socketService.emit(events.auth.store, newToken);
 			return next();
 		} catch (err) {
@@ -77,10 +62,10 @@ class Auth {
 		}
 	}
 	/**
-     * verifica o token JWT
-     * @param token 
-     * @returns 
-     */
+	 * verifica o token JWT
+	 * @param token 
+	 * @returns 
+	 */
 	verify(token: string) {
 		try {
 			const valid = JWT.verify(token, this.secret);
@@ -91,10 +76,10 @@ class Auth {
 		}
 	}
 	/**
-     * Decodifica o token
-     * @param token 
-     * @returns 
-     */
+	 * Decodifica o token
+	 * @param token 
+	 * @returns 
+	 */
 	decode(token: string) {
 		try {
 			const decoded = JWT.decode(token) as tokenPayload;
@@ -105,10 +90,10 @@ class Auth {
 		}
 	}
 	/**
-     * Cria token JWT
-     * @param payload 
-     * @returns 
-     */
+	 * Cria token JWT
+	 * @param payload 
+	 * @returns 
+	 */
 	sign(payload: tokenPayload) {
 		try {
 			const token = JWT.sign(payload, this.secret);
@@ -119,10 +104,10 @@ class Auth {
 		}
 	}
 	/**
-     * Calcula a diferença de tempo do token
-     * @param time 
-     * @returns 
-     */
+	 * Calcula a diferença de tempo do token
+	 * @param time 
+	 * @returns 
+	 */
 	diffTime(time: string) {
 		const past = new Date(time);
 		const now = new Date();

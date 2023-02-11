@@ -1,25 +1,27 @@
-import { StudentBond } from "sigaa-api";
 import { ActivityDTO, IActivityDTOProps } from "./Activity.DTO";
 import { CourseDTO, ICourseDTOProps } from "./CourseDTO";
-
-export interface IBondDTOProps {
-    program: string;
-    registration: string;
-    type: string;
-    active: boolean;
-    period: string;
+export interface BondData {
+	program: string;
+	registration: string;
+	type: string;
+}
+export interface IBondDTOProps extends BondData{
+	active: boolean;
+	period: string;
     activities?: IActivityDTOProps[]
     courses?: ICourseDTOProps[]
 }
 export interface IBondDTO {
-    toJSON(additionals: {
-        activitiesDTOs?: ActivityDTO[];
-        coursesDTOs?: CourseDTO[];
-    }): IBondDTOProps;
+	additionals?: { activitiesDTOs?: ActivityDTO[], coursesDTOs?: CourseDTO[] };
+	setAdditionals(additionals: { activitiesDTOs?: ActivityDTO[], coursesDTOs?: CourseDTO[] }): void;
+    toJSON(): IBondDTOProps;
 }
 export class BondDTO implements IBondDTO {
-	constructor(public bond: StudentBond, public active: boolean, public period: string, public additionals?: { activitiesDTOs?: ActivityDTO[], coursesDTOs?: CourseDTO[] }) { }
-
+	additionals: { activitiesDTOs?: ActivityDTO[]; coursesDTOs?: CourseDTO[]; };
+	constructor(public bond: BondData, public active: boolean, public period: string) { }
+	setAdditionals(additionals: { activitiesDTOs?: ActivityDTO[], coursesDTOs?: CourseDTO[] }) {
+		this.additionals = additionals;
+	}
 	toJSON(): IBondDTOProps {
 		const coursesDTOs = this.additionals?.coursesDTOs || [];
 		const activitiesDTOs = this.additionals?.activitiesDTOs || [];
@@ -32,5 +34,17 @@ export class BondDTO implements IBondDTO {
 			activities: activitiesDTOs.map(a => a.toJSON()),
 			courses: coursesDTOs.map(c => c.toJSON())
 		};
+	}
+	static fromJSON(json: IBondDTOProps) {
+		const bondDTO = new BondDTO({
+			program: json.program,
+			registration: json.registration,
+			type: json.type
+		}, json.active, json.period);
+		bondDTO.setAdditionals({
+			activitiesDTOs: json.activities?.map(a => ActivityDTO.fromJSON(a)),
+			coursesDTOs: json.courses?.map(c => new CourseDTO(c))
+		});
+		return bondDTO;
 	}
 }

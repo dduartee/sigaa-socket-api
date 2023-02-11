@@ -1,29 +1,28 @@
-import { CacheType, cacheUtil } from "../services/cacheUtil";
-import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { Socket } from "socket.io";
 import { BondDTO } from "../DTOs/Bond.DTO";
-import { cacheService } from "../services/cacheService";
+import SocketReferenceMap from "../services/SocketReferenceMap";
+import SessionMap from "../services/SessionMap";
+import StudentMap from "../services/StudentMap";
+
 export class Bonds {
 	constructor(private socketService: Socket) { }
 	async list(query: {
-    inactive: boolean;
-    cache: boolean
-  }) {
+		inactive: boolean;
+		cache: boolean
+	}) {
 		const apiEventError = events.api.error;
 		try {
-			const uniqueID = cacheService.get<string>(this.socketService.id);
-			const cache = cacheService.get<CacheType>(uniqueID);
-			const { JSESSIONID, jsonCache } = cache;
-			if (query.cache) {
-				const newest = cacheHelper.getNewest(jsonCache, query);
-				if (newest) {
-					const bonds = newest["BondsJSON"];
-					return this.socketService.emit("bonds::list", bonds);
-				}
+			const uniqueID = SocketReferenceMap.get(this.socketService.id);
+			const cache = SessionMap.get(uniqueID);
+			const { JSESSIONID } = cache;
+			if (query.cache && StudentMap.has(uniqueID)) {
+				const student = StudentMap.get(uniqueID);
+				const bonds = student.bonds.map(bond => BondDTO.fromJSON(bond));
+				return this.socketService.emit("bonds::list", bonds.map(b => b.toJSON()));
 			}
 
 			const sigaaURL = new URL(cache.sigaaURL);
@@ -45,12 +44,9 @@ export class Bonds {
 				BondsDTOs.push(bondDTO);
 			}
 			sigaaInstance.close();
-			const BondsJSON = BondsDTOs.map(b => b.toJSON());
-			cacheUtil.merge(uniqueID, {
-				jsonCache: [{ BondsJSON , query, time: new Date().toISOString() }],
-				time: new Date().toISOString(),
-			});
-			return this.socketService.emit("bonds::list", BondsJSON);
+			const bondsJSON = BondsDTOs.map(b => b.toJSON());
+			StudentMap.merge(uniqueID, { bonds: bondsJSON });
+			return this.socketService.emit("bonds::list", bondsJSON);
 		} catch (error) {
 			console.error(error);
 			this.socketService.emit(apiEventError, error.message);

@@ -1,6 +1,5 @@
 import { Account, Page, Request, Sigaa, SigaaCookiesController } from "sigaa-api";
 import { SigaaRequestStack } from "sigaa-api/dist/helpers/sigaa-request-stack";
-import { cacheService } from "../cacheService";
 const expectedErrors = [
 	"SIGAA: Invalid response after login attempt.",
 	"SIGAA: Invalid homepage, the system behaved unexpectedly.",
@@ -69,11 +68,11 @@ class AuthenticationService {
 		if (!attemptGetAccount.account) throw new Error(attemptGetAccount.error);
 
 		const JSESSIONID = attemptLogin.page.requestHeaders.Cookie;
-		cacheService.set(`requestStackInstance@${JSESSIONID}`, requestStackController);
+		// cacheService.set(`requestStackInstance@${JSESSIONID}`, requestStackController);
 		return { account: attemptGetAccount.account, JSESSIONID: JSESSIONID };
 	}
 	/**
-	 * @param sigaaInstance Instância do SIGAA já preparada
+	 * @param sigaaInstance Instância do SIGAA já rehydratada
 	 * @returns Classe Account do SIGAA
 	 */
 	public async loginWithJSESSIONID(sigaaInstance: Sigaa) {
@@ -92,7 +91,8 @@ class AuthenticationService {
 	public getRehydratedSigaaInstance(sigaaURL: URL, JSESSIONID: string) {
 		const cookiesController = new SigaaCookiesController();
 		cookiesController.storeCookies(sigaaURL.hostname, [JSESSIONID]);
-		const requestStackController = cacheService.get(`requestStackInstance@${JSESSIONID}`) as SigaaRequestStack<Request, Page>;
+		// const requestStackController = cacheService.get(`requestStackInstance@${JSESSIONID}`) as SigaaRequestStack<Request, Page>;
+		const requestStackController = new SigaaRequestStack<Request, Page>();
 		const sigaaInstance = new Sigaa({ url: sigaaURL.href, cookiesController, requestStackController });
 		return sigaaInstance;
 	}

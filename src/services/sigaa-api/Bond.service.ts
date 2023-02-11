@@ -1,4 +1,4 @@
-import { Activity, StudentBond } from "sigaa-api";
+import { Activity, CourseStudent, StudentBond } from "sigaa-api";
 export class BondService {
 	constructor(private bond: StudentBond) { }
 	async getCampus(retryTimes = 0): Promise<string> {
@@ -28,7 +28,7 @@ export class BondService {
 			}
 		}
 	}
-	async getCourses(allPeriods = false, retryTimes = 0) {
+	async getCourses(allPeriods = false, retryTimes = 0): Promise<CourseStudent[]> {
 		try {
 			const courses = await this.bond.getCourses(allPeriods);
 			return courses;

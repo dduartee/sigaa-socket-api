@@ -1,14 +1,13 @@
 import { Socket } from "socket.io";
-import { CacheType } from "../services/cacheUtil";
-import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
-import { CourseService } from "../services/sigaa-api/Course.service";
+import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import { NewsDTO } from "../DTOs/News.DTO";
 import { CourseDTO } from "../DTOs/CourseDTO";
-import { cacheService } from "../services/cacheService";
+import SocketReferenceMap from "../services/SocketReferenceMap";
+import SessionMap from "../services/SessionMap";
 
 export class News {
 	constructor(private socketService: Socket) { }
@@ -22,16 +21,16 @@ export class News {
 		const apiEventError = events.api.error;
 		try {
 
-			const uniqueID = cacheService.get<string>(this.socketService.id);
-			const cache = cacheService.get<CacheType>(uniqueID);
-			const { JSESSIONID, jsonCache } = cache;
-			if (query.cache) {
-				const newest = cacheHelper.getNewest(jsonCache, query);
-				if (newest) {
-					const bond = newest["BondsJSON"].find(b => b.registration === query.registration);
-					return this.socketService.emit("news::latest", bond);
-				}
-			}
+			const uniqueID = SocketReferenceMap.get(this.socketService.id);
+			const cache = SessionMap.get(uniqueID);
+			const { JSESSIONID } = cache;
+			// if (query.cache) {
+			// 	const newest = cacheHelper.getNewest(jsonCache, query);
+			// 	if (newest) {
+			// 		const bond = newest["BondsJSON"].find(b => b.registration === query.registration);
+			// 		return this.socketService.emit("news::latest", bond);
+			// 	}
+			// }
 			const sigaaURL = new URL(cache.sigaaURL);
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
 			const page = await AuthenticationService.loginWithJSESSIONID(sigaaInstance);

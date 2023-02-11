@@ -2,9 +2,9 @@ import JWT from "jsonwebtoken";
 import dotenv from "dotenv";
 import { v4 } from "uuid";
 import { events } from "../apiConfig.json";
-import { cacheService } from "../services/cacheService";
 import { Event, Socket } from "socket.io";
-import { CacheType } from "../services/cacheUtil";
+import SessionMap from "../services/SessionMap";
+import SocketReferenceMap from "../services/SocketReferenceMap";
 dotenv.config();
 type tokenPayload = {
 	time: string,
@@ -27,13 +27,13 @@ class Auth {
 		const verify = token && this.verify(token);
 		const decoded = verify && this.decode(token);
 		if (!decoded) return false;
-		const cache = cacheService.get<CacheType>(decoded.uniqueID);
+		const cache = SessionMap.get(decoded.uniqueID);
 		if (!cache) return false;
 		const sid = this.socketService.id;
 		const difftime = this.diffTime(decoded.time);
 		if (!(difftime < 6 && cache.JSESSIONID)) return false;
-		cacheService.del(sid);
-		cacheService.set(sid, decoded.uniqueID);
+		SocketReferenceMap.delete(sid);
+		SocketReferenceMap.set(sid, decoded.uniqueID);
 		return true;
 	}
 
@@ -52,8 +52,7 @@ class Auth {
 			const sid = this.socketService.id;
 			const time = new Date().toISOString();
 			const newToken = this.sign({ time, uniqueID }) || "";
-			cacheService.set(sid, uniqueID);
-			cacheService.set(uniqueID, { time });
+			SocketReferenceMap.set(sid, uniqueID);
 			this.socketService.emit(events.auth.store, newToken);
 			return next();
 		} catch (err) {

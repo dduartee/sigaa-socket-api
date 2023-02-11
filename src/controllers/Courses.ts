@@ -1,14 +1,14 @@
-import { StudentBond } from "sigaa-api";
+import { CourseStudentData, StudentBond } from "sigaa-api";
 import { Socket } from "socket.io";
-import { CacheType, cacheUtil } from "../services/cacheUtil";
-import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { BondDTO } from "../DTOs/Bond.DTO";
 import { CourseDTO } from "../DTOs/CourseDTO";
-import { cacheService } from "../services/cacheService";
+import SessionMap from "../services/SessionMap";
+import SocketReferenceMap from "../services/SocketReferenceMap";
+import StudentMap from "../services/StudentMap";
 
 export class Courses {
 	constructor(private socketService: Socket) { }
@@ -16,18 +16,19 @@ export class Courses {
    * Lista matérias de um vinculo especificado pelo registration
    * @param params socket
    * @param query registration
-   * @returns
+   * @returns	
    */
 	async list(query: { inactive: boolean, allPeriods: boolean, cache: boolean, registration: string }) {
 		const apiEventError = events.api.error;
 		try {
-			const uniqueID = cacheService.get<string>(this.socketService.id);
-			const cache = cacheService.get<CacheType>(uniqueID);
-			const { JSESSIONID, jsonCache } = cache;
-			if (query.cache) {
-				const newest = cacheHelper.getNewest(jsonCache, query);
-				if (newest) {
-					const bond = newest["BondsJSON"].find(bond => bond.registration === query.registration);
+			const uniqueID = SocketReferenceMap.get(this.socketService.id);
+			const cache = SessionMap.get(uniqueID);
+			const { JSESSIONID } = cache;
+			if (query.cache && StudentMap.has(uniqueID)) {
+				const student = StudentMap.get(uniqueID);
+				const bond = student.bonds.find(b => b.registration === query.registration);
+				if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
+				if(bond.courses.length > 0) {
 					return this.socketService.emit("courses::list", bond);
 				}
 			}
@@ -51,17 +52,15 @@ export class Courses {
 			sigaaInstance.close();
 			const coursesDTOs: CourseDTO[] = [];
 			for (const course of courses) {
-				const courseDTO = new CourseDTO(course);
+				const form = course.getCourseForm();
+				const courseData: CourseStudentData = { form, ...course };
+				const courseDTO = new CourseDTO(courseData);
 				coursesDTOs.push(courseDTO);
 			}
-			const bondDTO = new BondDTO(bond, active, period, { coursesDTOs });
+			const bondDTO = new BondDTO(bond, active, period);
+			bondDTO.setAdditionals({ coursesDTOs });
 			const bondJSON = bondDTO.toJSON();
-			cacheUtil.merge(uniqueID, {
-				jsonCache: [
-					{ BondsJSON: [bondJSON], query, time: new Date().toISOString() },
-				],
-				time: new Date().toISOString(),
-			});
+			StudentMap.merge(uniqueID, { bonds: [bondJSON] });
 			return this.socketService.emit("courses::list", bondJSON);
 		} catch (error) {
 			console.error(error);

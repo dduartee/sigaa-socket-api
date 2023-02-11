@@ -1,5 +1,5 @@
 import { CourseStudent,  GradeGroup, Lesson, SigaaHomework, SigaaNews} from "sigaa-api";
-import { FullHomework } from "../../DTOs/Homework.DTO";
+import { FullHomework } from "../../../DTOs/Homework.DTO";
 export class CourseService {
 	constructor(private course: CourseStudent) { }
 	async getHomeworks(full = false, retryTimes = 0) {

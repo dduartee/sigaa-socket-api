@@ -4,14 +4,15 @@ import { GradeGroupDTO, IGradeGroupDTOProps } from "./GradeGroup/GradeGroup.DTO"
 import { HomeworkDTO, IHomeworkDTOProps } from "./Homework.DTO";
 import { ILessonDTOProps, LessonDTO } from "./Lessons.DTO";
 import { INewsDTOProps, NewsDTO } from "./News.DTO";
-
-export interface ICourseDTOProps {
-    id: string;
+export interface ICourseData {
+	id: string;
     title: string;
     code: string;
     schedule?: string;
     period: string;
     numberOfStudents: number;
+}
+export interface ICourseDTOProps extends ICourseData {
     grades?: IGradeGroupDTOProps[];
     news?: INewsDTOProps[]
     homeworks?: IHomeworkDTOProps[];
@@ -23,7 +24,7 @@ export interface ICourseDTO {
 }
 export class CourseDTO implements ICourseDTO {
 	constructor(
-        public course: CourseStudent,
+        public course: ICourseData,
         public additionals?: {
             gradeGroupsDTOs?: GradeGroupDTO[],
             newsDTOs?: NewsDTO[],
@@ -52,4 +53,5 @@ export class CourseDTO implements ICourseDTO {
 			absences: this.additionals?.absencesDTO?.toJSON()
 		};
 	}
+	// static fromJSON(json: ICourseDTOProps) {}
 }

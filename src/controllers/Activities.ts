@@ -1,13 +1,13 @@
-import { CacheType, cacheUtil } from "../services/cacheUtil";
 import { events } from "../apiConfig.json";
-import { cacheHelper } from "../helpers/Cache";
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { Socket } from "socket.io";
 import { BondDTO } from "../DTOs/Bond.DTO";
 import { ActivityDTO } from "../DTOs/Activity.DTO";
-import { cacheService } from "../services/cacheService";
+import SessionMap from "../services/SessionMap";
+import SocketReferenceMap from "../services/SocketReferenceMap";
+import StudentMap from "../services/StudentMap";
 
 export class Activities {
 	constructor(private socketService: Socket) { }
@@ -18,16 +18,16 @@ export class Activities {
   }) {
 		const apiEventError = events.api.error;
 		try {
-			const uniqueID = cacheService.get<string>(this.socketService.id);
-			const cache = cacheService.get<CacheType>(uniqueID);
-			const { JSESSIONID, jsonCache } = cache;
-			if (query.cache) {
-				const newest = cacheHelper.getNewest(jsonCache, query);
-				if (newest) {
-					const bond = newest["BondsJSON"].find(b => b.registration === query.registration);
-					return this.socketService.emit("activities::list", bond);
-				}
-			}
+			const uniqueID = SocketReferenceMap.get(this.socketService.id);
+			const cache = SessionMap.get(uniqueID);
+			const { JSESSIONID } = cache;
+			// if (query.cache) {
+			// 	const newest = cacheHelper.getNewest(jsonCache, query);
+			// 	if (newest) {
+			// 		const bond = newest["BondsJSON"].find(b => b.registration === query.registration);
+			// 		return this.socketService.emit("activities::list", bond);
+			// 	}
+			// }
 
 			const sigaaURL = new URL(cache.sigaaURL);
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
@@ -49,11 +49,11 @@ export class Activities {
 			sigaaInstance.close();
 			const activitiesDTOs = activities.map(activity => new ActivityDTO(activity));
 			const active = activeBonds.includes(bond);
-			const bondDTO = new BondDTO(bond, active, period, { activitiesDTOs });
+			const bondDTO = new BondDTO(bond, active, period);
+			bondDTO.setAdditionals({ activitiesDTOs });
 			const bondJSON = bondDTO.toJSON();
-			cacheUtil.merge(uniqueID, {
-				jsonCache: [{ BondsJSON: [bondJSON], query, time: new Date().toISOString() }],
-				time: new Date().toISOString(),
+			StudentMap.merge(uniqueID, {
+				bonds: [bondJSON],
 			});
 			return this.socketService.emit("activities::list", bondJSON);
 		} catch (error) {

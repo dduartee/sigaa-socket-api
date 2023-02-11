@@ -1,4 +1,3 @@
-import { CacheType } from "../services/cacheUtil";
 import { events } from "../apiConfig.json";
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
@@ -9,7 +8,9 @@ import { Activity, CourseStudent, SigaaFile, SigaaHomework } from "sigaa-api";
 import { FileDTO } from "../DTOs/Attachments/File.DTO";
 import { ActivityDTO } from "../DTOs/Activity.DTO";
 import { CourseDTO } from "../DTOs/CourseDTO";
-import { cacheService } from "../services/cacheService";
+import SocketReferenceMap from "../services/SocketReferenceMap";
+import SessionMap from "../services/SessionMap";
+
 export class Homeworks {
 	constructor(private socketService: Socket) { }
 	/**
@@ -28,8 +29,8 @@ export class Homeworks {
 		const apiEventError = events.api.error;
 		try {
 
-			const uniqueID = cacheService.get<string>(this.socketService.id);
-			const cache = cacheService.get<CacheType>(uniqueID);
+			const uniqueID = SocketReferenceMap.get(this.socketService.id);
+			const cache = SessionMap.get(uniqueID);
 			const { JSESSIONID } = cache;
 
 			const sigaaURL = new URL(cache.sigaaURL);

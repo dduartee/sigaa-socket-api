@@ -1,28 +1,33 @@
 
-import { CacheType, cacheUtil } from "../services/cacheUtil";
-import { cacheHelper } from "../helpers/Cache";
+
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
-import { CourseService } from "../services/sigaa-api/Course.service";
+import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import { Socket } from "socket.io";
 import { CourseDTO } from "../DTOs/CourseDTO";
 import { BondDTO } from "../DTOs/Bond.DTO";
 import { AbsencesDTO } from "../DTOs/Absences.DTO";
-import { cacheService } from "../services/cacheService";
+import SocketReferenceMap from "../services/SocketReferenceMap";
+import SessionMap from "../services/SessionMap";
+import StudentMap from "../services/StudentMap";
 
 export class Absences {
 	constructor(private socketService: Socket) { }
 	async list(query: { cache: boolean, registration: string, inactive: boolean, allPeriods: boolean }) {
 		try {
-			const uniqueID = cacheService.get<string>(this.socketService.id);
-			const cache = cacheService.get<CacheType>(uniqueID);
-			const { JSESSIONID, jsonCache } = cache;
-			if (query.cache) {
-				const newest = cacheHelper.getNewest(jsonCache, query);
-				if (newest) {
-					const bond = newest["BondsJSON"].find(bond => bond.registration === query.registration);
-					return this.socketService.emit("absences::list", bond);
+			const uniqueID = SocketReferenceMap.get(this.socketService.id);
+			const cache = SessionMap.get(uniqueID);
+			const { JSESSIONID } = cache;
+			if (query.cache && StudentMap.has(uniqueID)) {
+				const student = StudentMap.get(uniqueID);
+				const bond = student.bonds.find(bond => bond.registration === query.registration);
+				if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
+				if (bond.courses.length > 0) {
+					const absences = bond.courses.map(course => course.absences);
+					if (absences.length > 0) {
+						return this.socketService.emit("absences::list", bond);
+					}
 				}
 			}
 
@@ -48,15 +53,16 @@ export class Absences {
 				const absencesDTO = new AbsencesDTO(absences);
 				const courseDTO = new CourseDTO(course, { absencesDTO });
 				coursesDTOs.push(courseDTO);
-				const bondDTO = new BondDTO(bond, active, period, { coursesDTOs });
+				const bondDTO = new BondDTO(bond, active, period);
+				bondDTO.setAdditionals( { coursesDTOs });
 				this.socketService.emit(
 					"absences::listPartial", bondDTO.toJSON()
 				);
 			}
-			const bondDTO = new BondDTO(bond, active, period, { coursesDTOs });
-			cacheUtil.merge(uniqueID, {
-				jsonCache: [{ BondsJSON: [bondDTO.toJSON()], query, time: new Date().toISOString() }],
-				time: new Date().toISOString(),
+			const bondDTO = new BondDTO(bond, active, period);
+			bondDTO.setAdditionals( { coursesDTOs });
+			StudentMap.merge(uniqueID,{
+				bonds: [bondDTO.toJSON()]
 			});
 			sigaaInstance.close();
 			this.socketService.emit("absences::list", bondDTO.toJSON());

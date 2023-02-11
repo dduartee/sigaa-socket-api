@@ -14,13 +14,14 @@ import { BondDTO } from "../DTOs/Bond.DTO";
 import { CourseDTO } from "../DTOs/CourseDTO";
 import { HomeworkDTO } from "../DTOs/Homework.DTO";
 import { LessonDTO } from "../DTOs/Lessons.DTO";
-import { cacheHelper } from "../helpers/Cache";
-import { cacheService } from "../services/cacheService";
-import { CacheType, cacheUtil } from "../services/cacheUtil";
+
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond.service";
-import { CourseService } from "../services/sigaa-api/Course.service";
+import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
+import SessionMap from "../services/SessionMap";
+import SocketReferenceMap from "../services/SocketReferenceMap";
+import StudentMap from "../services/StudentMap";
 
 
 export class Lessons {
@@ -33,17 +34,17 @@ export class Lessons {
         allPeriods: boolean
     }) {
 		try {
-			const uniqueID = cacheService.get<string>(this.socketService.id);
-			const cache = cacheService.get<CacheType>(uniqueID);
+			const uniqueID = SocketReferenceMap.get(this.socketService.id);
+			const cache = SessionMap.get(uniqueID);
 			const { JSESSIONID } = cache;
-			if (query.cache) {
-				const newest = cacheHelper.getNewest(cache.jsonCache, query);
-				if (newest) {
-					const bond = newest["BondsJSON"].find(bond => bond.registration === query.registration);
-					const course = bond.courses.find(course => course.id === query.courseId);
-					return this.socketService.emit("lessons::list", course);
-				}
-			}
+			// if (query.cache) {
+			// 	const newest = cacheHelper.getNewest(cache.jsonCache, query);
+			// 	if (newest) {
+			// 		const bond = newest["BondsJSON"].find(bond => bond.registration === query.registration);
+			// 		const course = bond.courses.find(course => course.id === query.courseId);
+			// 		return this.socketService.emit("lessons::list", course);
+			// 	}
+			// }
 
 			const sigaaURL = new URL(cache.sigaaURL);
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
@@ -73,13 +74,11 @@ export class Lessons {
 				}
 				courseDTO = new CourseDTO(course, { lessonsDTOs });
 			}
-			const bondDTO = new BondDTO(bond, active, period, { coursesDTOs: [courseDTO] });
+			const bondDTO = new BondDTO(bond, active, period);
+			bondDTO.setAdditionals({ coursesDTOs: [courseDTO] });
 			const bondJSON = bondDTO.toJSON();
-			cacheUtil.merge(uniqueID, {
-				jsonCache: [
-					{ BondsJSON: [bondJSON], query, time: new Date().toISOString() },
-				],
-				time: new Date().toISOString(),
+			StudentMap.merge(uniqueID, {
+				bonds: [bondJSON]
 			});
 			sigaaInstance.close();
 			return this.socketService.emit("lessons::list", courseDTO.toJSON());

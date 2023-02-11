@@ -11,8 +11,8 @@ import { Activities } from "./controllers/Activities";
 import { Server, Socket } from "socket.io";
 import { Absences } from "./controllers/Absences";
 import { Lessons } from "./controllers/Lessons";
-import { cacheService } from "./services/cacheService";
-import { CacheType } from "./services/cacheUtil";
+import SessionMap from "./services/SessionMap";
+import SocketReferenceMap from "./services/SocketReferenceMap";
 export class Router {
 	constructor(private socketService: Socket, private io: Server) { }
 
@@ -37,11 +37,13 @@ export class Router {
 			const events = ["auth::valid", "user::login"];
 			const eventName = event[0];
 			if (events.includes(eventName)) return next();
-			const uniqueID: string = cacheService.get(this.socketService.id);
-			const cache = cacheService.get<CacheType>(uniqueID);
-			if (!cache) return this.socketService.emit("api::error", "API: No cache found.");
-			if (!cache.JSESSIONID) return this.socketService.emit("api::error", "API: No JSESSIONID found in cache.");
-			return next();
+			else {
+				const uniqueID = SocketReferenceMap.get(this.socketService.id);
+				const cache = SessionMap.get(uniqueID);
+				if (!cache) return this.socketService.emit("api::error", "API: No cache found.");
+				if (!cache.JSESSIONID) return this.socketService.emit("api::error", "API: No JSESSIONID found in cache.");
+				return next();
+			}
 		});
 
 		this.socketService.on("user::login", async (credentials: LoginCredentials) => await user.login(credentials));
@@ -86,7 +88,7 @@ export class Router {
 		);
 
 		this.socketService.on("disconnect", async (reason) => {
-			cacheService.del(this.socketService.id);
+			SocketReferenceMap.delete(this.socketService.id);
 		});
 	}
 }

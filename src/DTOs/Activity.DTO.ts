@@ -1,5 +1,13 @@
 import { Activity } from "sigaa-api";
-
+export interface IActivityData {
+	type: string;
+	date: Date;
+	done: boolean;
+	courseTitle: string;
+	examDescription?: string;
+	homeworkTitle?: string;
+	quizTitle?: string;
+}
 export interface IActivityDTOProps {
     type: string;
     title: string;
@@ -12,7 +20,7 @@ export interface IActivityDTO {
 }
 
 export class ActivityDTO implements IActivityDTO {
-	constructor(public activity: Activity) { }
+	constructor(public activity: IActivityData) { }
 
 	toJSON(): IActivityDTOProps {
 		let title = "";
@@ -34,5 +42,13 @@ export class ActivityDTO implements IActivityDTO {
 			done: this.activity.done,
 			course: { title: this.activity.courseTitle }
 		};
+	}
+	static fromJSON(json: IActivityDTOProps) {
+		return new ActivityDTO({
+			type: json.type,
+			date: new Date(json.date),
+			done: json.done,
+			courseTitle: json.course.title
+		});
 	}
 }

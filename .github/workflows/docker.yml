@@ -26,7 +26,9 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/sigaa-socket-api:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/sigaa-socket-api:${{ env.BRANCH }}
+          build-args: |
+            BRANCH=${{ env.BRANCH }}
         
 
       

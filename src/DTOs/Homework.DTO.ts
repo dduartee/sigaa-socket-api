@@ -1,7 +1,7 @@
 import { SigaaHomework } from "sigaa-api";
 import { FileDTO, IFileDTOProps } from "./Attachments/File.DTO";
 
-export type FullHomework = {
+export type HomeworkData = {
     id: string,
     title: string,
     content?: string,
@@ -27,7 +27,7 @@ export interface IHomeworkDTO {
 }
 export class HomeworkDTO implements IHomeworkDTO {
 	constructor(
-        private homework: SigaaHomework,
+        private homework: HomeworkData,
         private fileDTO: FileDTO,
         private content: string,
         private haveGrade: boolean,

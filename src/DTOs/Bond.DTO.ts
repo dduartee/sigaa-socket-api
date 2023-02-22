@@ -6,6 +6,7 @@ export interface BondData {
 	type: string;
 }
 export interface IBondDTOProps extends BondData{
+	sequence: number;
 	active: boolean;
 	period: string;
     activities?: IActivityDTOProps[]
@@ -18,7 +19,7 @@ export interface IBondDTO {
 }
 export class BondDTO implements IBondDTO {
 	additionals: { activitiesDTOs?: ActivityDTO[]; coursesDTOs?: CourseDTO[]; };
-	constructor(public bond: BondData, public active: boolean, public period: string) { }
+	constructor(public bond: BondData, public active: boolean, public period: string, public sequence: number) { }
 	setAdditionals(additionals: { activitiesDTOs?: ActivityDTO[], coursesDTOs?: CourseDTO[] }) {
 		this.additionals = additionals;
 	}
@@ -31,6 +32,7 @@ export class BondDTO implements IBondDTO {
 			type: this.bond.type,
 			active: this.active,
 			period: this.period,
+			sequence: this.sequence,
 			activities: activitiesDTOs.map(a => a.toJSON()),
 			courses: coursesDTOs.map(c => c.toJSON())
 		};
@@ -40,10 +42,10 @@ export class BondDTO implements IBondDTO {
 			program: json.program,
 			registration: json.registration,
 			type: json.type
-		}, json.active, json.period);
+		}, json.active, json.period, json.sequence);
 		bondDTO.setAdditionals({
 			activitiesDTOs: json.activities?.map(a => ActivityDTO.fromJSON(a)),
-			coursesDTOs: json.courses?.map(c => new CourseDTO(c))
+			coursesDTOs: json.courses?.map(c => new CourseDTO(c, c.postValues))
 		});
 		return bondDTO;
 	}

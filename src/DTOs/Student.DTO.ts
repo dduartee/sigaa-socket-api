@@ -37,6 +37,6 @@ export class StudentDTO implements IStudentDTO {
 			emails: json.emails,
 			profilePictureURL: json.profilePictureURL
 		});
-		studentDTO.setAdditionals(json.bonds.map(b => new BondDTO(b, b.active, b.period)));
+		studentDTO.setAdditionals(json.bonds.map(b => new BondDTO(b, b.active, b.period, b.sequence)));
 	}
 }

@@ -1,4 +1,3 @@
-import { CourseStudent } from "sigaa-api";
 import { AbsencesDTO, IAbsencesDTOProps } from "./Absences.DTO";
 import { GradeGroupDTO, IGradeGroupDTOProps } from "./GradeGroup/GradeGroup.DTO";
 import { HomeworkDTO, IHomeworkDTOProps } from "./Homework.DTO";
@@ -6,39 +5,44 @@ import { ILessonDTOProps, LessonDTO } from "./Lessons.DTO";
 import { INewsDTOProps, NewsDTO } from "./News.DTO";
 export interface ICourseData {
 	id: string;
-    title: string;
-    code: string;
-    schedule?: string;
-    period: string;
-    numberOfStudents: number;
+	title: string;
+	code: string;
+	schedule?: string;
+	period: string;
+	numberOfStudents: number;
 }
 export interface ICourseDTOProps extends ICourseData {
-    grades?: IGradeGroupDTOProps[];
-    news?: INewsDTOProps[]
-    homeworks?: IHomeworkDTOProps[];
-    absences?: IAbsencesDTOProps
-    lessons?: ILessonDTOProps[]
+	postValues: string;
+	grades?: IGradeGroupDTOProps[];
+	news?: INewsDTOProps[]
+	homeworks?: IHomeworkDTOProps[];
+	absences?: IAbsencesDTOProps
+	lessons?: ILessonDTOProps[]
 }
 export interface ICourseDTO {
-    toJSON(): ICourseDTOProps;
+	toJSON(): ICourseDTOProps;
 }
 export class CourseDTO implements ICourseDTO {
+	additionals: { gradeGroupsDTOs?: GradeGroupDTO[]; newsDTOs?: NewsDTO[]; homeworksDTOs?: HomeworkDTO[]; absencesDTO?: AbsencesDTO; lessonsDTOs?: LessonDTO[]; };
 	constructor(
-        public course: ICourseData,
-        public additionals?: {
-            gradeGroupsDTOs?: GradeGroupDTO[],
-            newsDTOs?: NewsDTO[],
-            homeworksDTOs?: HomeworkDTO[],
-            absencesDTO?: AbsencesDTO,
-            lessonsDTOs?: LessonDTO[]
-        }
+		public course: ICourseData,
+		public postValues: string,
 	) { }
-
+	setAdditionals(additionals: {
+		gradeGroupsDTOs?: GradeGroupDTO[],
+		newsDTOs?: NewsDTO[],
+		homeworksDTOs?: HomeworkDTO[],
+		absencesDTO?: AbsencesDTO,
+		lessonsDTOs?: LessonDTO[]
+	}) {
+		this.additionals = additionals;
+	}
 	toJSON(): ICourseDTOProps {
 		const gradeGroupsDTOs = this.additionals?.gradeGroupsDTOs || [];
 		const newsDTOs = this.additionals?.newsDTOs || [];
 		const homeworksDTOs = this.additionals?.homeworksDTOs || [];
 		const lessonsDTOs = this.additionals?.lessonsDTOs || [];
+		const absencesDTO = this.additionals?.absencesDTO || undefined;
 		return {
 			id: this.course.id,
 			title: this.course.title,
@@ -46,11 +50,12 @@ export class CourseDTO implements ICourseDTO {
 			schedule: this.course.schedule,
 			period: this.course.period,
 			numberOfStudents: this.course.numberOfStudents,
+			postValues: this.postValues,
 			grades: gradeGroupsDTOs.map(dto => dto.toJSON()),
 			news: newsDTOs.map(dto => dto.toJSON()),
 			homeworks: homeworksDTOs.map(dto => dto.toJSON()),
 			lessons: lessonsDTOs.map(dto => dto.toJSON()),
-			absences: this.additionals?.absencesDTO?.toJSON()
+			absences: absencesDTO?.toJSON()
 		};
 	}
 	// static fromJSON(json: ICourseDTOProps) {}

@@ -1,17 +1,10 @@
-import JWT from "jsonwebtoken";
-import dotenv from "dotenv";
 import { v4 } from "uuid";
 import { events } from "../apiConfig.json";
 import { Event, Socket } from "socket.io";
-import SessionMap from "../services/SessionMap";
-import SocketReferenceMap from "../services/SocketReferenceMap";
-dotenv.config();
-type tokenPayload = {
-	time: string,
-	uniqueID: string,
-}
+import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
+import SocketReferenceMap from "../services/cache/SocketReferenceCache";
+import jwt from "../services/cache/JWTService";
 class Auth {
-	secret = process.env.SECRET;
 	token: string;
 	constructor(private socketService: Socket) { }
 	valid(params: { token: string }) {
@@ -24,15 +17,15 @@ class Auth {
 		}
 	}
 	private handleTokenManagement(token: string) {
-		const verify = token && this.verify(token);
-		const decoded = verify && this.decode(token);
+		const verify = token && jwt.verify(token);
+		const decoded = verify && jwt.decode(token);
 		if (!decoded) return false;
-		const cache = SessionMap.get(decoded.uniqueID);
+		const cache = SessionMap.get<ISessionMap>(decoded.uniqueID);
 		if (!cache) return false;
-		const sid = this.socketService.id;
+		const sid = this.socketService.id; 
 		const difftime = this.diffTime(decoded.time);
 		if (!(difftime < 6 && cache.JSESSIONID)) return false;
-		SocketReferenceMap.delete(sid);
+		SocketReferenceMap.delete(decoded.sid);
 		SocketReferenceMap.set(sid, decoded.uniqueID);
 		return true;
 	}
@@ -51,7 +44,7 @@ class Auth {
 			const uniqueID = v4();
 			const sid = this.socketService.id;
 			const time = new Date().toISOString();
-			const newToken = this.sign({ time, uniqueID }) || "";
+			const newToken = jwt.sign({ time, uniqueID, sid }) || "";
 			SocketReferenceMap.set(sid, uniqueID);
 			this.socketService.emit(events.auth.store, newToken);
 			return next();
@@ -60,48 +53,7 @@ class Auth {
 			return false;
 		}
 	}
-	/**
-	 * verifica o token JWT
-	 * @param token 
-	 * @returns 
-	 */
-	verify(token: string) {
-		try {
-			const valid = JWT.verify(token, this.secret);
-			return (valid ? true : false);
-		} catch (error) {
-			console.error(error.message);
-			return false;
-		}
-	}
-	/**
-	 * Decodifica o token
-	 * @param token 
-	 * @returns 
-	 */
-	decode(token: string) {
-		try {
-			const decoded = JWT.decode(token) as tokenPayload;
-			return decoded;
-		} catch (error) {
-			console.error(error);
-			return false;
-		}
-	}
-	/**
-	 * Cria token JWT
-	 * @param payload 
-	 * @returns 
-	 */
-	sign(payload: tokenPayload) {
-		try {
-			const token = JWT.sign(payload, this.secret);
-			return token;
-		} catch (error) {
-			console.error(error);
-			return false;
-		}
-	}
+	
 	/**
 	 * Calcula a diferença de tempo do token
 	 * @param time 

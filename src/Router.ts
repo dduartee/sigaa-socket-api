@@ -3,7 +3,6 @@ import { Bonds } from "./controllers/Bonds";
 import { Courses } from "./controllers/Courses";
 import { Grades } from "./controllers/Grades";
 import { Homeworks } from "./controllers/Homeworks";
-import { News } from "./controllers/News";
 import { LoginCredentials, User } from "./controllers/User";
 
 import { Auth } from "./middlewares/Auth";
@@ -11,12 +10,13 @@ import { Activities } from "./controllers/Activities";
 import { Server, Socket } from "socket.io";
 import { Absences } from "./controllers/Absences";
 import { Lessons } from "./controllers/Lessons";
-import SessionMap from "./services/SessionMap";
-import SocketReferenceMap from "./services/SocketReferenceMap";
+import SessionMap, { ISessionMap } from "./services/cache/SessionCache";
+import SocketReferenceMap from "./services/cache/SocketReferenceCache";
 export class Router {
 	constructor(private socketService: Socket, private io: Server) { }
 
 	async index() {
+		// this.socketService.onAny(console.debug);
 		/**
 	 * Inicializações das classes dos eventos
 	 */
@@ -25,7 +25,6 @@ export class Router {
 		const bonds = new Bonds(this.socketService);
 		const courses = new Courses(this.socketService);
 		const homework = new Homeworks(this.socketService);
-		const news = new News(this.socketService);
 		const grades = new Grades(this.socketService);
 		const activities = new Activities(this.socketService);
 		const absences = new Absences(this.socketService);
@@ -38,8 +37,8 @@ export class Router {
 			const eventName = event[0];
 			if (events.includes(eventName)) return next();
 			else {
-				const uniqueID = SocketReferenceMap.get(this.socketService.id);
-				const cache = SessionMap.get(uniqueID);
+				const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
+				const cache = SessionMap.get<ISessionMap>(uniqueID);
 				if (!cache) return this.socketService.emit("api::error", "API: No cache found.");
 				if (!cache.JSESSIONID) return this.socketService.emit("api::error", "API: No JSESSIONID found in cache.");
 				return next();
@@ -65,11 +64,6 @@ export class Router {
 		this.socketService.on(
 			"activities::list",
 			async (query) => await activities.list(query)
-		);
-
-		this.socketService.on(
-			"news::latest",
-			async (query) => await news.latest(query)
 		);
 
 		this.socketService.on(

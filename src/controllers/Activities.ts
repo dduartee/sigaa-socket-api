@@ -2,13 +2,14 @@ import { events } from "../apiConfig.json";
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { BondService } from "../services/sigaa-api/Bond/Bond.service";
 import { Socket } from "socket.io";
-import { BondDTO, IBondDTOProps } from "../DTOs/Bond.DTO";
+import { BondDTO } from "../DTOs/Bond.DTO";
 import { ActivityDTO } from "../DTOs/Activity.DTO";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import { Activity } from "sigaa-api";
-import BondCache, { IBondCache } from "../services/cache/BondCache";
 import { CourseService } from "../services/sigaa-api/Course/Course.service";
+import BondCache from "../services/cache/BondCache";
+import ResponseCache from "../services/cache/ResponseCache";
 
 export class Activities {
 	constructor(private socketService: Socket) { }
@@ -21,32 +22,30 @@ export class Activities {
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
-			const bonds = BondCache.get<IBondCache[]>(uniqueID);
-			if (query.cache && bonds.length > 0) {
-				const bond = bonds.find(bond => bond.registration === query.registration);
-				if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
-				const activities = bond.activities.map(activity => ActivityDTO.fromJSON(activity));
-				if (activities.length > 0) {
-					console.log(`[activities - list] - ${activities.length} (cached)`);
-					return this.socketService.emit("activities::list", bond);
-				}
+			const bond = BondCache.getBond(uniqueID, query.registration);
+			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
+			const responseCache = ResponseCache.getResponse({ uniqueID, event: "activities::list", query });
+			if (query.cache && responseCache) {
+				console.log("[activities - list] - cache hit");
+				return this.socketService.emit("activities::list", responseCache);
 			}
+			
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
 
-			const bondCached = bonds.find(bond => bond.registration === query.registration);
-			if (!bondCached) throw new Error("Data of Bond not stored in cache");
-
-			const bondService = BondService.fromDTO(bondCached, sigaaInstance);
-			let coursesServices = bondCached.courses.map(c => CourseService.fromDTO(c, sigaaInstance));
-			if (bondCached.courses.length === 0) {
+			const bondService = BondService.fromDTO(bond, sigaaInstance);
+			let coursesServices = bond.courses.map(c => CourseService.fromDTO(c, sigaaInstance));
+			if (bond.courses.length === 0) {
 				const courses = await bondService.getCourses();
 				coursesServices = courses.map(c => new CourseService(c));
 			}
 			const activities = await bondService.getActivities();
-			console.log(`[activities - list] - got ${activities.length} from ${bondCached.registration}`);
+			console.log(`[activities - list] - got ${activities.length} from ${bond.registration}`);
 			sigaaInstance.close();
 			const activitiesDTOs = await this.getActivitiesDTOs(activities, coursesServices);
-			const bondJSON = await this.storeCache(activitiesDTOs, bondCached, uniqueID);
+			const bondDTO = BondDTO.fromJSON(bond);
+			bondDTO.setAdditionals({ activitiesDTOs });
+			const bondJSON = bondDTO.toJSON();
+			ResponseCache.setResponse({ uniqueID, event: "activities::list", query }, bondJSON);
 			return this.socketService.emit("activities::list", bondJSON);
 		} catch (error) {
 			console.error(error);
@@ -63,12 +62,5 @@ export class Activities {
 			activitiesDTOs.push(activityDTO);
 		}
 		return activitiesDTOs;
-	}
-	private async storeCache(activitiesDTOs: ActivityDTO[], bondCached: IBondDTOProps, uniqueID: string) {
-		const bondDTO = BondDTO.fromJSON(bondCached);
-		bondDTO.setAdditionals({ activitiesDTOs });
-		const bondJSON = bondDTO.toJSON();
-		BondCache.merge(uniqueID, [bondJSON]);
-		return bondJSON;
 	}
 }

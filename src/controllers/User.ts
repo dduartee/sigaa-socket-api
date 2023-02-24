@@ -6,10 +6,10 @@ import { AccountService } from "../services/sigaa-api/Account.service";
 import { Socket } from "socket.io";
 import { StudentDTO } from "../DTOs/Student.DTO";
 import { SigaaRequestStack } from "sigaa-api/dist/helpers/sigaa-request-stack";
-import StudentMap, { IStudentCache } from "../services/cache/StudentCache";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import RequestStackCache from "../services/cache/RequestStackCache";
+import ResponseCache from "../services/cache/ResponseCache";
 
 export type LoginCredentials = {
 	username: string;
@@ -88,12 +88,10 @@ export class User {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, username, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
 
-			if (StudentMap.has(uniqueID)) {
-				const {info} = StudentMap.get<IStudentCache>(uniqueID);
-				if(info) {
-					console.log(`[${username} - ${this.socketService.id}] Enviando informações do estudante do cache`);
-					return this.socketService.emit("user::info", info);
-				}
+			const responseCache = ResponseCache.getResponse({ uniqueID, event: "user::info", query: {username} });
+			if (responseCache) {
+				console.log("[user - info] - cache hit");
+				return this.socketService.emit("user::info", responseCache);
 			}
 
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
@@ -112,7 +110,7 @@ export class User {
 				emails,
 				username
 			});
-			StudentMap.set<Partial<IStudentCache>>(uniqueID, {info: studentDTO.toJSON()});
+			ResponseCache.setResponse({ uniqueID, event: "user::info", query: {username} }, studentDTO.toJSON());
 			return this.socketService.emit("user::info", studentDTO.toJSON());
 		} catch (error) {
 			console.error(error);
@@ -130,8 +128,8 @@ export class User {
 			console.log(`[${this.socketService.id}] deslogando`);
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			this.socketService.emit("user::status", "Deslogando");
-			SocketReferenceMap.delete(this.socketService.id);
-			SessionMap.delete(uniqueID);
+			SocketReferenceMap.del(this.socketService.id);
+			SessionMap.del(uniqueID);
 			this.logado = false;
 			this.socketService.emit("user::status", "Deslogado");
 			return this.socketService.emit("user::login", { logado: false });

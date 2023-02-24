@@ -44,7 +44,6 @@ export class Router {
 				return next();
 			}
 		});
-
 		this.socketService.on("user::login", async (credentials: LoginCredentials) => await user.login(credentials));
 		this.socketService.on("user::info", async () => await user.info());
 		this.socketService.on("user::logoff", async () => await user.logoff());
@@ -81,8 +80,8 @@ export class Router {
 			async (query) => await lessons.list(query)
 		);
 
-		this.socketService.on("disconnect", async (reason) => {
-			SocketReferenceMap.delete(this.socketService.id);
+		this.socketService.on("disconnect", async () => {
+			SocketReferenceMap.del(this.socketService.id);
 		});
 	}
 }

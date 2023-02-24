@@ -1,3 +1,3 @@
-import CacheService from "./CacheService";
+import NodeCache from "node-cache";
 
-export default new CacheService<string>({ stdTTL: 5400 });
+export default new NodeCache({ stdTTL: 5400 });

@@ -3,7 +3,7 @@ import { events } from "../apiConfig.json";
 import { Event, Socket } from "socket.io";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
-import jwt from "../services/cache/JWTService";
+import jwt from "../services/JWTService";
 class Auth {
 	token: string;
 	constructor(private socketService: Socket) { }
@@ -25,7 +25,7 @@ class Auth {
 		const sid = this.socketService.id; 
 		const difftime = this.diffTime(decoded.time);
 		if (!(difftime < 6 && cache.JSESSIONID)) return false;
-		SocketReferenceMap.delete(decoded.sid);
+		SocketReferenceMap.del(decoded.sid);
 		SocketReferenceMap.set(sid, decoded.uniqueID);
 		return true;
 	}

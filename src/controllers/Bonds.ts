@@ -6,7 +6,8 @@ import { Socket } from "socket.io";
 import { BondDTO } from "../DTOs/Bond.DTO";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
-import BondCache, { IBondCache } from "../services/cache/BondCache";
+import ResponseCache from "../services/cache/ResponseCache";
+import BondCache from "../services/cache/BondCache";
 
 export class Bonds {
 	constructor(private socketService: Socket) { }
@@ -18,11 +19,11 @@ export class Bonds {
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
-			const bondsCached = BondCache.get<IBondCache[]>(uniqueID);
-			if (query.cache && bondsCached.length > 0) {
-				const bonds = bondsCached.map(bond => BondDTO.fromJSON(bond));
-				console.log(`[bonds - list] - got ${bonds.length} (cached)`);
-				return this.socketService.emit("bonds::list", bonds.map(b => b.toJSON()));
+
+			const responseCache = ResponseCache.getResponse({ uniqueID, event: "bonds::list", query });
+			if (query.cache && responseCache) {
+				console.log("[bonds - list] - cache hit");
+				return this.socketService.emit("bonds::list", responseCache);
 			}
 
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
@@ -45,8 +46,16 @@ export class Bonds {
 				BondsDTOs.push(bondDTO);
 			}
 			sigaaInstance.close();
-			const bondsJSON = BondsDTOs.map(b => b.toJSON());
-			BondCache.merge(uniqueID, bondsJSON);
+			const bondsJSON = BondsDTOs.map(b => {
+				const bondJSON = b.toJSON();
+				BondCache.setBond(uniqueID, bondJSON);
+				return bondJSON;
+			});
+			ResponseCache.setResponse({
+				uniqueID,
+				event: "bonds::list",
+				query
+			}, bondsJSON);
 			console.log("[bonds - list] - finished");
 			return this.socketService.emit("bonds::list", bondsJSON);
 		} catch (error) {

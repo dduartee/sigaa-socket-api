@@ -1,8 +1,8 @@
-import CacheService from "./CacheService";
+import NodeCache from "node-cache";
 
 export interface ISessionMap {
     JSESSIONID: string;
     username: string;
     sigaaURL: string;
 }
-export default new CacheService<ISessionMap>({ stdTTL: 5400 });
+export default new NodeCache({ stdTTL: 5400 });

@@ -71,17 +71,21 @@ export class BondService {
 			}
 		}
 	}
-	async getCurrentPeriod(retryTimes = 0): Promise<string> {
-		try {
-			const currentPeriod = await this.bond.getCurrentPeriod();
-			return currentPeriod;
-		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
-			if (retryTimes < 3) {
-				return this.getCurrentPeriod(retryTimes + 1);
-			} else {
-				return "";
-			}
-		}
+	/**
+	 * Desabilitado temporariamente
+	 */
+	async getCurrentPeriod(): Promise<string> {
+		return "";
+		// try {
+		// 	const currentPeriod = await this.bond.getCurrentPeriod();
+		// 	return currentPeriod;
+		// } catch (error) {
+		// 	console.log(`Error: ${error} @ ${retryTimes}/3`);
+		// 	if (retryTimes < 3) {
+		// 		return this.getCurrentPeriod(retryTimes + 1);
+		// 	} else {
+		// 		return "";
+		// 	}
+		// }
 	}
 }

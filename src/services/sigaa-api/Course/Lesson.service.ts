@@ -52,15 +52,15 @@ class LessonService {
 			}
 			case "forum": {
 				const forumAttachment = attachment as SigaaCourseForum;
-				const author = await forumAttachment.getAuthor();
-				const creationDate = await forumAttachment.getCreationDate();
-				const numOfTopics = await forumAttachment.getNumOfTopics();
-				const flagMonitorReading = await forumAttachment.getFlagMonitorReading();
-				const file = await forumAttachment.getFile();
-				const fileDTO = file ? new FileDTO(file as SigaaFile) : null;
-				const forumType = await forumAttachment.getForumType();
-				const description = await forumAttachment.getDescription();
-				const forumDTO = new ForumDTO(forumAttachment, description, author, forumType, creationDate, numOfTopics, flagMonitorReading, fileDTO);
+				// const author = await forumAttachment.getAuthor().catch(() => "");
+				// const creationDate = await forumAttachment.getCreationDate().catch(() => new Date(0));
+				// const numOfTopics = await forumAttachment.getNumOfTopics().catch(() => 0);
+				// const flagMonitorReading = await forumAttachment.getFlagMonitorReading().catch(() => false);
+				// const file = await forumAttachment.getFile().catch(() => null);
+				// const fileDTO = file ? new FileDTO(file as SigaaFile) : null;
+				// const forumType = await forumAttachment.getForumType().catch(() => "");
+				// const description = await forumAttachment.getDescription().catch(() => "");
+				const forumDTO = new ForumDTO(forumAttachment, "", "", "", new Date(0), 0, false, null);
 				const attachmentDTO = new AttachmentDTO(forumDTO, "forum");
 				attachmentsDTOs.push(attachmentDTO);
 				break;
@@ -74,22 +74,21 @@ class LessonService {
 			}
 			case "homework": {
 				const homework = attachment as SigaaHomework;
-				const attachmentFileDTO = await (homework.getAttachmentFile().then(file => new FileDTO(file as SigaaFile).toJSON()).catch(() => null));
-				const fileDTO = attachmentFileDTO ? new FileDTO(attachmentFileDTO) : null;
-				const content = await homework.getDescription();
-				const haveGrade = await homework.getFlagHaveGrade();
-				const isGroup = await homework.getFlagIsGroupHomework();
-				const homeworkDTO = new HomeworkDTO(homework, fileDTO, content, haveGrade, isGroup);
+				// const attachmentFileDTO = await (homework.getAttachmentFile().then(file => new FileDTO(file as SigaaFile).toJSON()).catch(() => null));
+				// const fileDTO = attachmentFileDTO ? new FileDTO(attachmentFileDTO) : null;
+				// const content = await homework.getDescription();
+				// const haveGrade = await homework.getFlagHaveGrade();
+				// const isGroup = await homework.getFlagIsGroupHomework();
+				const homeworkDTO = new HomeworkDTO(homework, null, "", false, false);
 				const attachmentDTO = new AttachmentDTO(homeworkDTO, "homework");
 				attachmentsDTOs.push(attachmentDTO);
 				break;
 			}
 			case "webcontent": {
 				const webContent = attachment as SigaaWebContent;
-				const content = await webContent.getContent();
-				const date = await webContent.getDate();
-				const webContentDTO = new WebContentDTO(webContent, content, date);
-
+				// const content = await webContent.getContent();
+				// const date = await webContent.getDate();
+				const webContentDTO = new WebContentDTO(webContent, "", new Date(0));
 				const attachmentDTO = new AttachmentDTO(webContentDTO, "webcontent");
 				attachmentsDTOs.push(attachmentDTO);
 				break;

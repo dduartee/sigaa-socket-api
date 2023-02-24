@@ -4,13 +4,14 @@ import AuthenticationService from "../services/sigaa-api/Authentication.service"
 import { Socket } from "socket.io";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
-import BondCache, { IBondCache } from "../services/cache/BondCache";
 import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import { AbsencesDTO } from "../DTOs/Absences.DTO";
 import { CourseDTO } from "../DTOs/CourseDTO";
 import { BondDTO, IBondDTOProps } from "../DTOs/Bond.DTO";
 import { BondService } from "../services/sigaa-api/Bond/Bond.service";
 import { Sigaa } from "sigaa-api";
+import BondCache from "../services/cache/BondCache";
+import ResponseCache from "../services/cache/ResponseCache";
 
 export class Absences {
 	constructor(private socketService: Socket) { }
@@ -19,24 +20,19 @@ export class Absences {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
 
-			const bonds = BondCache.get<IBondCache[]>(uniqueID);
-			if (bonds.length === 0) throw new Error("No bonds found in cache");
-			const bond = bonds.find(bond => bond.registration === query.registration);
+			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
-			if (query.cache) {
-				if (bond.courses.length > 0) {
-					const absences = bond.courses.map(course => course.absences).filter(absences => !!absences);
-					if (absences.length !== 0) {
-						console.log(`[absences - list] - ${absences.length} (cached)`);
-						return this.socketService.emit("absences::list", bond);
-					}
-				}
+			
+			const responseCache = ResponseCache.getResponse({ uniqueID, event: "absences::list", query });
+			if (query.cache && responseCache) {
+				console.log("[absences - list] - cache hit");
+				return this.socketService.emit("absences::list", responseCache);
 			}
 
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
-			
+
 			const coursesServices = await this.getCoursesServices(bond, sigaaInstance);
-			
+
 			const coursesDTOs: CourseDTO[] = [];
 			for (const courseService of coursesServices) {
 				console.log(`[absences - list] - getting absences from ${courseService.course.code}`);
@@ -51,7 +47,10 @@ export class Absences {
 				this.socketService.emit("absences::listPartial", bondDTO.toJSON());
 			}
 			sigaaInstance.close();
-			const bondJSON = this.storeCache(bond, coursesDTOs, uniqueID);
+			const bondDTO = BondDTO.fromJSON(bond);
+			bondDTO.setAdditionals({ coursesDTOs });
+			const bondJSON = bondDTO.toJSON();
+			ResponseCache.setResponse({ uniqueID, event: "absences::list", query }, bondJSON);
 			return this.socketService.emit("absences::list", bondJSON);
 		} catch (error) {
 			console.error(error);
@@ -72,12 +71,5 @@ export class Absences {
 			const coursesServices = courses.map(course => new CourseService(course));
 			return coursesServices;
 		}
-	}
-	private storeCache(bond: IBondDTOProps, coursesDTOs: CourseDTO[], uniqueID: string) {
-		const bondDTO = BondDTO.fromJSON(bond);
-		bondDTO.setAdditionals({ coursesDTOs });
-		const bondJSON = bondDTO.toJSON();
-		BondCache.merge(uniqueID, [bondJSON]);
-		return bondJSON;
 	}
 }

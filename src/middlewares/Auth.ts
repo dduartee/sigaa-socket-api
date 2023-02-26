@@ -9,12 +9,8 @@ class Auth {
 	constructor(private socketService: Socket) { }
 	valid(params: { token: string }) {
 		const eventName = events.auth.valid;
-		try {
-			this.handleTokenManagement(params.token);
-			return this.socketService.emit(eventName, true);
-		} catch (error) {
-			return this.socketService.emit(eventName, false);
-		}
+		const valid = this.handleTokenManagement(params.token);
+		return this.socketService.emit(eventName, valid);
 	}
 	private handleTokenManagement(token: string) {
 		const verify = token && jwt.verify(token);

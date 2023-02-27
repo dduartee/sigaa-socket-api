@@ -88,7 +88,7 @@ export class User {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, username, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
 
-			const responseCache = ResponseCache.getResponse({ uniqueID, event: "user::info", query: {username} });
+			const responseCache = ResponseCache.getResponse({ uniqueID, event: "user::info", query: { username } });
 			if (responseCache) {
 				console.log("[user - info] - cache hit");
 				return this.socketService.emit("user::info", responseCache);
@@ -110,7 +110,7 @@ export class User {
 				emails,
 				username
 			});
-			ResponseCache.setResponse({ uniqueID, event: "user::info", query: {username} }, studentDTO.toJSON());
+			ResponseCache.setResponse({ uniqueID, event: "user::info", query: { username } }, studentDTO.toJSON(), 3600 * 1.5)
 			return this.socketService.emit("user::info", studentDTO.toJSON());
 		} catch (error) {
 			console.error(error);

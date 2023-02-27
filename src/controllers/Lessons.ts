@@ -9,15 +9,16 @@ import { LessonService } from "../services/sigaa-api/Course/Lesson.service";
 import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
 
+interface ILessonsQuery {
+	inactive: boolean;
+	cache: boolean,
+	registration: string,
+	courseId: string,
+	allPeriods: boolean
+}
 export class Lessons {
 	constructor(private socketService: Socket) { }
-	async list(query: {
-		inactive: boolean;
-		cache: boolean,
-		registration: string,
-		courseId: string,
-		allPeriods: boolean
-	}) {
+	async list(query: ILessonsQuery) {
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
@@ -29,7 +30,7 @@ export class Lessons {
 			if (!course) throw new Error(`Course not found with id ${query.courseId}`);
 
 			const sharedQuery = { courseId: course.id, period: course.period };
-			const responseCache = ResponseCache.getSharedResponse<ICourseDTOProps>({ event: "lessons::list", sharedQuery });
+			const responseCache = ResponseCache.getCourseSharedResponse({ event: "lessons::list", sharedQuery });
 			if (query.cache && responseCache) {
 				console.log("[lessons - list] - cache hit");
 				return this.socketService.emit("lessons::list", responseCache);
@@ -49,8 +50,8 @@ export class Lessons {
 			const courseDTO = courseService.getDTO();
 			courseDTO.setAdditionals({ lessonsDTOs });
 			const courseJSON = courseDTO.toJSON();
-			ResponseCache.setSharedResponse({ event: "lessons::list", sharedQuery }, courseJSON);
-			return this.socketService.emit("lessons::list", courseJSON);
+			const sharedResponse = ResponseCache.setCourseSharedResponse({ event: "lessons::list", sharedQuery }, courseJSON, 3600 * 48); // 2 dias
+			return this.socketService.emit("lessons::list", sharedResponse);
 		} catch (error) {
 			console.error(error);
 			this.socketService.emit("api::error", error.message);

@@ -3,24 +3,26 @@ import AuthenticationService from "../services/sigaa-api/Authentication.service"
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond/Bond.service";
 import { Socket } from "socket.io";
-import { BondDTO } from "../DTOs/Bond.DTO";
+import { BondDTO, IBondDTOProps } from "../DTOs/Bond.DTO";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import ResponseCache from "../services/cache/ResponseCache";
 import BondCache from "../services/cache/BondCache";
 
+interface IBondQuery {
+	inactive: boolean;
+	cache: boolean;
+}
+
 export class Bonds {
 	constructor(private socketService: Socket) { }
-	async list(query: {
-		inactive: boolean;
-		cache: boolean
-	}) {
+	async list(query: IBondQuery) {
 		const apiEventError = events.api.error;
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
 
-			const responseCache = ResponseCache.getResponse({ uniqueID, event: "bonds::list", query });
+			const responseCache = ResponseCache.getResponse<IBondDTOProps>({ uniqueID, event: "bonds::list", query });
 			if (query.cache && responseCache) {
 				console.log("[bonds - list] - cache hit");
 				return this.socketService.emit("bonds::list", responseCache);
@@ -55,7 +57,7 @@ export class Bonds {
 				uniqueID,
 				event: "bonds::list",
 				query
-			}, bondsJSON);
+			}, bondsJSON, 3600 * 1.5);
 			console.log("[bonds - list] - finished");
 			return this.socketService.emit("bonds::list", bondsJSON);
 		} catch (error) {

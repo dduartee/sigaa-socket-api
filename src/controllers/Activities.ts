@@ -2,7 +2,7 @@ import { events } from "../apiConfig.json";
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { BondService } from "../services/sigaa-api/Bond/Bond.service";
 import { Socket } from "socket.io";
-import { BondDTO } from "../DTOs/Bond.DTO";
+import { BondDTO, IBondDTOProps } from "../DTOs/Bond.DTO";
 import { ActivityDTO } from "../DTOs/Activity.DTO";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
@@ -11,20 +11,22 @@ import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
 
+interface IActivitiesQuery {
+	cache: boolean;
+	registration: string;
+	inactive: boolean;
+}
+
 export class Activities {
 	constructor(private socketService: Socket) { }
-	async list(query: {
-		cache: boolean,
-		registration: string,
-		inactive: boolean,
-	}) {
+	async list(query: IActivitiesQuery) {
 		const apiEventError = events.api.error;
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
-			const responseCache = ResponseCache.getResponse({ uniqueID, event: "activities::list", query });
+			const responseCache = ResponseCache.getResponse<IBondDTOProps>({ uniqueID, event: "activities::list", query });
 			if (query.cache && responseCache) {
 				console.log("[activities - list] - cache hit");
 				return this.socketService.emit("activities::list", responseCache);
@@ -42,7 +44,7 @@ export class Activities {
 			const bondDTO = BondDTO.fromJSON(bond);
 			bondDTO.setActivities(activitiesDTOs);
 			const bondJSON = bondDTO.toJSON();
-			ResponseCache.setResponse({ uniqueID, event: "activities::list", query }, bondJSON);
+			ResponseCache.setResponse({ uniqueID, event: "activities::list", query }, bondJSON, 3600 * 1.5);
 			this.socketService.emit("activities::list", bondJSON);
 			return;
 		} catch (error) {

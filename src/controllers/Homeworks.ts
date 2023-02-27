@@ -3,7 +3,7 @@ import AuthenticationService from "../services/sigaa-api/Authentication.service"
 import { BondService } from "../services/sigaa-api/Bond/Bond.service";
 import { Socket } from "socket.io";
 import { HomeworkDTO } from "../DTOs/Homework.DTO";
-import { ActivityHomework, SigaaFile, SigaaHomework } from "sigaa-api";
+import { SigaaFile, SigaaHomework } from "sigaa-api";
 import { FileDTO } from "../DTOs/Attachments/File.DTO";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
@@ -11,6 +11,14 @@ import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
 
+interface IHomeworkQuery {
+	inactive: boolean,
+	cache: boolean,
+	registration: string,
+	courseTitle?: string,
+	homeworkId?: string
+	homeworkTitle?: string,
+}
 export class Homeworks {
 	constructor(private socketService: Socket) { }
 	/**
@@ -19,14 +27,7 @@ export class Homeworks {
 	 * @param query 
 	 * @returns 
 	 */
-	async content(query: {
-		inactive: boolean,
-		cache: boolean,
-		registration: string,
-		courseTitle?: string,
-		homeworkId?: string
-		homeworkTitle?: string,
-	}) {
+	async content(query: IHomeworkQuery) {
 		const apiEventError = events.api.error;
 		try {
 
@@ -37,13 +38,13 @@ export class Homeworks {
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
 
 			const activitiesLoaded = bond.activities !== undefined;
-			if(!activitiesLoaded) throw new Error(`Bond ${query.registration} has no activities loaded`);
-			
+			if (!activitiesLoaded) throw new Error(`Bond ${query.registration} has no activities loaded`);
+
 			const coursesLoaded = bond.courses.length !== undefined;
 			if (query.cache && coursesLoaded) {
 				const course = bond.courses.find(course => course.id === query.courseTitle);
-				const sharedQuery = {courseId: course.id, homeworkId: query.homeworkId, homeworkTitle: query.homeworkTitle};
-				const responseCache = ResponseCache.getSharedResponse({ event: "homework::content", sharedQuery });
+				const sharedQuery = { courseId: course.id, homeworkId: query.homeworkId, homeworkTitle: query.homeworkTitle };
+				const responseCache = ResponseCache.getCourseSharedResponse({ event: "homework::content", sharedQuery });
 				if (responseCache) {
 					console.log("[homework - content] - cache hit");
 					return this.socketService.emit("homework::content", responseCache);
@@ -86,8 +87,8 @@ export class Homeworks {
 				const courseDTO = courseService.getDTO();
 				courseDTO.setAdditionals({ homeworksDTOs: [homeworkDTO] });
 				const courseJSON = courseDTO.toJSON();
-				const sharedQuery = {courseId: courseJSON.id, homeworkId: homework.id, homeworkTitle: homework.title};
-				ResponseCache.setSharedResponse({ event: "homework::content", sharedQuery }, courseJSON);
+				const sharedQuery = { courseId: courseJSON.id, homeworkId: homework.id, homeworkTitle: homework.title };
+				ResponseCache.setCourseSharedResponse({ event: "homework::content", sharedQuery }, courseJSON, 3600 * 5); // atualiza a cada 5 horas, considerando que é mais volátil
 				return this.socketService.emit("homework::content", courseJSON);
 			}
 		} catch (error) {

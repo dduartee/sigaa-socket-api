@@ -1,15 +1,16 @@
 import NodeCache from "node-cache";
+import { ICourseDTOProps } from "../../DTOs/CourseDTO";
 
 
 class ResponseCache {
-	constructor(private cacheService = new NodeCache({ stdTTL: 5400 })) { }
-	setResponse<T>({ uniqueID, event, query }, data: T) {
+	constructor(private cacheService = new NodeCache()) { }
+	setResponse<T>({ uniqueID, event, query }, data: T, stdTTL: number) {
 		const params = JSON.stringify({
 			...query,
 			cache: undefined,
 			token: undefined
 		});
-		return this.cacheService.set<T>(`${uniqueID}-${event}-${params}`, data);
+		return this.cacheService.set<T>(`${uniqueID}-${event}-${params}`, data, stdTTL);
 	}
 	getResponse<T>({ uniqueID, event, query }): T | undefined {
 		const params = JSON.stringify({
@@ -19,11 +20,16 @@ class ResponseCache {
 		});
 		return this.cacheService.get<T>(`${uniqueID}-${event}-${params}`);
 	}
-	setSharedResponse<T>({ event, sharedQuery }, data: T) {
-		return this.cacheService.set<T>(`${event}-${JSON.stringify(sharedQuery)}`, data, 3600 * 4);
+	setCourseSharedResponse(params: { event: string, sharedQuery }, data: ICourseDTOProps, stdTLL: number ): ICourseDTOProps {
+		const sharedQuery = JSON.stringify(params.sharedQuery);
+		const sharedResponse = {...data, timestamp: Date.now()};
+		this.cacheService.set<ICourseDTOProps>(`${params.event}-${sharedQuery}`, sharedResponse, stdTLL); // 48 hours
+		return sharedResponse
 	}
-	getSharedResponse<T>({ event, sharedQuery }): T | undefined {
-		return this.cacheService.get<T>(`${event}-${JSON.stringify(sharedQuery)}`);
+	getCourseSharedResponse(params: { event: string, sharedQuery }): ICourseDTOProps | undefined {
+		const sharedQuery = JSON.stringify(params.sharedQuery);
+		const sharedResponse = this.cacheService.get<ICourseDTOProps>(`${params.event}-${sharedQuery}`);
+		return sharedResponse;
 	}
 }
 

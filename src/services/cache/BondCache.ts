@@ -5,7 +5,6 @@ class BondCache {
 	constructor(private cacheService = new NodeCache({ stdTTL: 5400 })) { }
 	setBond(uniqueID: string, bond: IBondDTOProps): void {
 		this.cacheService.set(`${uniqueID}-${bond.registration}`, bond);
-		console.log(`[debug] activities: ${bond.activities?.length}`, `courses: ${bond.courses?.length}`)
 	}
 	setCourses(uniqueID: string, registration: string, courses: IBondDTOProps["courses"]): void {
 		const bond = this.getBond(uniqueID, registration);
@@ -21,7 +20,6 @@ class BondCache {
 	}
 	getBond(uniqueID: string, registration: string): IBondDTOProps | undefined {
 		const bond = this.cacheService.get<IBondDTOProps>(`${uniqueID}-${registration}`);
-		console.log(`[debug] activities: ${bond.activities?.length}`, `courses: ${bond.courses?.length}`);
 		return bond;
 	}
 }

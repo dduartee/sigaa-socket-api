@@ -12,24 +12,31 @@ import { Sigaa } from "sigaa-api";
 import ResponseCache from "../services/cache/ResponseCache";
 import BondCache from "../services/cache/BondCache";
 
+interface IGradeQuery {
+	cache: boolean,
+	registration: string,
+	inactive: boolean,
+	allPeriods: boolean
+}
+
 export class Grades {
 	constructor(private socketService: Socket) { }
-	async list(query: { cache: boolean, registration: string, inactive: boolean, allPeriods: boolean }) {
+	async list(query: IGradeQuery) {
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
-			
+
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
-			
-			const responseCache = ResponseCache.getResponse<IBondDTOProps>({ uniqueID, event: "grades::list", query});
+
+			const responseCache = ResponseCache.getResponse<IBondDTOProps>({ uniqueID, event: "grades::list", query });
 			if (query.cache && responseCache) {
 				console.log("[grades - list] - cache hit");
 				return this.socketService.emit("grades::list", responseCache);
 			}
-			
+
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
-			
+
 			const coursesServices = await this.getCoursesServices(bond, sigaaInstance);
 			console.debug("[grades - list] - got courses services", coursesServices.length);
 			const coursesDTOs: CourseDTO[] = [];
@@ -56,7 +63,7 @@ export class Grades {
 				uniqueID,
 				event: "grades::list",
 				query
-			}, bondJSON);
+			}, bondJSON, 3600 * 1.5);
 			return this.socketService.emit("grades::list", bondJSON);
 		} catch (error) {
 			console.error(error);

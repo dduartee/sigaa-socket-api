@@ -13,9 +13,16 @@ import { Sigaa } from "sigaa-api";
 import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
 
+interface IAbsencesQuery {
+	cache: boolean;
+	registration: string;
+	inactive: boolean;
+	allPeriods: boolean;
+}
+
 export class Absences {
 	constructor(private socketService: Socket) { }
-	async list(query: { cache: boolean, registration: string, inactive: boolean, allPeriods: boolean }) {
+	async list(query: IAbsencesQuery) {
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
@@ -23,7 +30,7 @@ export class Absences {
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
 			
-			const responseCache = ResponseCache.getResponse({ uniqueID, event: "absences::list", query });
+			const responseCache = ResponseCache.getResponse<IBondDTOProps>({ uniqueID, event: "absences::list", query });
 			if (query.cache && responseCache) {
 				console.log("[absences - list] - cache hit");
 				return this.socketService.emit("absences::list", responseCache);
@@ -49,7 +56,7 @@ export class Absences {
 			const bondDTO = BondDTO.fromJSON(bond);
 			bondDTO.setCourses(coursesDTOs);
 			const bondJSON = bondDTO.toJSON();
-			ResponseCache.setResponse({ uniqueID, event: "absences::list", query }, bondJSON);
+			ResponseCache.setResponse({ uniqueID, event: "absences::list", query }, bondJSON, 3600 * 1.5);
 			return this.socketService.emit("absences::list", bondJSON);
 		} catch (error) {
 			console.error(error);

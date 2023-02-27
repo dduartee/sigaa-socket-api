@@ -9,8 +9,7 @@ export class CourseService {
 		return new CourseDTO(this.course, postValues);
 	}
 	static fromDTO(courseDTOProps: ICourseDTOProps, sigaaInstance: Sigaa) {
-		const action = new URL("https://sigaa.ifsc.edu.br/sigaa/portais/discente/turmas.jsf"); // a url de ação do formulário de matérias é fixa (eu acho)
-		const form = { action, postValues: JSON.parse(courseDTOProps.postValues), };  // os dados do formulário são salvos como string no banco de dados
+		const form = CourseDTO.getCourseForm(courseDTOProps);
 		const courseData: CourseStudentData = {
 			id: courseDTOProps.id,
 			title: courseDTOProps.title,

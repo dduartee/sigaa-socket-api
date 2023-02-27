@@ -23,7 +23,7 @@ export class Homeworks {
 		inactive: boolean,
 		cache: boolean,
 		registration: string,
-		courseId?: string,
+		courseTitle?: string,
 		homeworkId?: string
 		homeworkTitle?: string,
 	}) {
@@ -35,34 +35,38 @@ export class Homeworks {
 
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
-			
-			const course = bond.courses.find(course => course.id === query.courseId);
-			if (!course) throw new Error(`Course not found with id ${query.courseId}`);
 
-			const sharedQuery = {courseId: course.id, homeworkId: query.homeworkId, homeworkTitle: query.homeworkTitle};
-			const responseCache = ResponseCache.getSharedResponse({ event: "homework::content", sharedQuery });
-			if (query.cache && responseCache) {
-				console.log("[homework - content] - cache hit");
-				return this.socketService.emit("homework::content", responseCache);
+			const activitiesLoaded = bond.activities !== undefined;
+			if(!activitiesLoaded) throw new Error(`Bond ${query.registration} has no activities loaded`);
+			
+			const coursesLoaded = bond.courses.length !== undefined;
+			if (query.cache && coursesLoaded) {
+				const course = bond.courses.find(course => course.id === query.courseTitle);
+				const sharedQuery = {courseId: course.id, homeworkId: query.homeworkId, homeworkTitle: query.homeworkTitle};
+				const responseCache = ResponseCache.getSharedResponse({ event: "homework::content", sharedQuery });
+				if (responseCache) {
+					console.log("[homework - content] - cache hit");
+					return this.socketService.emit("homework::content", responseCache);
+				}
 			}
 
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
 			const bondService = BondService.fromDTO(bond, sigaaInstance);
-			const activities = await bondService.getActivities();
-			const lastActivities = activities.filter(a => a.type === "homework") as ActivityHomework[];
+			const activities = bond.activities
+			const lastActivities = activities.filter(a => a.type === "homework")
 			for (const activity of lastActivities) {
-				if (query.homeworkTitle && query.homeworkTitle !== activity.homeworkTitle) continue;
+				if (query.homeworkTitle && query.homeworkTitle !== activity.title) continue;
 				let coursesServices = bond.courses.map(c => CourseService.fromDTO(c, sigaaInstance));
-				let courseService = coursesServices.find(({ course }) => course.title === activity.courseTitle);
-				if (!courseService) {
+				let courseService = coursesServices.find(({ course }) => course.title === activity.course.title);
+				if (!courseService) { // caso não esteja no cache
 					const courses = await bondService.getCourses();
 					coursesServices = courses.map(c => new CourseService(c));
-					const course = courses.find(c => c.title === activity.courseTitle);
-					if (!course) throw new Error(`Course not found with title ${activity.courseTitle}`);
-					courseService = new CourseService(course);
+					const course = courses.find(c => c.title === activity.course.title);
+					if (!course) throw new Error(`Course not found with title ${activity.course.title}`);
+					courseService = new CourseService(course); // cria o courseService vindo do SIGAA
 				}
 				const homeworks = await courseService.getHomeworks() as SigaaHomework[];
-				const homework = homeworks.find(h => h.id === activity.homeworkId);
+				const homework = homeworks.find(h => h.id === activity.id);
 				if (!homework) continue;
 				console.log(`[homework - content] - ${homework.id}`);
 				let attachmentFile: SigaaFile | null = null;
@@ -82,6 +86,7 @@ export class Homeworks {
 				const courseDTO = courseService.getDTO();
 				courseDTO.setAdditionals({ homeworksDTOs: [homeworkDTO] });
 				const courseJSON = courseDTO.toJSON();
+				const sharedQuery = {courseId: courseJSON.id, homeworkId: homework.id, homeworkTitle: homework.title};
 				ResponseCache.setSharedResponse({ event: "homework::content", sharedQuery }, courseJSON);
 				return this.socketService.emit("homework::content", courseJSON);
 			}

@@ -18,31 +18,31 @@ export interface IActivityDTOProps {
 	type: string;
 	date: string;
 	done: boolean;
-	course: { title: string, id: string };
+	course: { title: string };
 }
 export interface IActivityDTO {
 	toJSON(): IActivityDTOProps;
 }
 
 export class ActivityDTO implements IActivityDTO {
-	constructor(public activity: IActivityData, public course: IActivityDTOProps["course"]) { }
+	constructor(public activity: IActivityData) { }
 
 	toJSON(): IActivityDTOProps {
 		let title = "";
 		let id = "";
 		switch (this.activity.type) {
-		case "exam":
-			title = this.activity.examDescription;
-			id = null;
-			break;
-		case "homework":
-			title = this.activity.homeworkTitle;
-			id = this.activity.homeworkId;
-			break;
-		case "quiz":
-			title = this.activity.quizTitle;
-			id = this.activity.quizId;
-			break;
+			case "exam":
+				title = this.activity.examDescription;
+				id = null;
+				break;
+			case "homework":
+				title = this.activity.homeworkTitle;
+				id = this.activity.homeworkId;
+				break;
+			case "quiz":
+				title = this.activity.quizTitle;
+				id = this.activity.quizId;
+				break;
 		}
 		return {
 			id,
@@ -50,10 +50,7 @@ export class ActivityDTO implements IActivityDTO {
 			title,
 			date: this.activity.date.toISOString(),
 			done: this.activity.done,
-			course: {
-				title: this.course.title,
-				id: this.course.id
-			}
+			course: { title: this.activity.courseTitle, }
 		};
 	}
 	static fromJSON(json: IActivityDTOProps) {
@@ -62,6 +59,6 @@ export class ActivityDTO implements IActivityDTO {
 			date: new Date(json.date),
 			done: json.done,
 			courseTitle: json.course.title,
-		}, { id: json.course.id, title: json.course.title });
+		})
 	}
 }

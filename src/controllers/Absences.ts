@@ -35,7 +35,6 @@ export class Absences {
 
 			const coursesDTOs: CourseDTO[] = [];
 			for (const courseService of coursesServices) {
-				console.log(`[absences - list] - getting absences from ${courseService.course.code}`);
 				const absences = await courseService.getAbsences();
 				console.log(`[absences - list] - got ${absences.list.length} absences from ${courseService.course.code}`);
 				const absencesDTO = new AbsencesDTO(absences);
@@ -43,12 +42,12 @@ export class Absences {
 				courseDTO.setAdditionals({ absencesDTO });
 				coursesDTOs.push(courseDTO);
 				const bondDTO = new BondDTO(bond, bond.active, bond.period, bond.sequence);
-				bondDTO.setAdditionals({ coursesDTOs });
+				bondDTO.setCourses(coursesDTOs);
 				this.socketService.emit("absences::listPartial", bondDTO.toJSON());
 			}
 			sigaaInstance.close();
 			const bondDTO = BondDTO.fromJSON(bond);
-			bondDTO.setAdditionals({ coursesDTOs });
+			bondDTO.setCourses(coursesDTOs);
 			const bondJSON = bondDTO.toJSON();
 			ResponseCache.setResponse({ uniqueID, event: "absences::list", query }, bondJSON);
 			return this.socketService.emit("absences::list", bondJSON);

@@ -58,5 +58,10 @@ export class CourseDTO implements ICourseDTO {
 			absences: absencesDTO?.toJSON()
 		};
 	}
+	static getCourseForm(course: ICourseDTOProps) {
+		const action = new URL("https://sigaa.ifsc.edu.br/sigaa/portais/discente/turmas.jsf"); // a url de ação do formulário de matérias é fixa (eu acho)
+		const form = { action, postValues: JSON.parse(course.postValues), };  // os dados do formulário são salvos como string no banco de dados
+		return form;
+	}
 	// static fromJSON(json: ICourseDTOProps) {}
 }

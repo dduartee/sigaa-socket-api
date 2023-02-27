@@ -35,18 +35,18 @@ export class Bonds {
 			const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
 			const bonds = [...activeBonds, ...inactiveBonds];
 			console.log(`[bonds - list] - got ${bonds.length} from SIGAA`);
-			const BondsDTOs: BondDTO[] = [];
+			const bondsDTOs: BondDTO[] = [];
 			for (const bond of bonds) {
-				console.log("[bonds - list] - getting current period for", bond.registration);
+				console.log("[bonds - list] - getting ", bond.registration);
 				const bondService = new BondService(bond);
 				const period = await bondService.getCurrentPeriod();
 				const active = activeBonds.includes(bond);
 				const sequence = bondService.getSequence();
 				const bondDTO = new BondDTO(bond, active, period, sequence);
-				BondsDTOs.push(bondDTO);
+				bondsDTOs.push(bondDTO);
 			}
 			sigaaInstance.close();
-			const bondsJSON = BondsDTOs.map(b => {
+			const bondsJSON = bondsDTOs.map(b => {
 				const bondJSON = b.toJSON();
 				BondCache.setBond(uniqueID, bondJSON);
 				return bondJSON;

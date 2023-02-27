@@ -1,3 +1,4 @@
+import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import { ActivityDTO, IActivityDTOProps } from "./Activity.DTO";
 import { CourseDTO, ICourseDTOProps } from "./CourseDTO";
 export interface BondData {
@@ -5,27 +6,36 @@ export interface BondData {
 	registration: string;
 	type: string;
 }
-export interface IBondDTOProps extends BondData{
+export interface IBondDTOProps extends BondData {
 	sequence: number;
 	active: boolean;
 	period: string;
-    activities?: IActivityDTOProps[]
-    courses?: ICourseDTOProps[]
+	activities: IActivityDTOProps[] | undefined;
+	courses: ICourseDTOProps[] | undefined;
 }
 export interface IBondDTO {
 	additionals?: { activitiesDTOs?: ActivityDTO[], coursesDTOs?: CourseDTO[] };
-	setAdditionals(additionals: { activitiesDTOs?: ActivityDTO[], coursesDTOs?: CourseDTO[] }): void;
-    toJSON(): IBondDTOProps;
+	setActivities(activities: ActivityDTO[]): void;
+	setCourses(courses: CourseDTO[]): void;
+	toJSON(): IBondDTOProps;
 }
 export class BondDTO implements IBondDTO {
-	additionals: { activitiesDTOs?: ActivityDTO[]; coursesDTOs?: CourseDTO[]; };
-	constructor(public bond: BondData, public active: boolean, public period: string, public sequence: number) { }
-	setAdditionals(additionals: { activitiesDTOs?: ActivityDTO[], coursesDTOs?: CourseDTO[] }) {
-		this.additionals = additionals;
+	additionals: { activitiesDTOs: ActivityDTO[] | undefined; coursesDTOs: CourseDTO[] | undefined; };
+	constructor(public bond: BondData, public active: boolean, public period: string, public sequence: number) {
+		this.additionals = {
+			activitiesDTOs: undefined,
+			coursesDTOs: undefined
+		};
+	}
+	setActivities(activities: ActivityDTO[]) {
+		this.additionals.activitiesDTOs = activities;
+	}
+	setCourses(courses: CourseDTO[]) {
+		this.additionals.coursesDTOs = courses;
 	}
 	toJSON(): IBondDTOProps {
-		const coursesDTOs = this.additionals?.coursesDTOs || [];
-		const activitiesDTOs = this.additionals?.activitiesDTOs || [];
+		const activities = this.additionals.activitiesDTOs? this.additionals.activitiesDTOs.map(a => a.toJSON()) : undefined;
+		const courses = this.additionals.coursesDTOs? this.additionals.coursesDTOs.map(c => c.toJSON()) : undefined;
 		return {
 			program: this.bond.program,
 			registration: this.bond.registration,
@@ -33,8 +43,8 @@ export class BondDTO implements IBondDTO {
 			active: this.active,
 			period: this.period,
 			sequence: this.sequence,
-			activities: activitiesDTOs.map(a => a.toJSON()),
-			courses: coursesDTOs.map(c => c.toJSON())
+			activities,
+			courses
 		};
 	}
 	static fromJSON(json: IBondDTOProps) {
@@ -43,10 +53,10 @@ export class BondDTO implements IBondDTO {
 			registration: json.registration,
 			type: json.type
 		}, json.active, json.period, json.sequence);
-		bondDTO.setAdditionals({
-			activitiesDTOs: json.activities?.map(a => ActivityDTO.fromJSON(a)),
-			coursesDTOs: json.courses?.map(c => new CourseDTO(c, c.postValues))
-		});
+		const activitiesDTOs = json.activities?.map(a => ActivityDTO.fromJSON(a));
+		const coursesDTOs = json.courses?.map(c => new CourseDTO(c, c.postValues));
+		bondDTO.setActivities(activitiesDTOs);
+		bondDTO.setCourses(coursesDTOs);
 		return bondDTO;
 	}
 }

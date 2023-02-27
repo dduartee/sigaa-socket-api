@@ -74,7 +74,7 @@ export class User {
 				});
 			} else {
 				console.error(error);
-				return this.socketService.emit(apiEventError, error.message);
+				return;
 			}
 			return this.socketService.emit("user::status", "Deslogado");
 		}

@@ -47,7 +47,7 @@ export class Courses {
 				return courseService.getDTO();
 			});
 			const bondDTO = BondDTO.fromJSON(bond);
-			bondDTO.setAdditionals({ coursesDTOs });
+			bondDTO.setCourses(coursesDTOs);
 			const bondJSON = bondDTO.toJSON();
 
 			ResponseCache.setResponse({

@@ -33,32 +33,28 @@ export class Activities {
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
 
 			const bondService = BondService.fromDTO(bond, sigaaInstance);
-			let coursesServices = bond.courses.map(c => CourseService.fromDTO(c, sigaaInstance));
-			if (bond.courses.length === 0) {
-				const courses = await bondService.getCourses();
-				coursesServices = courses.map(c => new CourseService(c));
-			}
 			const activities = await bondService.getActivities();
 			console.log(`[activities - list] - got ${activities.length} from ${bond.registration}`);
 			sigaaInstance.close();
-			const activitiesDTOs = await this.getActivitiesDTOs(activities, coursesServices);
+			const activitiesDTOs = await this.getActivitiesDTOs(activities);
+			const activitiesJSON = activitiesDTOs.map(activity => activity.toJSON());
+			BondCache.setActivities(uniqueID, bond.registration, activitiesJSON);
 			const bondDTO = BondDTO.fromJSON(bond);
-			bondDTO.setAdditionals({ activitiesDTOs });
+			bondDTO.setActivities(activitiesDTOs);
 			const bondJSON = bondDTO.toJSON();
 			ResponseCache.setResponse({ uniqueID, event: "activities::list", query }, bondJSON);
-			return this.socketService.emit("activities::list", bondJSON);
+			this.socketService.emit("activities::list", bondJSON);
+			return;
 		} catch (error) {
 			console.error(error);
 			this.socketService.emit(apiEventError, error.message);
-			return false;
+			return;
 		}
 	}
-	private async getActivitiesDTOs(activities: Activity[], coursesServices: CourseService[]) {
+	private async getActivitiesDTOs(activities: Activity[]) {
 		const activitiesDTOs: ActivityDTO[] = [];
 		for (const activity of activities) {
-			const courseService = coursesServices.find(({ course }) => course.title === activity.courseTitle);
-			const course = courseService.getDTO().toJSON();
-			const activityDTO = new ActivityDTO(activity, course);
+			const activityDTO = new ActivityDTO(activity);
 			activitiesDTOs.push(activityDTO);
 		}
 		return activitiesDTOs;

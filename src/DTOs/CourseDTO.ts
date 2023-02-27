@@ -3,6 +3,7 @@ import { AbsencesDTO, IAbsencesDTOProps } from "./Absences.DTO";
 import { GradeGroupDTO, IGradeGroupDTOProps } from "./GradeGroup/GradeGroup.DTO";
 import { HomeworkDTO, IHomeworkDTOProps } from "./Homework.DTO";
 import { ILessonDTOProps, LessonDTO } from "./Lessons.DTO";
+import { IMembersDTOProps, MembersDTO } from "./Members/Members.DTO";
 import { INewsDTOProps, NewsDTO } from "./News.DTO";
 
 export interface ICourseDTOProps {
@@ -16,7 +17,8 @@ export interface ICourseDTOProps {
     news?: INewsDTOProps[]
     homeworks?: IHomeworkDTOProps[];
     absences?: IAbsencesDTOProps
-    lessons?: ILessonDTOProps[]
+    lessons?: ILessonDTOProps[];
+	members?: IMembersDTOProps;
 }
 export interface ICourseDTO {
     toJSON(): ICourseDTOProps;
@@ -28,8 +30,9 @@ export class CourseDTO implements ICourseDTO {
             gradeGroupsDTOs?: GradeGroupDTO[],
             newsDTOs?: NewsDTO[],
             homeworksDTOs?: HomeworkDTO[],
+            lessonsDTOs?: LessonDTO[],
             absencesDTO?: AbsencesDTO,
-            lessonsDTOs?: LessonDTO[]
+			membersDTO?: MembersDTO
         }
 	) { }
 
@@ -38,6 +41,8 @@ export class CourseDTO implements ICourseDTO {
 		const newsDTOs = this.additionals?.newsDTOs || [];
 		const homeworksDTOs = this.additionals?.homeworksDTOs || [];
 		const lessonsDTOs = this.additionals?.lessonsDTOs || [];
+		const absencesDTO = this.additionals?.absencesDTO;
+		const membersDTO = this.additionals?.membersDTO;
 		return {
 			id: this.course.id,
 			title: this.course.title,
@@ -49,7 +54,8 @@ export class CourseDTO implements ICourseDTO {
 			news: newsDTOs.map(dto => dto.toJSON()),
 			homeworks: homeworksDTOs.map(dto => dto.toJSON()),
 			lessons: lessonsDTOs.map(dto => dto.toJSON()),
-			absences: this.additionals?.absencesDTO?.toJSON()
+			absences: absencesDTO.toJSON(),
+			members: membersDTO.toJSON()
 		};
 	}
 }

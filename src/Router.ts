@@ -12,6 +12,7 @@ import { Activities } from "./controllers/Activities";
 import { Server, Socket } from "socket.io";
 import { Absences } from "./controllers/Absences";
 import { Lessons } from "./controllers/Lessons";
+import { Members } from "./controllers/Members";
 export class Router {
 	constructor(private socketService: Socket, private io: Server) { }
 
@@ -29,6 +30,8 @@ export class Router {
 		const activities = new Activities(this.socketService);
 		const absences = new Absences(this.socketService);
 		const lessons = new Lessons(this.socketService);
+		const members = new Members(this.socketService);
+
 		this.socketService.use((event: any, next) => auth.middleware(event, next));
 
 		this.socketService.on("auth::valid", async (query) => auth.valid(query));
@@ -81,6 +84,11 @@ export class Router {
 		this.socketService.on(
 			"lessons::list",
 			async (query) => await lessons.list(query)
+		);
+
+		this.socketService.on(
+			"members::list",
+			async (query) => await members.list(query)
 		);
 
 		this.socketService.on("disconnect", async (reason) => {

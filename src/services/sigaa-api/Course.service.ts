@@ -1,4 +1,4 @@
-import { CourseStudent,  GradeGroup, Lesson, SigaaHomework, SigaaNews} from "sigaa-api";
+import { CourseStudent,  GradeGroup, Lesson, MemberList, SigaaHomework, SigaaNews} from "sigaa-api";
 import { FullHomework } from "../../DTOs/Homework.DTO";
 export class CourseService {
 	constructor(private course: CourseStudent) { }
@@ -87,7 +87,7 @@ export class CourseService {
 			}
 		}
 	}
-	async getMembers(retryTimes = 0) {
+	async getMembers(retryTimes = 0): Promise<MemberList> {
 		try {
 			const members = await this.course.getMembers();
 			return members;
@@ -96,7 +96,7 @@ export class CourseService {
 			if (retryTimes < 3) {
 				return this.getMembers(retryTimes + 1);
 			} else {
-				return [];
+				return null;
 			}
 		}
 	}
@@ -113,5 +113,5 @@ export class CourseService {
 			}
 		}
 	}
-
+	
 }

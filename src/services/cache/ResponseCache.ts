@@ -31,6 +31,11 @@ class ResponseCache {
 		const sharedResponse = this.cacheService.get<ICourseDTOProps>(`${params.event}-${sharedQuery}`);
 		return sharedResponse;
 	}
+	deleteResponses(uniqueID: string): void {
+		this.cacheService.keys().forEach(key => {
+			if (key.startsWith(uniqueID)) this.cacheService.del(key);
+		})
+	}
 }
 
 export default new ResponseCache();

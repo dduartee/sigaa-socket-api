@@ -1,5 +1,4 @@
-import { Account, Page, Request, Sigaa, SigaaCookiesController } from "sigaa-api";
-import { SigaaRequestStack } from "sigaa-api/dist/helpers/sigaa-request-stack";
+import { Account, Page, Sigaa, SigaaCookiesController } from "sigaa-api";
 import RequestStackCache, { IRequestStackCache } from "../cache/RequestStackCache";
 const expectedErrors = [
 	"SIGAA: Invalid response after login attempt.",

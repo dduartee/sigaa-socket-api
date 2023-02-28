@@ -22,6 +22,11 @@ class BondCache {
 		const bond = this.cacheService.get<IBondDTOProps>(`${uniqueID}-${registration}`);
 		return bond;
 	}
+	deleteBonds(uniqueID: string): void {
+		this.cacheService.keys().forEach(key => {
+			if(key.startsWith(uniqueID)) this.cacheService.del(key);
+		})
+	}
 }
 
 export default new BondCache();

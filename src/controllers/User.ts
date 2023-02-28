@@ -10,6 +10,7 @@ import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import RequestStackCache from "../services/cache/RequestStackCache";
 import ResponseCache from "../services/cache/ResponseCache";
+import BondCache from "../services/cache/BondCache";
 
 export type LoginCredentials = {
 	username: string;
@@ -98,15 +99,16 @@ export class User {
 			const accountService = new AccountService(account);
 			const fullName = await accountService.getFullName();
 			const defaultProfilePictureURL = new URL("https://sigaa.ifsc.edu.br/sigaa/img/no_picture.png");
-			const profilePictureURL = await accountService.getProfilePictureURL();
+			const userProfilePictureURL = await accountService.getProfilePictureURL();
+			const profilePictureURL = userProfilePictureURL ? userProfilePictureURL : defaultProfilePictureURL;
 			const emails = await accountService.getEmails();
 
 			sigaaInstance.close();
 			const studentDTO = new StudentDTO({
+				username,
 				fullName,
-				profilePictureURL: profilePictureURL.href ?? defaultProfilePictureURL.href,
+				profilePictureURL: profilePictureURL.href,
 				emails,
-				username
 			});
 			ResponseCache.setResponse({ uniqueID, event: "user::info", query: { username } }, studentDTO.toJSON(), 3600 * 1.5)
 			return this.socketService.emit("user::info", studentDTO.toJSON());
@@ -122,11 +124,15 @@ export class User {
 	 */
 	async logoff() {
 		try {
-			console.log(`[${this.socketService.id}] deslogando`);
+			console.log(`[${this.socketService.id}] Deslogando`);
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			this.socketService.emit("user::status", "Deslogando");
 			SocketReferenceMap.del(this.socketService.id);
+			const { JSESSIONID } = SessionMap.get<ISessionMap>(uniqueID);
+			RequestStackCache.del(JSESSIONID);
 			SessionMap.del(uniqueID);
+			BondCache.deleteBonds(uniqueID);
+			ResponseCache.deleteResponses(uniqueID);
 			this.logado = false;
 			this.socketService.emit("user::status", "Deslogado");
 			return this.socketService.emit("user::login", { logado: false });

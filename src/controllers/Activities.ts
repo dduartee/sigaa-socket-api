@@ -3,11 +3,9 @@ import AuthenticationService from "../services/sigaa-api/Authentication.service"
 import { BondService } from "../services/sigaa-api/Bond/Bond.service";
 import { Socket } from "socket.io";
 import { BondDTO, IBondDTOProps } from "../DTOs/Bond.DTO";
-import { ActivityDTO } from "../DTOs/Activity.DTO";
+import { ActivityDTO, IActivityData } from "../DTOs/Activity.DTO";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
-import { Activity } from "sigaa-api";
-import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
 
@@ -52,7 +50,7 @@ export class Activities {
 			return;
 		}
 	}
-	private async getActivitiesDTOs(activities: Activity[]) {
+	private async getActivitiesDTOs(activities: IActivityData[]) {
 		const activitiesDTOs: ActivityDTO[] = [];
 		for (const activity of activities) {
 			const activityDTO = new ActivityDTO(activity);

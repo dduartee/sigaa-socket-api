@@ -41,7 +41,7 @@ export class Homeworks {
 
 			const coursesLoaded = bond.courses.length !== undefined;
 			if (query.cache && coursesLoaded) {
-				const course = bond.courses.find(course => course.id === query.courseTitle);
+				const course = bond.courses.find(course => course.title === query.courseTitle);
 				const sharedQuery = { courseId: course.id, homeworkId: query.homeworkId, homeworkTitle: query.homeworkTitle };
 				const responseCache = ResponseCache.getCourseSharedResponse({ event: "homework::content", sharedQuery });
 				if (responseCache) {

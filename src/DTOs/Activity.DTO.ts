@@ -59,6 +59,8 @@ export class ActivityDTO implements IActivityDTO {
 			date: new Date(json.date),
 			done: json.done,
 			courseTitle: json.course.title,
+			homeworkTitle: json.title,
+			homeworkId: json.id
 		})
 	}
 }

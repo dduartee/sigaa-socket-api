@@ -17,7 +17,6 @@ interface IBondQuery {
 export class Bonds {
 	constructor(private socketService: Socket) { }
 	async list(query: IBondQuery) {
-		const apiEventError = events.api.error;
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
@@ -39,7 +38,6 @@ export class Bonds {
 			console.log(`[bonds - list] - got ${bonds.length} from SIGAA`);
 			const bondsDTOs: BondDTO[] = [];
 			for (const bond of bonds) {
-				console.log("[bonds - list] - getting ", bond.registration);
 				const bondService = new BondService(bond);
 				const period = await bondService.getCurrentPeriod();
 				const active = activeBonds.includes(bond);
@@ -58,11 +56,9 @@ export class Bonds {
 				event: "bonds::list",
 				query
 			}, bondsJSON, 3600 * 1.5);
-			console.log("[bonds - list] - finished");
 			return this.socketService.emit("bonds::list", bondsJSON);
 		} catch (error) {
 			console.error(error);
-			this.socketService.emit(apiEventError, error.message);
 			return false;
 		}
 	}

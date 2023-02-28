@@ -28,7 +28,6 @@ export class Homeworks {
 	 * @returns 
 	 */
 	async content(query: IHomeworkQuery) {
-		const apiEventError = events.api.error;
 		try {
 
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
@@ -93,7 +92,6 @@ export class Homeworks {
 			}
 		} catch (error) {
 			console.error(error);
-			this.socketService.emit(apiEventError, error.message);
 			return false;
 		}
 	}

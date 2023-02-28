@@ -60,7 +60,6 @@ export class Absences {
 			return this.socketService.emit("absences::list", bondJSON);
 		} catch (error) {
 			console.error(error);
-			this.socketService.emit("api::error", error.message);
 			return false;
 		}
 	}

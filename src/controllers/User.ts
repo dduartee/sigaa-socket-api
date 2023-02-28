@@ -26,7 +26,6 @@ export class User {
 	 */
 	async login(credentials: LoginCredentials) {
 		const sigaaURL = credentials.sigaaURL || sigaaIfscURL;
-		const apiEventError = events.api.error;
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			// login com credenciais
@@ -83,7 +82,6 @@ export class User {
 	 *  Realiza evento de envio de informações do usuario
 	 */
 	async info() {
-		const apiEventError = events.api.error;
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, username, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
@@ -114,7 +112,7 @@ export class User {
 			return this.socketService.emit("user::info", studentDTO.toJSON());
 		} catch (error) {
 			console.error(error);
-			return this.socketService.emit(apiEventError, error.message);
+			return;
 		}
 	}
 	/**
@@ -123,7 +121,6 @@ export class User {
 	 * @returns 
 	 */
 	async logoff() {
-		const apiEventError = events.api.error;
 		try {
 			console.log(`[${this.socketService.id}] deslogando`);
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
@@ -135,7 +132,6 @@ export class User {
 			return this.socketService.emit("user::login", { logado: false });
 		} catch (error) {
 			console.error(error);
-			this.socketService.emit(apiEventError, error.message);
 			return false;
 		}
 	}

@@ -25,7 +25,6 @@ export class Courses {
    * @returns	
    */
 	async list(query: ICourseQuery) {
-		const apiEventError = events.api.error;
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
@@ -38,7 +37,6 @@ export class Courses {
 				console.log("[courses - list] - cache hit");
 				return this.socketService.emit("courses::list", responseCache);
 			}
-
 
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
 
@@ -67,7 +65,6 @@ export class Courses {
 
 		} catch (error) {
 			console.error(error);
-			this.socketService.emit(apiEventError, error.message);
 			return false;
 		}
 	}

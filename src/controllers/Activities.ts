@@ -20,12 +20,12 @@ interface IActivitiesQuery {
 export class Activities {
 	constructor(private socketService: Socket) { }
 	async list(query: IActivitiesQuery) {
-		const apiEventError = events.api.error;
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
+
 			const responseCache = ResponseCache.getResponse<IBondDTOProps>({ uniqueID, event: "activities::list", query });
 			if (query.cache && responseCache) {
 				console.log("[activities - list] - cache hit");
@@ -49,7 +49,6 @@ export class Activities {
 			return;
 		} catch (error) {
 			console.error(error);
-			this.socketService.emit(apiEventError, error.message);
 			return;
 		}
 	}

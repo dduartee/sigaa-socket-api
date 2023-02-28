@@ -38,13 +38,10 @@ export class Grades {
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
 
 			const coursesServices = await this.getCoursesServices(bond, sigaaInstance);
-			console.debug("[grades - list] - got courses services", coursesServices.length);
 			const coursesDTOs: CourseDTO[] = [];
 
 			for (const courseService of coursesServices) {
-				console.log("[grades - list] - ", courseService.course.code);
 				const gradeGroups = await courseService.getGrades();
-				console.log("[grades - list] - ", courseService.course.code, gradeGroups.length);
 				const gradesService = new GradesService(gradeGroups);
 				const gradeGroupsDTOs = gradesService.getDTOs();
 				const courseDTO = courseService.getDTO();
@@ -53,7 +50,7 @@ export class Grades {
 				const bondDTO = BondDTO.fromJSON(bond);
 				bondDTO.setCourses(coursesDTOs);
 				this.socketService.emit("grades::listPartial", bondDTO.toJSON());
-				console.log("[grades - list] - finished", courseService.course.code);
+				console.log("[grades - list] -", courseService.course.code, gradeGroups.length);
 			}
 			sigaaInstance.close();
 			const bondDTO = BondDTO.fromJSON(bond);
@@ -67,7 +64,6 @@ export class Grades {
 			return this.socketService.emit("grades::list", bondJSON);
 		} catch (error) {
 			console.error(error);
-			this.socketService.emit("api::error", error.message);
 			return false;
 		}
 	}

@@ -54,7 +54,6 @@ export class Lessons {
 			return this.socketService.emit("lessons::list", sharedResponse);
 		} catch (error) {
 			console.error(error);
-			this.socketService.emit("api::error", error.message);
 			return false;
 		}
 	}

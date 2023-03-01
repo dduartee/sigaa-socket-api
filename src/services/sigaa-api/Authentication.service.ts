@@ -1,17 +1,19 @@
-import { Account, Page, Request, Sigaa, SigaaCookiesController } from "sigaa-api";
-import { SigaaRequestStack } from "sigaa-api/dist/helpers/sigaa-request-stack";
-import { cacheService } from "../cacheService";
+import { Account, Page, Sigaa, SigaaCookiesController } from "sigaa-api";
+import RequestStackCache, { IRequestStackCache } from "../cache/RequestStackCache";
 const expectedErrors = [
 	"SIGAA: Invalid response after login attempt.",
 	"SIGAA: Invalid homepage, the system behaved unexpectedly.",
 	"SIGAA: Unknown homepage format."
 ];
-type JSESSIONID = string;
+type CredentialsType = {
+	username: string;
+	password: string;
+}
 class AuthenticationService {
 	private async attemptLogin(credentials: {
-        username: string;
-        password: string;
-    }, sigaaInstance: Sigaa): Promise<{ page: Page; error: undefined } | { page: undefined, error: string }> {
+		username: string;
+		password: string;
+	}, sigaaInstance: Sigaa): Promise<{ page: Page; error: undefined } | { page: undefined, error: string }> {
 		try {
 			const page = await sigaaInstance.loginInstance.login(credentials.username, credentials.password);
 			return { page, error: undefined };
@@ -62,37 +64,41 @@ class AuthenticationService {
 			return { account: undefined, error: errorMessage };
 		}
 	}
-	public async loginWithCredentials(credentials, sigaaInstance: Sigaa, requestStackController: SigaaRequestStack<Request, Page>) {
+	public async loginWithCredentials(credentials: CredentialsType, sigaaInstance: Sigaa) {
 		const attemptLogin = await this.attemptLogin(credentials, sigaaInstance);
-		if (attemptLogin.page) {
-			const attemptGetAccount = await this.attemptGetAccount(attemptLogin.page, sigaaInstance);
-			if (attemptGetAccount.account) {
-				const JSESSIONID = attemptLogin.page.requestHeaders.Cookie;
-				cacheService.set(`requestStackInstance@${JSESSIONID}`, requestStackController);
-				return {
-					account: attemptGetAccount.account,
-					JSESSIONID
-				};
-			} else {
-				throw new Error(attemptGetAccount.error);
-			}
-		} else {
-			throw new Error(attemptLogin.error);
-		}
+		if (!attemptLogin.page) throw new Error(attemptLogin.error);
+
+		const attemptGetAccount = await this.attemptGetAccount(attemptLogin.page, sigaaInstance);
+		if (!attemptGetAccount.account) throw new Error(attemptGetAccount.error);
+
+		const JSESSIONID = attemptLogin.page.requestHeaders.Cookie;
+		return { account: attemptGetAccount.account, JSESSIONID: JSESSIONID };
 	}
-	public async loginWithJSESSIONID(JSESSIONID: JSESSIONID, url: string) {
-		/**
-         * Injeta o JSESSIONID no Sigaa
-         */
-		const cookiesController = new SigaaCookiesController();
-		const { hostname } = new URL(url);
-		cookiesController.storeCookies(hostname, [JSESSIONID]);
-		const requestStackController = cacheService.get(`requestStackInstance@${JSESSIONID}`) as SigaaRequestStack<Request, Page>;
-		const sigaaInstance = new Sigaa({ url, cookiesController, requestStackController });
+	/**
+	 * @param sigaaInstance Instância do SIGAA já rehydratada
+	 * @returns Classe Account do SIGAA
+	 */
+	public async loginWithJSESSIONID(sigaaInstance: Sigaa) {
 		const http = sigaaInstance.httpFactory.createHttp();
-		const page = await http.get("/sigaa/vinculos.jsf");
-		const account = await sigaaInstance.accountFactory.getAccount(page);
-		return { account, page, httpSession: sigaaInstance.httpSession };
+		return await http.get("/sigaa/vinculos.jsf");
+	}
+	public async parseAccount(sigaaInstance: Sigaa, page: Page) {
+		return await sigaaInstance.accountFactory.getAccount(page);
+	}
+
+	/**
+	 * @param sigaaURL URL do SIGAA da instituição
+	 * @param JSESSIONID Cookie JSESSIONID do SIGAA
+	 * @returns Instância do SIGAA com os cookies e o requestStackController reutilizados
+	 */
+	public getRehydratedSigaaInstance(sigaaURL: string, JSESSIONID: string) {
+		const {hostname, href} = new URL(sigaaURL);
+		const cookiesController = new SigaaCookiesController();
+		cookiesController.storeCookies(hostname, [JSESSIONID]);
+		const requestStackController = RequestStackCache.get<IRequestStackCache>(JSESSIONID);
+		if (!requestStackController) throw new Error("RequestStackController not found");
+		const sigaaInstance = new Sigaa({ url: href, cookiesController, requestStackController });
+		return sigaaInstance;
 	}
 }
 

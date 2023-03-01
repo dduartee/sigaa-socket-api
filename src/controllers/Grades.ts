@@ -1,92 +1,85 @@
 
-import { CacheType } from "../services/cacheUtil";
-import { cacheHelper } from "../helpers/Cache";
-import Authentication from "../services/sigaa-api/Authentication.service";
-import { AccountService } from "../services/sigaa-api/Account.service";
-import { BondService } from "../services/sigaa-api/Bond.service";
-import { CourseService } from "../services/sigaa-api/Course.service";
+import AuthenticationService from "../services/sigaa-api/Authentication.service";
+import { BondService } from "../services/sigaa-api/Bond/Bond.service";
+import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import { Socket } from "socket.io";
-import { GradeGroupDTO } from "../DTOs/GradeGroup/GradeGroup.DTO";
-import { WeightedAverageDTO } from "../DTOs/GradeGroup/WeightedAverage.DTO";
-import { SumOfGradesDTO } from "../DTOs/GradeGroup/SumOfGrades.DTO";
-import { SubGradeDTO } from "../DTOs/GradeGroup/SubGrade.DTO";
 import { CourseDTO } from "../DTOs/CourseDTO";
-import { BondDTO } from "../DTOs/Bond.DTO";
-import { ArithmeticAverageDTO } from "../DTOs/GradeGroup/ArithmeticAverage.DTO";
-import { cacheService } from "../services/cacheService";
+import { BondDTO, IBondDTOProps } from "../DTOs/Bond.DTO";
+import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
+import SocketReferenceMap from "../services/cache/SocketReferenceCache";
+import { GradesService } from "../services/sigaa-api/Course/Grades.service";
+import { Sigaa } from "sigaa-api";
+import ResponseCache from "../services/cache/ResponseCache";
+import BondCache from "../services/cache/BondCache";
+
+interface IGradeQuery {
+	cache: boolean,
+	registration: string,
+	inactive: boolean,
+	allPeriods: boolean
+}
 
 export class Grades {
 	constructor(private socketService: Socket) { }
-	async list(query: { cache: boolean, registration: string, inactive: boolean, allPeriods: boolean }) {
+	async list(query: IGradeQuery) {
 		try {
-			const uniqueID = cacheService.get<string>(this.socketService.id);
-			const cache = cacheService.get<CacheType>(uniqueID);
-			const { JSESSIONID, jsonCache } = cache;
-			if(!JSESSIONID) {
-				throw new Error("API: No JSESSIONID found in cache.");
+			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
+			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
+
+			const bond = BondCache.getBond(uniqueID, query.registration);
+			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
+
+			const responseCache = ResponseCache.getResponse<IBondDTOProps>({ uniqueID, event: "grades::list", query });
+			if (query.cache && responseCache) {
+				console.log("[grades - list] - cache hit");
+				return this.socketService.emit("grades::list", responseCache);
 			}
-			if (query.cache) {
-				const newest = cacheHelper.getNewest(jsonCache, query);
-				if (newest) {
-					const bond = newest["BondsJSON"].find(bond => bond.registration === query.registration);
-					return this.socketService.emit("grades::list", bond);
-				}
-			}
-			const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, cache.sigaaURL);
-			const accountService = new AccountService(account);
-			const activeBonds = await accountService.getActiveBonds();
-			const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
-			const bonds = [...activeBonds, ...inactiveBonds];
-			const bond = bonds.find(bond => bond.registration === query.registration);
-			const bondService = new BondService(bond);
-			const period = await bondService.getCurrentPeriod();
-			const active = bonds.includes(bond);
-			const courses = await bondService.getCourses(query.allPeriods);
+
+			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
+
+			const coursesServices = await this.getCoursesServices(bond, sigaaInstance);
 			const coursesDTOs: CourseDTO[] = [];
-			for (const course of courses) {
-				const courseService = new CourseService(course);
+
+			for (const courseService of coursesServices) {
 				const gradeGroups = await courseService.getGrades();
-				console.log(`[grades - list] - ${gradeGroups.length}`);
-				const gradeGroupsDTOs = gradeGroups.map(gradeGroup => {
-					let subGradesDTOs: SubGradeDTO[] = [];
-					switch (gradeGroup.type) {
-					case "only-average":
-						subGradesDTOs = [];
-						break;
-					case "sum-of-grades":
-						subGradesDTOs = gradeGroup.grades.map(sumOfGrades => new SumOfGradesDTO(sumOfGrades));
-						break;
-					case "weighted-average":
-						subGradesDTOs = gradeGroup.grades.map(weightedAverage => new WeightedAverageDTO(weightedAverage));
-						break;
-					case "arithmetic-average":
-						subGradesDTOs = gradeGroup.grades.map(arithmeticAverage => new ArithmeticAverageDTO(arithmeticAverage));
-						break;
-					default:
-						subGradesDTOs = [];
-						break;
-					}
-					const gradeGroupDTO = new GradeGroupDTO(gradeGroup, subGradesDTOs);
-					return gradeGroupDTO;
-				});
-				const courseDTO = new CourseDTO(course, { gradeGroupsDTOs });
+				const gradesService = new GradesService(gradeGroups);
+				const gradeGroupsDTOs = gradesService.getDTOs();
+				const courseDTO = courseService.getDTO();
+				courseDTO.setAdditionals({ gradeGroupsDTOs });
 				coursesDTOs.push(courseDTO);
-				const bondDTO = new BondDTO(bond, active, period, { coursesDTOs });
-				this.socketService.emit(
-					"grades::listPartial", bondDTO.toJSON()
-				);
+				const bondDTO = BondDTO.fromJSON(bond);
+				bondDTO.setCourses(coursesDTOs);
+				this.socketService.emit("grades::listPartial", bondDTO.toJSON());
+				console.log("[grades - list] -", courseService.course.code, gradeGroups.length);
 			}
-			const bondDTO = new BondDTO(bond, active, period, { coursesDTOs });
-			cacheHelper.storeCache(uniqueID, {
-				jsonCache: [{ BondsJSON: [bondDTO.toJSON()], query, time: new Date().toISOString() }],
-				time: new Date().toISOString(),
-			});
-			httpSession.close();
-			this.socketService.emit("grades::list", bondDTO.toJSON());
+			sigaaInstance.close();
+			const bondDTO = BondDTO.fromJSON(bond);
+			bondDTO.setCourses(coursesDTOs);
+			const bondJSON = bondDTO.toJSON();
+			ResponseCache.setResponse({
+				uniqueID,
+				event: "grades::list",
+				query
+			}, bondJSON, 3600 * 1.5);
+			return this.socketService.emit("grades::list", bondJSON);
 		} catch (error) {
 			console.error(error);
-			this.socketService.emit("api::error", error.message);
 			return false;
+		}
+	}
+	// se é possivel rehydratar os coursesservices, rehidrate-os
+	// se não, faça a requisição
+	private async getCoursesServices(bond: IBondDTOProps, sigaaInstance: Sigaa) {
+		if (bond.courses?.length > 0) {
+			const coursesServices = bond.courses.map(course => CourseService.fromDTO(course, sigaaInstance));
+			console.log(`[grades - list] - ${coursesServices.length} (rehydrated)`);
+			return coursesServices;
+		} else {
+			const bondService = BondService.fromDTO(bond, sigaaInstance);
+			const courses = await bondService.getCourses();
+			const coursesServices = courses.map(course => new CourseService(course));
+			console.log(`[grades - list] - ${courses.length} (fetched)`);
+			return coursesServices;
 		}
 	}
 }

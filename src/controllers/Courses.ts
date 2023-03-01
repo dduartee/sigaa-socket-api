@@ -1,14 +1,20 @@
-import { StudentBond } from "sigaa-api";
 import { Socket } from "socket.io";
-import { CacheType } from "../services/cacheUtil";
-import { cacheHelper } from "../helpers/Cache";
 import { events } from "../apiConfig.json";
-import Authentication from "../services/sigaa-api/Authentication.service";
-import { AccountService } from "../services/sigaa-api/Account.service";
-import { BondService } from "../services/sigaa-api/Bond.service";
-import { BondDTO } from "../DTOs/Bond.DTO";
-import { CourseDTO } from "../DTOs/CourseDTO";
-import { cacheService } from "../services/cacheService";
+import AuthenticationService from "../services/sigaa-api/Authentication.service";
+import { BondService } from "../services/sigaa-api/Bond/Bond.service";
+import { BondDTO, IBondDTOProps } from "../DTOs/Bond.DTO";
+import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
+import SocketReferenceMap from "../services/cache/SocketReferenceCache";
+import { CourseService } from "../services/sigaa-api/Course/Course.service";
+import ResponseCache from "../services/cache/ResponseCache";
+import BondCache from "../services/cache/BondCache";
+
+interface ICourseQuery {
+	inactive: boolean,
+	allPeriods: boolean,
+	cache: boolean,
+	registration: string
+}
 
 export class Courses {
 	constructor(private socketService: Socket) { }
@@ -16,54 +22,49 @@ export class Courses {
    * Lista matérias de um vinculo especificado pelo registration
    * @param params socket
    * @param query registration
-   * @returns
+   * @returns	
    */
-	async list(query: { inactive: boolean, allPeriods: boolean, cache: boolean, registration: string }) {
-		const apiEventError = events.api.error;
+	async list(query: ICourseQuery) {
 		try {
-			const uniqueID = cacheService.get<string>(this.socketService.id);
-			const cache = cacheService.get<CacheType>(uniqueID);
-			const { JSESSIONID, jsonCache } = cache;
-			if(!JSESSIONID) {
-				throw new Error("API: No JSESSIONID found in cache.");
-			}
-			if (query.cache) {
-				const newest = cacheHelper.getNewest(jsonCache, query);
-				if (newest) {
-					const bond = newest["BondsJSON"].find(bond => bond.registration === query.registration);
-					return this.socketService.emit("courses::list", bond);
-				}
-			}
-			const { account, httpSession } = await Authentication.loginWithJSESSIONID(cache.JSESSIONID, cache.sigaaURL);
-			const accountService = new AccountService(account);
-			const activeBonds = await accountService.getActiveBonds();
-			const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
-			const bonds = [...activeBonds, ...inactiveBonds];
-			const bond = bonds.find(b => b.registration === query.registration) as StudentBond | undefined;
+			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
+			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
+
+			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
-			const bondService = new BondService(bond);
-			const period = await bondService.getCurrentPeriod();
-			const active = activeBonds.includes(bond);
-			const courses = await bondService.getCourses(query.allPeriods);
-			console.log(`[courses - list] - ${courses.length}`);
-			httpSession.close();
-			const coursesDTOs: CourseDTO[] = [];
-			for (const course of courses) {
-				const courseDTO = new CourseDTO(course);
-				coursesDTOs.push(courseDTO);
+
+			const responseCache = ResponseCache.getResponse<IBondDTOProps>({ uniqueID, event: "courses::list", query });
+			if (query.cache && responseCache) {
+				console.log("[courses - list] - cache hit");
+				return this.socketService.emit("courses::list", responseCache);
 			}
-			const bondDTO = new BondDTO(bond, active, period, { coursesDTOs });
-			const bondJSON = bondDTO.toJSON();
-			cacheHelper.storeCache(uniqueID, {
-				jsonCache: [
-					{ BondsJSON: [bondJSON], query, time: new Date().toISOString() },
-				],
-				time: new Date().toISOString(),
+
+			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
+
+			const bondService = BondService.fromDTO(bond, sigaaInstance);
+
+			const courses = await bondService.getCourses(query.allPeriods);
+			console.log(`[courses - list] - got ${courses.length} (rehydrated)`);
+
+			sigaaInstance.close();
+
+			const coursesDTOs = courses.map(course => {
+				const courseService = new CourseService(course);
+				return courseService.getDTO();
 			});
+			const bondDTO = BondDTO.fromJSON(bond);
+			bondDTO.setCourses(coursesDTOs);
+			const bondJSON = bondDTO.toJSON();
+
+			ResponseCache.setResponse({
+				uniqueID,
+				event: "courses::list",
+				query
+			}, bondJSON, 3600 * 1.5);
+			BondCache.setBond(uniqueID, bondJSON);
 			return this.socketService.emit("courses::list", bondJSON);
+
 		} catch (error) {
 			console.error(error);
-			this.socketService.emit(apiEventError, error.message);
 			return false;
 		}
 	}

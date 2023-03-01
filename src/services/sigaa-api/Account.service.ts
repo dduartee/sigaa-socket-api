@@ -52,7 +52,7 @@ class AccountService {
 			}
 		}
 	}
-	async getInactiveBonds(retryTimes = 0) {
+	async getInactiveBonds(retryTimes = 0): Promise<StudentBond[]> {
 		try {
 			const inactiveBonds = await this.account.getInactiveBonds();
 			const studentInactiveBonds = inactiveBonds.filter(bond => bond.type === "student") as StudentBond[];

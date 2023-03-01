@@ -1,31 +1,31 @@
-import { CourseStudent,  GradeGroup, Lesson, SigaaHomework, SigaaNews} from "sigaa-api";
-import { FullHomework } from "../../DTOs/Homework.DTO";
+import { CourseStudent, CourseStudentData, GradeGroup, Lesson, Sigaa, SigaaHomework, SigaaNews } from "sigaa-api";
+import { CourseDTO, ICourseDTOProps } from "../../../DTOs/CourseDTO";
+import CourseRehydrateService from "./CourseRehydrateService";
 export class CourseService {
-	constructor(private course: CourseStudent) { }
-	async getHomeworks(full = false, retryTimes = 0) {
+	constructor(public course: CourseStudent) { }
+	getDTO() {
+		const courseForm = this.course.getCourseForm();
+		const postValues = JSON.stringify(courseForm.postValues);
+		return new CourseDTO(this.course, postValues);
+	}
+	static fromDTO(courseDTOProps: ICourseDTOProps, sigaaInstance: Sigaa) {
+		const form = CourseDTO.getCourseForm(courseDTOProps);
+		const courseData: CourseStudentData = {
+			id: courseDTOProps.id,
+			title: courseDTOProps.title,
+			code: courseDTOProps.code,
+			period: courseDTOProps.period,
+			numberOfStudents: courseDTOProps.numberOfStudents,
+			schedule: courseDTOProps.schedule,
+			form
+		};
+		const rehydratedCourse = CourseRehydrateService.create(courseData, sigaaInstance);
+		return new CourseService(rehydratedCourse);
+	}
+	async getHomeworks(full = false, retryTimes = 0): Promise<SigaaHomework[]> {
 		try {
 			const homeworks = await this.course.getHomeworks() as SigaaHomework[];
-			const homeworksParsed: FullHomework[] = [];
-			for (const homework of homeworks) {
-				let content: string;
-				let haveGrade: boolean;
-				let isGroup: boolean;
-				if (full) {
-					content = await homework.getDescription();
-					haveGrade = await homework.getFlagHaveGrade();
-					isGroup = await homework.getFlagIsGroupHomework();
-				}
-				homeworksParsed.push({
-					id: homework.id,
-					title: homework.title,
-					content: content,
-					startDate: homework.startDate,
-					endDate: homework.endDate,
-					haveGrade: haveGrade,
-					isGroup
-				});
-			}
-			return homeworksParsed;
+			return homeworks;
 		} catch (error) {
 			console.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
@@ -35,11 +35,11 @@ export class CourseService {
 			}
 		}
 	}
-	async getGrades(retryTimes = 0): Promise<GradeGroup[]> {
+	async getGrades(retryTimes = 0): Promise < GradeGroup[] > {
 		try {
 			const grades = await this.course.getGrades();
 			return grades;
-		} catch (error) {
+		} catch(error) {
 			console.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getGrades(retryTimes + 1);
@@ -48,11 +48,11 @@ export class CourseService {
 			}
 		}
 	}
-	async getNews(retryTimes = 0): Promise<SigaaNews[]> {
+	async getNews(retryTimes = 0): Promise < SigaaNews[] > {
 		try {
 			const news = await this.course.getNews() as SigaaNews[];
 			return news;
-		} catch (error) {
+		} catch(error) {
 			console.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getNews(retryTimes + 1);
@@ -61,11 +61,11 @@ export class CourseService {
 			}
 		}
 	}
-	async getLessons(retryTimes = 0): Promise<Lesson[]> {
+	async getLessons(retryTimes = 0): Promise < Lesson[] > {
 		try {
 			const lessons = await this.course.getLessons();
 			return lessons;
-		} catch (error) {
+		} catch(error) {
 			console.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getLessons(retryTimes + 1);

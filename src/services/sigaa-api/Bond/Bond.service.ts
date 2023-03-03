@@ -34,7 +34,7 @@ export class BondService {
 			}
 		}
 	}
-	async getActivities(retryTimes = 0): Promise<Partial<Activity>[]> {
+	async getActivities(retryTimes = 0): Promise<Activity[]> {
 		try {
 			const activities = await this.bond.getActivities();
 			return activities;

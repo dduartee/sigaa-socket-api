@@ -67,18 +67,17 @@ export class Grades {
 			return false;
 		}
 	}
-	// se é possivel rehydratar os coursesservices, rehidrate-os
-	// se não, faça a requisição
+
 	private async getCoursesServices(bond: IBondDTOProps, sigaaInstance: Sigaa) {
 		if (bond.courses?.length > 0) {
 			const coursesServices = bond.courses.map(course => CourseService.fromDTO(course, sigaaInstance));
-			console.log(`[grades - list] - ${coursesServices.length} (rehydrated)`);
+			console.log(`[getCoursesServices] - ${coursesServices.length} (rehydrated)`);
 			return coursesServices;
 		} else {
 			const bondService = BondService.fromDTO(bond, sigaaInstance);
 			const courses = await bondService.getCourses();
 			const coursesServices = courses.map(course => new CourseService(course));
-			console.log(`[grades - list] - ${courses.length} (fetched)`);
+			console.log(`[getCoursesServices] - ${courses.length} (fetched)`);
 			return coursesServices;
 		}
 	}

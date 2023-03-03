@@ -34,9 +34,10 @@ export class BondService {
 			}
 		}
 	}
-	async getActivities(retryTimes = 0): Promise<Activity[]> {
+	async getActivities(retryTimes = 0): Promise<Partial<Activity>[]> {
 		try {
 			const activities = await this.bond.getActivities();
+			return activities;
 			// const mockActivities: Partial<Activity>[] = [
 			// 	{
 			// 		courseTitle: "HISTÓRIA III",
@@ -57,7 +58,7 @@ export class BondService {
 			// 		type: "homework"
 			// 	}
 			// ];
-			return activities;
+			// return mockActivities;
 		} catch (error) {
 			console.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {

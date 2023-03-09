@@ -11,7 +11,6 @@ import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
 import { IBondDTOProps } from "../DTOs/Bond.DTO";
-import { ICourseDTOProps } from "../DTOs/CourseDTO";
 
 interface IHomeworkQuery {
 	inactive: boolean,
@@ -44,7 +43,8 @@ export class Homeworks {
 			const activitiesLoaded = bond.activities !== undefined;
 			if (!activitiesLoaded) throw new Error(`Bond ${query.registration} has no activities loaded`);
 
-			if (bond.courses && query.cache) {
+			if (bond.courses) {
+				if (query.cache) {
 					const course = bond.courses.find(course => course.title === query.courseTitle);
 					if (!course) throw new Error(`Course not found with title ${query.courseTitle}`);
 					const homeworkQuery = { id: query.homeworkId, title: query.homeworkTitle }
@@ -54,6 +54,9 @@ export class Homeworks {
 						console.log("[homework - content] - cache hit");
 						return this.socketService.emit("homework::content", responseCache);
 					}
+				}
+			} else {
+				console.log("[homework - content] - bond.courses is undefined (?????)")
 			}
 
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);

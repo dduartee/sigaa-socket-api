@@ -4,7 +4,7 @@ import { events } from "../apiConfig.json";
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { Socket } from "socket.io";
-import { StudentDTO } from "../DTOs/Student.DTO";
+import { IStudentDTOProps, StudentDTO } from "../DTOs/Student.DTO";
 import { SigaaRequestStack } from "sigaa-api/dist/helpers/sigaa-request-stack";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
@@ -87,7 +87,7 @@ export class User {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, username, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
 
-			const responseCache = ResponseCache.getResponse({ uniqueID, event: "user::info", query: { username } });
+			const responseCache = ResponseCache.getResponse<IStudentDTOProps>({ uniqueID, event: "user::info", query: { username } });
 			if (responseCache) {
 				console.log("[user - info] - cache hit");
 				return this.socketService.emit("user::info", responseCache);

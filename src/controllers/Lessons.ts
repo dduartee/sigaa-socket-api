@@ -25,18 +25,20 @@ export class Lessons {
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
-
+			
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
 
-			if (bond.courses && query.cache) {
-				const course = bond.courses.find(course => course.id === query.courseId);
+			if (bond.courses) {
+				if (query.cache) {
+					const course = bond.courses.find(course => course.id === query.courseId);
 				if (!course) throw new Error(`Course not found with id ${query.courseId}`);
-				const sharedQuery = this.getSharedQuery(course);
-				const responseCache = ResponseCache.getCourseSharedResponse({ event: "lessons::list", sharedQuery });
-				if (responseCache) {
-					console.log("[lessons - list] - cache hit");
-					return this.socketService.emit("lessons::list", responseCache);
+					const sharedQuery = this.getSharedQuery(course);
+					const responseCache = ResponseCache.getCourseSharedResponse({ event: "lessons::list", sharedQuery });
+					if (responseCache) {
+						console.log("[lessons - list] - cache hit");
+						return this.socketService.emit("lessons::list", responseCache);
+					}
 				}
 			} else {
 				console.log("[lessons - list] - bond.courses is undefined (?????)")

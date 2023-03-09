@@ -22,9 +22,9 @@ class ResponseCache {
 	}
 	setCourseSharedResponse(params: { event: string, sharedQuery }, data: ICourseDTOProps, stdTLL: number ): ICourseDTOProps {
 		const sharedQuery = JSON.stringify(params.sharedQuery);
-		const sharedResponse = {...data, timestamp: Date.now()};
+		const sharedResponse = {...data, timestamp: new Date().toISOString()};
 		this.cacheService.set<ICourseDTOProps>(`${params.event}-${sharedQuery}`, sharedResponse, stdTLL); // 48 hours
-		return sharedResponse
+		return sharedResponse;
 	}
 	/**
 	 * Retorna a resposta do cache compartilhado entre os usuários da mesma turma

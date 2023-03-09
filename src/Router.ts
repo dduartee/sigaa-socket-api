@@ -16,6 +16,7 @@ export class Router {
 	constructor(private socketService: Socket, private io: Server) { }
 
 	async index() {
+		// this.socketService.onAny(console.debug);
 		/**
 	 	* Inicializações das classes dos eventos
 	 	*/

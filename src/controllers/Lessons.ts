@@ -62,6 +62,7 @@ export class Lessons {
 			courseDTO.setAdditionals({ lessonsDTOs });
 			const courseJSON = courseDTO.toJSON();
 			const sharedQuery = this.getSharedQuery(courseJSON);
+
 			const sharedResponse = ResponseCache.setCourseSharedResponse({ event: "lessons::list", sharedQuery }, courseJSON, 3600 * 48); // 2 dias
 			return this.socketService.emit("lessons::list", sharedResponse);
 		} catch (error) {

@@ -18,8 +18,8 @@ export class Router {
 	async index() {
 		// this.socketService.onAny(console.debug);
 		/**
-	 * Inicializações das classes dos eventos
-	 */
+	 	* Inicializações das classes dos eventos
+	 	*/
 		const user = new User(this.socketService);
 		const auth = new Auth(this.socketService);
 		const bonds = new Bonds(this.socketService);

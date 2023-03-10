@@ -21,9 +21,9 @@ export class Bonds {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
 
-			const responseCache = ResponseCache.getResponse<IBondDTOProps>({ uniqueID, event: "bonds::list", query });
+			const responseCache = ResponseCache.getResponse<IBondDTOProps[]>({ uniqueID, event: "bonds::list", query });
 			if (query.cache && responseCache) {
-				console.log("[bonds - list] - cache hit");
+				console.log("[bonds - list] - cache hit", responseCache.length);
 				return this.socketService.emit("bonds::list", responseCache);
 			}
 

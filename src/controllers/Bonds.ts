@@ -6,6 +6,7 @@ import { BondDTO, IBondDTOProps } from "../DTOs/Bond.DTO";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import ResponseCache from "../services/cache/ResponseCache";
+import LoggerService from "../services/LoggerService";
 import BondCache from "../services/cache/BondCache";
 
 interface IBondQuery {
@@ -33,7 +34,7 @@ export class Bonds {
 			const activeBonds = await accountService.getActiveBonds();
 			const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
 			const bonds = [...activeBonds, ...inactiveBonds];
-			console.log(`[${username}: bonds - list] - got ${bonds.length} (fetched)`);
+			LoggerService.log(`[${username}: bonds - list] - got ${bonds.length} (fetched)`);
 			const bondsDTOs: BondDTO[] = [];
 			for (const bond of bonds) {
 				const bondService = new BondService(bond);

@@ -10,6 +10,7 @@ import { BondService } from "../services/sigaa-api/Bond/Bond.service";
 import { Sigaa } from "sigaa-api";
 import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
+import LoggerService from "../services/LoggerService";
 
 interface IAbsencesQuery {
 	cache: boolean;
@@ -40,7 +41,7 @@ export class Absences {
 			const coursesDTOs: CourseDTO[] = [];
 			for (const courseService of coursesServices) {
 				const absences = await courseService.getAbsences();
-				console.log(`[${username}: absences - list] - got ${absences.list.length}`);
+				LoggerService.log(`[${username}: absences - list] - got ${absences.list.length}`);
 				const absencesDTO = new AbsencesDTO(absences);
 				const courseDTO = courseService.getDTO();
 				courseDTO.setAdditionals({ absencesDTO });
@@ -70,7 +71,7 @@ export class Absences {
 			const bondService = BondService.fromDTO(bond, sigaaInstance);
 			const courses = await bondService.getCourses();
 			const coursesServices = courses.map(course => new CourseService(course));
-			console.log(`[absences - list] - ${coursesServices.length} (fetched)`);
+			LoggerService.log(`[absences - list] - ${coursesServices.length} (fetched)`);
 			return coursesServices;
 		}
 	}

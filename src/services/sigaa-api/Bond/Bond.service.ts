@@ -1,6 +1,7 @@
 import { Activity, CourseStudent, Sigaa, StudentBond } from "sigaa-api";
 import BondRehydrateFactory from "./BondRehydrateFactory";
 import { IBondDTOProps } from "../../../DTOs/Bond.DTO";
+import LoggerService from "../../LoggerService";
 
 export class BondService {
 	constructor(private bond: StudentBond) { }
@@ -25,7 +26,7 @@ export class BondService {
 			const campus = await this.bond.getCampus();
 			return campus;
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getCampus(retryTimes + 1);
 			} else {
@@ -38,7 +39,7 @@ export class BondService {
 			const activities = await this.bond.getActivities();
 			return activities;
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getActivities(retryTimes + 1);
 			} else {
@@ -51,7 +52,7 @@ export class BondService {
 			const courses = await this.bond.getCourses(allPeriods);
 			return courses;
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getCourses(allPeriods, retryTimes + 1);
 			} else {
@@ -68,7 +69,7 @@ export class BondService {
 		// 	const currentPeriod = await this.bond.getCurrentPeriod();
 		// 	return currentPeriod;
 		// } catch (error) {
-		// 	console.log(`Error: ${error} @ ${retryTimes}/3`);
+		// 	LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 		// 	if (retryTimes < 3) {
 		// 		return this.getCurrentPeriod(retryTimes + 1);
 		// 	} else {

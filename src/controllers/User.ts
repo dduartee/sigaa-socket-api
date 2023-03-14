@@ -8,6 +8,7 @@ import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import RequestStackCache from "../services/cache/RequestStackCache";
 import ResponseCache from "../services/cache/ResponseCache";
+import LoggerService from "../services/LoggerService";
 import BondCache from "../services/cache/BondCache";
 import InstitutionService from "../services/sigaa-api/Institutions.service";
 
@@ -33,13 +34,13 @@ export class User {
 			const sigaaURL = institution.url.href;
 			// login com credenciais
 			if (loginParams.username && loginParams.password) {
-				console.log(`[${loginParams.username}: ${this.socketService.id}] Logando (senha)`);
+				LoggerService.log(`[${loginParams.username}: ${this.socketService.id}] Logando (senha)`);
 				this.socketService.emit("user::status", "Logando");
 				const requestStackController = new SigaaRequestStack<Request, Page>();
 				const sigaaInstance = new Sigaa({ url: sigaaURL, institution: loginParams.institution, requestStackController });
 				const { JSESSIONID } = await AuthenticationService.loginWithCredentials(loginParams, sigaaInstance);
 				RequestStackCache.set(JSESSIONID, requestStackController);
-				console.log(`[${loginParams.username}: ${this.socketService.id}] Logado (senha) com sucesso`);
+				LoggerService.log(`[${loginParams.username}: ${this.socketService.id}] Logado (senha) com sucesso`);
 				SessionMap.set(uniqueID, { JSESSIONID, username: loginParams.username, sigaaURL });
 				sigaaInstance.close();
 				this.socketService.emit("user::status", "Logado");
@@ -53,11 +54,11 @@ export class User {
 					const { JSESSIONID, username } = SessionMap.get<ISessionMap>(uniqueID);
 					if (loginParams.username !== username) throw new Error("API: Username in cache does not match the username in the request.");
 					if (!JSESSIONID) throw new Error("API: No JSESSIONID found in cache.");
-					console.log(`[${loginParams.username}: ${this.socketService.id}] Logando (sessão)`);
+					LoggerService.log(`[${loginParams.username}: ${this.socketService.id}] Logando (sessão)`);
 					this.socketService.emit("user::status", "Logando");
 					const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
 					await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
-					console.log(`[${username}: ${this.socketService.id}] Logado (sessão) com sucesso`);
+					LoggerService.log(`[${username}: ${this.socketService.id}] Logado (sessão) com sucesso`);
 					sigaaInstance.close();
 					this.socketService.emit("user::status", "Logado");
 					return this.socketService.emit("user::login", { logado: true });
@@ -124,7 +125,7 @@ export class User {
 	 */
 	async logoff() {
 		try {
-			console.log(`[${this.socketService.id}] Deslogando`);
+			LoggerService.log(`[${this.socketService.id}] Deslogando`);
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
 			this.socketService.emit("user::status", "Deslogando");
 			SocketReferenceMap.del(this.socketService.id);
@@ -135,7 +136,7 @@ export class User {
 			ResponseCache.deleteResponses(uniqueID);
 			this.logado = false;
 			this.socketService.emit("user::status", "Deslogado");
-			console.log(`[${this.socketService.id}] Deslogado`);
+			LoggerService.log(`[${this.socketService.id}] Deslogado`);
 			return this.socketService.emit("user::login", { logado: false });
 		} catch (error) {
 			console.error(error);

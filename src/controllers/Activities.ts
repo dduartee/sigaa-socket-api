@@ -7,6 +7,7 @@ import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
+import LoggerService from "../services/LoggerService";
 
 interface IActivitiesQuery {
 	cache: boolean;
@@ -32,9 +33,9 @@ export class Activities {
 
 			const bondService = BondService.fromDTO(bond, sigaaInstance);
 			const campus = await bondService.getCampus();
-			console.log(`[${username}: activities - list] - access from ${campus}`);
+			LoggerService.log(`[${username}: activities - list] - access from ${campus}`);
 			const activities = await bondService.getActivities();
-			console.log(`[${username}: activities - list] - got ${activities.length}`);
+			LoggerService.log(`[${username}: activities - list] - got ${activities.length}`);
 			sigaaInstance.close();
 			const activitiesDTOs = await this.getActivitiesDTOs(activities);
 			const activitiesJSON = activitiesDTOs.map(activity => activity.toJSON());

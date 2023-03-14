@@ -8,6 +8,7 @@ import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import { LessonService } from "../services/sigaa-api/Course/Lesson.service";
 import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
+import LoggerService from "../services/LoggerService";
 import { BondService } from "../services/sigaa-api/Bond/Bond.service";
 import { Sigaa } from "sigaa-api";
 import { IBondDTOProps } from "../DTOs/Bond.DTO";
@@ -40,7 +41,7 @@ export class Lessons {
 					}
 				}
 			} else {
-				console.log("[lessons - list] - bond.courses is undefined (?????)");
+				LoggerService.log("[lessons - list] - bond.courses is undefined (?????)");
 			}
 
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
@@ -49,7 +50,7 @@ export class Lessons {
 			if (!courseService) throw new Error(`Course not found with id ${query.courseId}`);
 
 			const lessons = await courseService.getLessons();
-			console.log(`[${username}: lessons - list] - ${lessons.length} lessons retrieved`);
+			LoggerService.log(`[${username}: lessons - list] - ${lessons.length} lessons retrieved`);
 			const lessonsDTOs: LessonDTO[] = [];
 			for (const lesson of lessons) {
 				const lessonService = new LessonService(lesson);
@@ -87,7 +88,7 @@ export class Lessons {
 			const bondService = BondService.fromDTO(bond, sigaaInstance);
 			const courses = await bondService.getCourses();
 			const coursesServices = courses.map(course => new CourseService(course));
-			console.log(`[getCourseService] - ${courses.length} (fetched)`);
+			LoggerService.log(`[getCourseService] - ${courses.length} (fetched)`);
 			return coursesServices.find(({ course }) => course.id === courseId);
 		}
 	}

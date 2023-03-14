@@ -6,6 +6,7 @@ import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import ResponseCache from "../services/cache/ResponseCache";
+import LoggerService from "../services/LoggerService";
 import BondCache from "../services/cache/BondCache";
 
 interface ICourseQuery {
@@ -41,7 +42,7 @@ export class Courses {
 			const bondService = BondService.fromDTO(bond, sigaaInstance);
 
 			const courses = await bondService.getCourses(query.allPeriods);
-			console.log(`[${username}: courses - list] - got ${courses.length} (fetched)`);
+			LoggerService.log(`[${username}: courses - list] - got ${courses.length} (fetched)`);
 
 			sigaaInstance.close();
 

@@ -9,6 +9,7 @@ import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
+import LoggerService from "../services/LoggerService";
 import { IBondDTOProps } from "../DTOs/Bond.DTO";
 
 interface IHomeworkQuery {
@@ -54,7 +55,7 @@ export class Homeworks {
 					}
 				}
 			} else {
-				console.log("[homework - content] - bond.courses is undefined (?????)");
+				LoggerService.log("[homework - content] - bond.courses is undefined (?????)");
 			}
 
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
@@ -71,13 +72,13 @@ export class Homeworks {
 			try {
 				attachmentFile = await homework.getAttachmentFile() as SigaaFile;
 			} catch (error) {
-				console.log("No attachment file found");
+				LoggerService.log("No attachment file found");
 			}
 			const fileDTO = attachmentFile ? new FileDTO(attachmentFile) : null;
 			const content = await homework.getDescription();
 			const haveGrade = await homework.getFlagHaveGrade();
 			const isGroup = await homework.getFlagIsGroupHomework();
-			console.log(`[${username}: homework - content] - content retrieved`);
+			LoggerService.log(`[${username}: homework - content] - content retrieved`);
 
 			sigaaInstance.close();
 			const homeworkDTO = new HomeworkDTO(homework, fileDTO, content, haveGrade, isGroup);
@@ -108,7 +109,7 @@ export class Homeworks {
 			const bondService = BondService.fromDTO(bond, sigaaInstance);
 			const courses = await bondService.getCourses();
 			const coursesServices = courses.map(course => new CourseService(course));
-			console.log(`[getCourseService] - ${courses.length} (fetched)`);
+			LoggerService.log(`[getCourseService] - ${courses.length} (fetched)`);
 			return coursesServices.find(({ course }) => course.title === courseTitle);
 		}
 	}

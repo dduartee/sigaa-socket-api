@@ -1,5 +1,4 @@
 import { v4 } from "uuid";
-import { events } from "../apiConfig.json";
 import { Event, Socket } from "socket.io";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
@@ -8,9 +7,8 @@ class Auth {
 	token: string;
 	constructor(private socketService: Socket) { }
 	valid(params: { token: string }) {
-		const eventName = events.auth.valid;
 		const valid = this.handleTokenManagement(params.token);
-		return this.socketService.emit(eventName, valid);
+		return this.socketService.emit("auth::valid", valid);
 	}
 	private handleTokenManagement(token: string) {
 		const verify = token && jwt.verify(token);
@@ -42,7 +40,7 @@ class Auth {
 			const time = new Date().toISOString();
 			const newToken = jwt.sign({ time, uniqueID, sid }) || "";
 			SocketReferenceMap.set(sid, uniqueID);
-			this.socketService.emit(events.auth.store, newToken);
+			this.socketService.emit("auth::store", newToken);
 			return next();
 		} catch (err) {
 			console.error(err);

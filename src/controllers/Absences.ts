@@ -1,5 +1,3 @@
-
-
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { Socket } from "socket.io";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
@@ -25,14 +23,13 @@ export class Absences {
 	async list(query: IAbsencesQuery) {
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
-			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
+			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID);
 
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
 			
 			const responseCache = ResponseCache.getResponse<IBondDTOProps>({ uniqueID, event: "absences::list", query });
 			if (query.cache && responseCache) {
-				console.log("[absences - list] - cache hit");
 				return this.socketService.emit("absences::list", responseCache);
 			}
 
@@ -43,7 +40,7 @@ export class Absences {
 			const coursesDTOs: CourseDTO[] = [];
 			for (const courseService of coursesServices) {
 				const absences = await courseService.getAbsences();
-				console.log(`[absences - list] - got ${absences.list.length} absences from ${courseService.course.code}`);
+				console.log(`[${username}: absences - list] - got ${absences.list.length}`);
 				const absencesDTO = new AbsencesDTO(absences);
 				const courseDTO = courseService.getDTO();
 				courseDTO.setAdditionals({ absencesDTO });
@@ -68,12 +65,12 @@ export class Absences {
 	private async getCoursesServices(bond: IBondDTOProps, sigaaInstance: Sigaa) {
 		if (bond.courses?.length > 0) {
 			const coursesServices = bond.courses.map(course => CourseService.fromDTO(course, sigaaInstance));
-			console.log(`[grades - list] - ${coursesServices.length} (rehydrated)`);
 			return coursesServices;
 		} else {
 			const bondService = BondService.fromDTO(bond, sigaaInstance);
 			const courses = await bondService.getCourses();
 			const coursesServices = courses.map(course => new CourseService(course));
+			console.log(`[absences - list] - ${coursesServices.length} (fetched)`);
 			return coursesServices;
 		}
 	}

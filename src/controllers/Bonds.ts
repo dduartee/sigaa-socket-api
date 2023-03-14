@@ -1,4 +1,3 @@
-import { events } from "../apiConfig.json";
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { BondService } from "../services/sigaa-api/Bond/Bond.service";
@@ -19,11 +18,10 @@ export class Bonds {
 	async list(query: IBondQuery) {
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
-			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
+			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID);
 
 			const responseCache = ResponseCache.getResponse<IBondDTOProps[]>({ uniqueID, event: "bonds::list", query });
 			if (query.cache && responseCache) {
-				console.log("[bonds - list] - cache hit", responseCache.length);
 				return this.socketService.emit("bonds::list", responseCache);
 			}
 
@@ -35,7 +33,7 @@ export class Bonds {
 			const activeBonds = await accountService.getActiveBonds();
 			const inactiveBonds = query.inactive ? await accountService.getInactiveBonds() : [];
 			const bonds = [...activeBonds, ...inactiveBonds];
-			console.log(`[bonds - list] - got ${bonds.length} from SIGAA`);
+			console.log(`[${username}: bonds - list] - got ${bonds.length} (fetched)`);
 			const bondsDTOs: BondDTO[] = [];
 			for (const bond of bonds) {
 				const bondService = new BondService(bond);

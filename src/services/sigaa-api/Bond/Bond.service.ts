@@ -13,7 +13,6 @@ export class BondService {
 			registration: bondDTO.registration,
 			sequence: bondDTO.sequence,
 		}, sigaaInstance);
-		console.log(`[BondService - fromDTO] - rehydrated bond: ${rehydratedBond.registration}`);
 		return new BondService(rehydratedBond);
 	}
 	getSequence() {
@@ -38,27 +37,6 @@ export class BondService {
 		try {
 			const activities = await this.bond.getActivities();
 			return activities;
-			// const mockActivities: Partial<Activity>[] = [
-			// 	{
-			// 		courseTitle: "HISTÓRIA III",
-			// 		courseId: "178932",
-			// 		date: new Date(),
-			// 		done: true,
-			// 		homeworkId: "49686859",
-			// 		homeworkTitle: "Atividade Avaliativa 3° Trimestre",
-			// 		type: "homework"
-			// 	},
-			// 	{
-			// 		courseTitle: "CIÊNCIA, TECNOLOGIA E SOCIEDADE III",
-			// 		courseId: "179030",
-			// 		date: new Date(),
-			// 		done: false,
-			// 		homeworkId: "44690103",
-			// 		homeworkTitle: "Tarefa sobre Ortega y Gasset",
-			// 		type: "homework"
-			// 	}
-			// ];
-			// return mockActivities;
 		} catch (error) {
 			console.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {

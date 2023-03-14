@@ -1,5 +1,4 @@
 import { Socket } from "socket.io";
-import { events } from "../apiConfig.json";
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { BondService } from "../services/sigaa-api/Bond/Bond.service";
 import { BondDTO, IBondDTOProps } from "../DTOs/Bond.DTO";
@@ -27,14 +26,13 @@ export class Courses {
 	async list(query: ICourseQuery) {
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
-			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
+			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID);
 
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
 
 			const responseCache = ResponseCache.getResponse<IBondDTOProps>({ uniqueID, event: "courses::list", query });
 			if (query.cache && responseCache) {
-				console.log("[courses - list] - cache hit");
 				return this.socketService.emit("courses::list", responseCache);
 			}
 
@@ -43,7 +41,7 @@ export class Courses {
 			const bondService = BondService.fromDTO(bond, sigaaInstance);
 
 			const courses = await bondService.getCourses(query.allPeriods);
-			console.log(`[courses - list] - got ${courses.length} (rehydrated)`);
+			console.log(`[${username}: courses - list] - got ${courses.length} (fetched)`);
 
 			sigaaInstance.close();
 

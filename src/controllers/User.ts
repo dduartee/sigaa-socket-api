@@ -1,6 +1,4 @@
-import { sigaaIfscURL } from "../apiConfig.json";
-import { Page, Request, Sigaa } from "sigaa-api";
-import { events } from "../apiConfig.json";
+import { InstitutionType, Page, Request, Sigaa } from "sigaa-api";
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { AccountService } from "../services/sigaa-api/Account.service";
 import { Socket } from "socket.io";
@@ -11,34 +9,38 @@ import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import RequestStackCache from "../services/cache/RequestStackCache";
 import ResponseCache from "../services/cache/ResponseCache";
 import BondCache from "../services/cache/BondCache";
+import InstitutionService from "../services/sigaa-api/Institutions.service";
 
-export type LoginCredentials = {
+export type LoginParams = {
 	username: string;
 	password: string;
-	sigaaURL: string;
+	institution: InstitutionType; // acronimo da instituição (IFSC, UnB, etc)
 }
 export class User {
 	logado: boolean;
 	constructor(private socketService: Socket) { }
 	/**
 	 * Realiza evento de login
-	 * @param credentials 
+	 * @param loginParams 
 	 * @returns 
 	 */
-	async login(credentials: LoginCredentials) {
-		const sigaaURL = credentials.sigaaURL || sigaaIfscURL;
+	async login(loginParams: LoginParams) {
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
+			const institution = InstitutionService.getFromAcronym(loginParams.institution);
+			if (!institution) throw new Error(`Institution ${loginParams.institution} not found`);
+			
+			const sigaaURL = institution.url.href;
 			// login com credenciais
-			if (credentials.username && credentials.password) {
-				console.log(`[${credentials.username} - ${this.socketService.id}] logando (senha)`);
+			if (loginParams.username && loginParams.password) {
+				console.log(`[${loginParams.username}: ${this.socketService.id}] Logando (senha)`);
 				this.socketService.emit("user::status", "Logando");
 				const requestStackController = new SigaaRequestStack<Request, Page>();
-				const sigaaInstance = new Sigaa({ url: sigaaURL, requestStackController });
-				const { JSESSIONID } = await AuthenticationService.loginWithCredentials(credentials, sigaaInstance);
+				const sigaaInstance = new Sigaa({ url: sigaaURL, institution: loginParams.institution, requestStackController });
+				const { JSESSIONID } = await AuthenticationService.loginWithCredentials(loginParams, sigaaInstance);
 				RequestStackCache.set(JSESSIONID, requestStackController);
-				console.log(`[${credentials.username} - ${this.socketService.id}] Logado (senha) com sucesso`);
-				SessionMap.set(uniqueID, { JSESSIONID, username: credentials.username, sigaaURL: sigaaURL });
+				console.log(`[${loginParams.username}: ${this.socketService.id}] Logado (senha) com sucesso`);
+				SessionMap.set(uniqueID, { JSESSIONID, username: loginParams.username, sigaaURL });
 				sigaaInstance.close();
 				this.socketService.emit("user::status", "Logado");
 				return this.socketService.emit("user::login", { logado: true });
@@ -49,20 +51,20 @@ export class User {
 					return this.socketService.emit("user::login", { logado: false });
 				} else {
 					const { JSESSIONID, username } = SessionMap.get<ISessionMap>(uniqueID);
-					if (credentials.username !== username) throw new Error("API: Username in cache does not match the username in the request.");
+					if (loginParams.username !== username) throw new Error("API: Username in cache does not match the username in the request.");
 					if (!JSESSIONID) throw new Error("API: No JSESSIONID found in cache.");
-					console.log(`[${credentials.username} - ${this.socketService.id}] logando (sessão)`);
+					console.log(`[${loginParams.username}: ${this.socketService.id}] Logando (sessão)`);
 					this.socketService.emit("user::status", "Logando");
 					const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
 					await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
-					console.log(`[${username} - ${this.socketService.id}] Logado (sessão) com sucesso`);
+					console.log(`[${username}: ${this.socketService.id}] Logado (sessão) com sucesso`);
 					sigaaInstance.close();
 					this.socketService.emit("user::status", "Logado");
 					return this.socketService.emit("user::login", { logado: true });
 				}
 			}
 		} catch (error) {
-			if (error.message === "SIGAA: Invalid credentials.") {
+			if (error.message === "SIGAA: Invalid loginParams.") {
 				this.socketService.emit("user::login", {
 					logado: false,
 					error: "Credenciais inválidas"
@@ -89,16 +91,14 @@ export class User {
 
 			const responseCache = ResponseCache.getResponse<IStudentDTOProps>({ uniqueID, event: "user::info", query: { username } });
 			if (responseCache) {
-				console.log("[user - info] - cache hit");
 				return this.socketService.emit("user::info", responseCache);
 			}
-
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
 			const page = await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
 			const account = await AuthenticationService.parseAccount(sigaaInstance, page);
 			const accountService = new AccountService(account);
 			const fullName = await accountService.getFullName();
-			const defaultProfilePictureURL = new URL("https://sigaa.ifsc.edu.br/sigaa/img/no_picture.png");
+			const defaultProfilePictureURL = new URL("/sigaa/img/no_picture.png", sigaaURL);
 			const userProfilePictureURL = await accountService.getProfilePictureURL();
 			const profilePictureURL = userProfilePictureURL ? userProfilePictureURL : defaultProfilePictureURL;
 			const emails = await accountService.getEmails();
@@ -110,7 +110,7 @@ export class User {
 				profilePictureURL: profilePictureURL.href,
 				emails,
 			});
-			ResponseCache.setResponse({ uniqueID, event: "user::info", query: { username } }, studentDTO.toJSON(), 3600 * 1.5)
+			ResponseCache.setResponse({ uniqueID, event: "user::info", query: { username } }, studentDTO.toJSON(), 3600 * 1.5);
 			return this.socketService.emit("user::info", studentDTO.toJSON());
 		} catch (error) {
 			console.error(error);
@@ -135,6 +135,7 @@ export class User {
 			ResponseCache.deleteResponses(uniqueID);
 			this.logado = false;
 			this.socketService.emit("user::status", "Deslogado");
+			console.log(`[${this.socketService.id}] Deslogado`);
 			return this.socketService.emit("user::login", { logado: false });
 		} catch (error) {
 			console.error(error);

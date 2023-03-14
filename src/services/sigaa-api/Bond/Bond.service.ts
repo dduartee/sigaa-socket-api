@@ -1,6 +1,7 @@
 import { Activity, CourseStudent, Sigaa, StudentBond } from "sigaa-api";
 import BondRehydrateFactory from "./BondRehydrateFactory";
 import { IBondDTOProps } from "../../../DTOs/Bond.DTO";
+import LoggerService from "../../LoggerService";
 
 export class BondService {
 	constructor(private bond: StudentBond) { }
@@ -13,7 +14,6 @@ export class BondService {
 			registration: bondDTO.registration,
 			sequence: bondDTO.sequence,
 		}, sigaaInstance);
-		console.log(`[BondService - fromDTO] - rehydrated bond: ${rehydratedBond.registration}`);
 		return new BondService(rehydratedBond);
 	}
 	getSequence() {
@@ -26,7 +26,7 @@ export class BondService {
 			const campus = await this.bond.getCampus();
 			return campus;
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getCampus(retryTimes + 1);
 			} else {
@@ -38,29 +38,8 @@ export class BondService {
 		try {
 			const activities = await this.bond.getActivities();
 			return activities;
-			// const mockActivities: Partial<Activity>[] = [
-			// 	{
-			// 		courseTitle: "HISTÓRIA III",
-			// 		courseId: "178932",
-			// 		date: new Date(),
-			// 		done: true,
-			// 		homeworkId: "49686859",
-			// 		homeworkTitle: "Atividade Avaliativa 3° Trimestre",
-			// 		type: "homework"
-			// 	},
-			// 	{
-			// 		courseTitle: "CIÊNCIA, TECNOLOGIA E SOCIEDADE III",
-			// 		courseId: "179030",
-			// 		date: new Date(),
-			// 		done: false,
-			// 		homeworkId: "44690103",
-			// 		homeworkTitle: "Tarefa sobre Ortega y Gasset",
-			// 		type: "homework"
-			// 	}
-			// ];
-			// return mockActivities;
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getActivities(retryTimes + 1);
 			} else {
@@ -73,7 +52,7 @@ export class BondService {
 			const courses = await this.bond.getCourses(allPeriods);
 			return courses;
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getCourses(allPeriods, retryTimes + 1);
 			} else {
@@ -90,7 +69,7 @@ export class BondService {
 		// 	const currentPeriod = await this.bond.getCurrentPeriod();
 		// 	return currentPeriod;
 		// } catch (error) {
-		// 	console.log(`Error: ${error} @ ${retryTimes}/3`);
+		// 	LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 		// 	if (retryTimes < 3) {
 		// 		return this.getCurrentPeriod(retryTimes + 1);
 		// 	} else {

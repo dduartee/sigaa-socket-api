@@ -1,6 +1,7 @@
-import { CourseStudent, CourseStudentData, GradeGroup, Lesson, Sigaa, SigaaHomework, SigaaNews } from "sigaa-api";
+import { CourseStudent, CourseStudentData, GradeGroup, Lesson, Sigaa, SigaaHomework, SigaaNews, Syllabus } from "sigaa-api";
 import { CourseDTO, ICourseDTOProps } from "../../../DTOs/CourseDTO";
 import CourseRehydrateService from "./CourseRehydrateService";
+import LoggerService from "../../LoggerService";
 export class CourseService {
 	constructor(public course: CourseStudent) { }
 	getDTO() {
@@ -9,7 +10,7 @@ export class CourseService {
 		return new CourseDTO(this.course, postValues);
 	}
 	static fromDTO(courseDTOProps: ICourseDTOProps, sigaaInstance: Sigaa) {
-		const form = CourseDTO.getCourseForm(courseDTOProps);
+		const form = CourseDTO.getCourseForm(courseDTOProps, sigaaInstance);
 		const courseData: CourseStudentData = {
 			id: courseDTOProps.id,
 			title: courseDTOProps.title,
@@ -27,7 +28,7 @@ export class CourseService {
 			const homeworks = await this.course.getHomeworks() as SigaaHomework[];
 			return homeworks;
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getHomeworks(full, retryTimes + 1);
 			} else {
@@ -40,7 +41,7 @@ export class CourseService {
 			const grades = await this.course.getGrades();
 			return grades;
 		} catch(error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getGrades(retryTimes + 1);
 			} else {
@@ -53,7 +54,7 @@ export class CourseService {
 			const news = await this.course.getNews() as SigaaNews[];
 			return news;
 		} catch(error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getNews(retryTimes + 1);
 			} else {
@@ -66,7 +67,7 @@ export class CourseService {
 			const lessons = await this.course.getLessons();
 			return lessons;
 		} catch(error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getLessons(retryTimes + 1);
 			} else {
@@ -79,7 +80,7 @@ export class CourseService {
 			const absence = await this.course.getAbsence();
 			return absence;
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getAbsences(retryTimes + 1);
 			} else {
@@ -92,7 +93,7 @@ export class CourseService {
 			const members = await this.course.getMembers();
 			return members;
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getMembers(retryTimes + 1);
 			} else {
@@ -100,16 +101,16 @@ export class CourseService {
 			}
 		}
 	}
-	async getSyllabus(retryTimes = 0) {
+	async getSyllabus(retryTimes = 0): Promise<Syllabus> {
 		try {
 			const syllabus = await this.course.getSyllabus();
 			return syllabus;
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getSyllabus(retryTimes + 1);
 			} else {
-				return [];
+				return undefined;
 			}
 		}
 	}

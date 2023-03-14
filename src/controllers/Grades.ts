@@ -1,4 +1,3 @@
-
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import { BondService } from "../services/sigaa-api/Bond/Bond.service";
 import { CourseService } from "../services/sigaa-api/Course/Course.service";
@@ -10,6 +9,7 @@ import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import { GradesService } from "../services/sigaa-api/Course/Grades.service";
 import { Sigaa } from "sigaa-api";
 import ResponseCache from "../services/cache/ResponseCache";
+import LoggerService from "../services/LoggerService";
 import BondCache from "../services/cache/BondCache";
 
 interface IGradeQuery {
@@ -24,14 +24,13 @@ export class Grades {
 	async list(query: IGradeQuery) {
 		try {
 			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
-			const { JSESSIONID, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
+			const { JSESSIONID, sigaaURL, username} = SessionMap.get<ISessionMap>(uniqueID);
 
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
 
 			const responseCache = ResponseCache.getResponse<IBondDTOProps>({ uniqueID, event: "grades::list", query });
 			if (query.cache && responseCache) {
-				console.log("[grades - list] - cache hit");
 				return this.socketService.emit("grades::list", responseCache);
 			}
 
@@ -50,7 +49,7 @@ export class Grades {
 				const bondDTO = BondDTO.fromJSON(bond);
 				bondDTO.setCourses(coursesDTOs);
 				this.socketService.emit("grades::listPartial", bondDTO.toJSON());
-				console.log("[grades - list] -", courseService.course.code, gradeGroups.length);
+				LoggerService.log(`[${username}: grades - list] - ${gradeGroups.length}`);
 			}
 			sigaaInstance.close();
 			const bondDTO = BondDTO.fromJSON(bond);
@@ -71,13 +70,12 @@ export class Grades {
 	private async getCoursesServices(bond: IBondDTOProps, sigaaInstance: Sigaa) {
 		if (bond.courses?.length > 0) {
 			const coursesServices = bond.courses.map(course => CourseService.fromDTO(course, sigaaInstance));
-			console.log(`[getCoursesServices] - ${coursesServices.length} (rehydrated)`);
 			return coursesServices;
 		} else {
 			const bondService = BondService.fromDTO(bond, sigaaInstance);
 			const courses = await bondService.getCourses();
 			const coursesServices = courses.map(course => new CourseService(course));
-			console.log(`[getCoursesServices] - ${courses.length} (fetched)`);
+			LoggerService.log(`[getCoursesServices] - ${courses.length} (fetched)`);
 			return coursesServices;
 		}
 	}

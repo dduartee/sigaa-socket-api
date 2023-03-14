@@ -1,11 +1,12 @@
 import { Account, StudentBond } from "sigaa-api";
+import LoggerService from "../LoggerService";
 class AccountService {
 	constructor(private account: Account) { }
 	async getFullName(retryTimes = 0): Promise<string | null> {
 		try {
 			return await this.account.getName();
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getFullName(retryTimes + 1);
 			} else {
@@ -17,7 +18,7 @@ class AccountService {
 		try {
 			return await this.account.getProfilePictureURL();
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getProfilePictureURL(retryTimes + 1);
 			} else {
@@ -29,7 +30,7 @@ class AccountService {
 		try {
 			return await this.account.getEmails();
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getEmails(retryTimes + 1);
 			} else {
@@ -44,7 +45,7 @@ class AccountService {
 			const studentActiveBonds = activeBonds.filter(bond => bond.type === "student") as StudentBond[];
 			return studentActiveBonds;
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getActiveBonds(retryTimes + 1);
 			} else {
@@ -58,7 +59,7 @@ class AccountService {
 			const studentInactiveBonds = inactiveBonds.filter(bond => bond.type === "student") as StudentBond[];
 			return studentInactiveBonds;
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.getInactiveBonds(retryTimes + 1);
 			} else {
@@ -70,7 +71,7 @@ class AccountService {
 		try {
 			return await this.account.logoff();
 		} catch (error) {
-			console.log(`Error: ${error} @ ${retryTimes}/3`);
+			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
 				return this.logoff(retryTimes + 1);
 			} else {

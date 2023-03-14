@@ -1,7 +1,4 @@
 import {
-	HTTP,
-	HTTPFactory,
-	Parser,
 	Sigaa,
 	SigaaActivityFactory,
 	SigaaBondFactory,
@@ -15,21 +12,19 @@ import {
 class BondRehydrateFactory {
 	create(
 		bondData: {
-      program: string;
-      registration: string;
-      sequence: number;
-    }, sigaaInstance:Sigaa): StudentBond {
+			program: string;
+			registration: string;
+			sequence: number;
+		}, sigaaInstance: Sigaa): StudentBond {
 		const { program, registration, sequence } = bondData;
-		const { httpFactory, parser } = sigaaInstance;
-		const http = httpFactory.createHttp();
-		const bondSwitchUrl = new URL(
-			`https://sigaa.ifsc.edu.br/sigaa/escolhaVinculo.do?dispatch=escolher&vinculo=${sequence}`
-		);
+		const { httpFactory, parser, httpSession } = sigaaInstance;
+		const bondSwitchUrl = httpSession.getURL(`/sigaa/escolhaVinculo.do?dispatch=escolher&vinculo=${sequence}`);
 		const courseResourcesFactory = new SigaaCourseResourcesFactory(parser);
 		const courseResourcesManagerFactory = new SigaaCourseResourceManagerFactory(
 			courseResourcesFactory
 		);
 		const lessonParserFactory = new SigaaLessonParserFactory(parser);
+		const http = httpFactory.createHttp();
 		const courseFactory = new SigaaCourseFactory(
 			http,
 			parser,

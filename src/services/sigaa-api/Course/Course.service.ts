@@ -1,4 +1,4 @@
-import { CourseStudent, CourseStudentData, GradeGroup, Lesson, Sigaa, SigaaHomework, SigaaNews } from "sigaa-api";
+import { CourseStudent, CourseStudentData, GradeGroup, Lesson, Sigaa, SigaaHomework, SigaaNews, Syllabus } from "sigaa-api";
 import { CourseDTO, ICourseDTOProps } from "../../../DTOs/CourseDTO";
 import CourseRehydrateService from "./CourseRehydrateService";
 export class CourseService {
@@ -9,7 +9,7 @@ export class CourseService {
 		return new CourseDTO(this.course, postValues);
 	}
 	static fromDTO(courseDTOProps: ICourseDTOProps, sigaaInstance: Sigaa) {
-		const form = CourseDTO.getCourseForm(courseDTOProps);
+		const form = CourseDTO.getCourseForm(courseDTOProps, sigaaInstance);
 		const courseData: CourseStudentData = {
 			id: courseDTOProps.id,
 			title: courseDTOProps.title,
@@ -100,7 +100,7 @@ export class CourseService {
 			}
 		}
 	}
-	async getSyllabus(retryTimes = 0) {
+	async getSyllabus(retryTimes = 0): Promise<Syllabus> {
 		try {
 			const syllabus = await this.course.getSyllabus();
 			return syllabus;
@@ -109,7 +109,7 @@ export class CourseService {
 			if (retryTimes < 3) {
 				return this.getSyllabus(retryTimes + 1);
 			} else {
-				return [];
+				return undefined;
 			}
 		}
 	}

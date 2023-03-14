@@ -1,8 +1,8 @@
 class LoggerService {
-	log(message: string, data?: unknown) {
+	log(message: string) {
 		const date = new Date();
 		const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-		console.log(`[${time}] ${message}`, data);
+		console.log(`[${time}] ${message}`);
 		return;
 	}
 }

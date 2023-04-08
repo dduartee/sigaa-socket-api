@@ -1490,9 +1490,9 @@ shebang-regex@^3.0.0:
   resolved "https://registry.yarnpkg.com/shebang-regex/-/shebang-regex-3.0.0.tgz#ae16f1644d873ecad843b0307b143362d4c42172"
   integrity sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==
 
-"sigaa-api@https://github.com/dduartee/sigaa-api.git#courseForm":
+"sigaa-api@https://github.com/dduartee/sigaa-api.git#forbidden":
   version "1.0.35"
-  resolved "https://github.com/dduartee/sigaa-api.git#1c8f73c30d74b05a4bdbfd497a128e4521035076"
+  resolved "https://github.com/dduartee/sigaa-api.git#220665bd77b22711d6e453d63c26d6f1ca9a2cd8"
   dependencies:
     cheerio "^1.0.0-rc.10"
     formdata-node "^3.6.3"

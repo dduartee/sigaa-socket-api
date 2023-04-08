@@ -1,5 +1,6 @@
 import { Account, Page, Sigaa, SigaaCookiesController } from "sigaa-api";
 import RequestStackCache, { IRequestStackCache } from "../cache/RequestStackCache";
+import { recaptchaSolver } from "./RecaptchaSolver.service";
 const expectedErrors = [
 	"SIGAA: Invalid response after login attempt.",
 	"SIGAA: Invalid homepage, the system behaved unexpectedly.",
@@ -15,7 +16,7 @@ class AuthenticationService {
 		password: string;
 	}, sigaaInstance: Sigaa): Promise<{ page: Page; error: undefined } | { page: undefined, error: string }> {
 		try {
-			const page = await sigaaInstance.loginInstance.login(credentials.username, credentials.password);
+			const page = await sigaaInstance.loginInstance.login(credentials.username, credentials.password, recaptchaSolver);
 			return { page, error: undefined };
 		} catch (primaryError) {
 			let errorMessage = primaryError.message as string;
@@ -26,7 +27,7 @@ class AuthenticationService {
 				}
 				try {
 					sigaaInstance.session.loginStatus = 0;
-					const retryPage = await sigaaInstance.loginInstance.login(credentials.username, credentials.password);
+					const retryPage = await sigaaInstance.loginInstance.login(credentials.username, credentials.password, recaptchaSolver);
 					return { page: retryPage, error: undefined };
 				} catch (secondaryError: any) {
 					errorMessage = secondaryError.message;

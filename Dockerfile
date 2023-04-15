@@ -5,7 +5,7 @@ COPY . .
 
 RUN pip3 install PyPasser
 
-RUN yarn install
+RUN yarn install --frozen-lockfile --network-concurrency 1
 RUN yarn build
 
 CMD ["yarn", "start"]

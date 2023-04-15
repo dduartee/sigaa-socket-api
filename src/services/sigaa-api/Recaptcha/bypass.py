@@ -1,6 +1,10 @@
 import sys
 from pypasser import reCaptchaV3
 
+if len(sys.argv) != 3:
+    print('Usage: python bypass.py <sitekey> <action>')
+    exit(1)
+
 sitekey = sys.argv[1]
 action = sys.argv[2]
 

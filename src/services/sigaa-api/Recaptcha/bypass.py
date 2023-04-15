@@ -1,8 +1,7 @@
 import sys
 from pypasser import reCaptchaV3
 from pypasser.structs import Proxy
-from itertools import cycle
-
+from random import choice
 proxies = [
     {'HOST': '38.83.74.2', 'PORT': '443'},
     {'HOST': '38.83.74.2', 'PORT': '3128'},
@@ -18,9 +17,9 @@ proxies = [
 
 sitekey = sys.argv[1]
 action = sys.argv[2]
-proxy = cycle(proxies)
+random_proxy = choice(proxies)
 
 reCaptcha_response = reCaptchaV3('''
 https://www.google.com/recaptcha/api2/anchor?ar=1&k={sitekey}&co=aHR0cHM6Ly9zaWdhYS5pZnNjLmVkdS5icjo0NDM.&hl=en&v=6MY32oPwFCn9SUKWt8czDsDw&size=invisible&sa={action}
-''', Proxy(Proxy.type.HTTPs, proxy['HOST'], proxy['PORT']))
+''', Proxy(Proxy.type.HTTPs, random_proxy['HOST'], random_proxy['PORT']))
 sys.stdout.write(reCaptcha_response)

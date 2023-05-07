@@ -2,29 +2,29 @@ import AuthenticationService from "../services/sigaa-api/Authentication.service"
 import { Socket } from "socket.io";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
-import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import { AbsencesDTO } from "../DTOs/Absences.DTO";
 import { CourseDTO } from "../DTOs/CourseDTO";
 import { BondDTO, IBondDTOProps } from "../DTOs/Bond.DTO";
-import { BondService } from "../services/sigaa-api/Bond/Bond.service";
-import { Sigaa } from "sigaa-api";
 import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
 import LoggerService from "../services/LoggerService";
+import { CourseCommonController } from "./CourseCommonController";
 
-interface IAbsencesQuery {
+type IAbsencesQuery = {
 	cache: boolean;
 	registration: string;
 	inactive: boolean;
 	allPeriods: boolean;
 }
 
-export class Absences {
-	constructor(private socketService: Socket) { }
+export class Absences extends CourseCommonController {
+	constructor(private socketService: Socket) {
+		super();
+	}
 	async list(query: IAbsencesQuery) {
 		try {
-			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
-			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID);
+			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id) as string;
+			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID) as ISessionMap;
 
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
@@ -41,6 +41,7 @@ export class Absences {
 			const coursesDTOs: CourseDTO[] = [];
 			for (const courseService of coursesServices) {
 				const absences = await courseService.getAbsences();
+				if(!absences) throw new Error(`Absences not found for course ${courseService.course.id}`);
 				LoggerService.log(`[${username}: absences - list] - got ${absences.list.length}`);
 				const absencesDTO = new AbsencesDTO(absences);
 				const courseDTO = courseService.getDTO();
@@ -59,20 +60,6 @@ export class Absences {
 		} catch (error) {
 			console.error(error);
 			return false;
-		}
-	}
-	// se é possivel rehydratar os coursesservices, rehidrate-os
-	// se não, faça a requisição
-	private async getCoursesServices(bond: IBondDTOProps, sigaaInstance: Sigaa) {
-		if (bond.courses?.length > 0) {
-			const coursesServices = bond.courses.map(course => CourseService.fromDTO(course, sigaaInstance));
-			return coursesServices;
-		} else {
-			const bondService = BondService.fromDTO(bond, sigaaInstance);
-			const courses = await bondService.getCourses();
-			const coursesServices = courses.map(course => new CourseService(course));
-			LoggerService.log(`[absences - list] - ${coursesServices.length} (fetched)`);
-			return coursesServices;
 		}
 	}
 }

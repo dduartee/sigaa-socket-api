@@ -37,7 +37,7 @@ export class SyllabusDTO implements ISyllabusDTO {
 				basic: this.syllabus.basicReferences,
 				supplementary: this.syllabus.supplementaryReferences,
 			},
-			methods: this.syllabus.methods,
+			methods: this.syllabus.methods || "",
 			schedule: this.syllabus.schedule.map(schedule => ({
 				description: schedule.description,
 				endDate: schedule.endDate?.toISOString(),
@@ -47,8 +47,8 @@ export class SyllabusDTO implements ISyllabusDTO {
 				description: exam.description,
 				date: exam.date?.toISOString()
 			})),
-			assessmentProcedures: this.syllabus.assessmentProcedures,
-			attendanceSchedule: this.syllabus.attendanceSchedule
+			assessmentProcedures: this.syllabus.assessmentProcedures || "",
+			attendanceSchedule: this.syllabus.attendanceSchedule || "",
 		};
 	}
 

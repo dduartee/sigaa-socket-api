@@ -27,8 +27,8 @@ export interface IHomeworkDTO {
 }
 export class HomeworkDTO implements IHomeworkDTO {
 	constructor(
-        private homework: HomeworkData,
-        private fileDTO: FileDTO,
+        private homework: SigaaHomework,
+        private fileDTO: FileDTO | null,
         private content: string,
         private haveGrade: boolean,
         private isGroup: boolean
@@ -36,7 +36,7 @@ export class HomeworkDTO implements IHomeworkDTO {
 
 	toJSON(): IHomeworkDTOProps {
 		return {
-			id: this.homework.id,
+			id: this.homework.id as string,
 			title: this.homework.title,
 			content: this.content,
 			startDate: this.homework.startDate.toISOString(),

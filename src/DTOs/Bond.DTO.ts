@@ -1,4 +1,3 @@
-import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import { ActivityDTO, IActivityDTOProps } from "./Activity.DTO";
 import { CourseDTO, ICourseDTOProps } from "./CourseDTO";
 export interface BondData {
@@ -53,8 +52,8 @@ export class BondDTO implements IBondDTO {
 			registration: json.registration,
 			type: json.type
 		}, json.active, json.period, json.sequence);
-		const activitiesDTOs = json.activities?.map(a => ActivityDTO.fromJSON(a));
-		const coursesDTOs = json.courses?.map(c => new CourseDTO(c, c.postValues));
+		const activitiesDTOs = json.activities?.map(a => ActivityDTO.fromJSON(a)) || [];
+		const coursesDTOs = json.courses?.map(c => new CourseDTO(c, c.postValues)) || [];
 		bondDTO.setActivities(activitiesDTOs);
 		bondDTO.setCourses(coursesDTOs);
 		return bondDTO;

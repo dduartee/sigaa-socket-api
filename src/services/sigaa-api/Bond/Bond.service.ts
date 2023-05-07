@@ -18,6 +18,9 @@ export class BondService {
 	}
 	getSequence() {
 		const bondSwitchUrl = this.bond.bondSwitchUrl;
+		if (!bondSwitchUrl) {
+			throw new Error("Não foi possível obter a url de troca de vínculo");
+		}
 		const sequence = bondSwitchUrl.searchParams.get("vinculo") || ""; // ordem sequencial do vinculo
 		return parseInt(sequence);
 	}

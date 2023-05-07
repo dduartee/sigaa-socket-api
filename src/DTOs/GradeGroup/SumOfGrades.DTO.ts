@@ -3,7 +3,7 @@ import { SubGradeSumOfGrades } from "sigaa-api";
 export interface ISumOfGradesDTOProps {
     name: string,
     code: string,
-    value: number,
+    value?: number,
     maxValue: number,
 }
 export interface ISumOfGradesDTO {

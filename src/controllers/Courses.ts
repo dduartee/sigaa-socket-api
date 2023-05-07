@@ -9,7 +9,7 @@ import ResponseCache from "../services/cache/ResponseCache";
 import LoggerService from "../services/LoggerService";
 import BondCache from "../services/cache/BondCache";
 
-interface ICourseQuery {
+export type ICourseQuery = {
 	inactive: boolean,
 	allPeriods: boolean,
 	cache: boolean,
@@ -26,8 +26,8 @@ export class Courses {
    */
 	async list(query: ICourseQuery) {
 		try {
-			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
-			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID);
+			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id) as string;
+			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID) as ISessionMap;
 
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);

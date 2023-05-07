@@ -9,7 +9,7 @@ import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
 import LoggerService from "../services/LoggerService";
 
-interface IActivitiesQuery {
+type IActivitiesQuery = {
 	cache: boolean;
 	registration: string;
 	inactive: boolean;
@@ -19,8 +19,8 @@ export class Activities {
 	constructor(private socketService: Socket) { }
 	async list(query: IActivitiesQuery) {
 		try {
-			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
-			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID);
+			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id) as string;
+			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID) as ISessionMap;
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
 
@@ -35,7 +35,7 @@ export class Activities {
 			const campus = await bondService.getCampus();
 			LoggerService.log(`[${username}: activities - list] - access from ${campus}`);
 			const activities = await bondService.getActivities();
-			LoggerService.log(`[${username}: activities - list] - got ${activities.length}`);
+			LoggerService.log(`[${username}: activities - list] - got ${activities.length} activities`);
 			sigaaInstance.close();
 			const activitiesDTOs = await this.getActivitiesDTOs(activities);
 			const activitiesJSON = activitiesDTOs.map(activity => activity.toJSON());

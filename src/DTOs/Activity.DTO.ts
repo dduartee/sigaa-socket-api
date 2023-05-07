@@ -1,6 +1,3 @@
-import { CourseStudent, CourseStudentData } from "sigaa-api";
-import { CourseDTO } from "./CourseDTO";
-
 export interface IActivityData {
 	type: string;
 	date: Date;
@@ -28,26 +25,26 @@ export class ActivityDTO implements IActivityDTO {
 	constructor(public activity: IActivityData) { }
 
 	toJSON(): IActivityDTOProps {
-		let title = "";
-		let id = "";
+		let title: string | undefined;
+		let id: string | undefined;
 		switch (this.activity.type) {
-			case "exam":
-				title = this.activity.examDescription;
-				id = null;
-				break;
-			case "homework":
-				title = this.activity.homeworkTitle;
-				id = this.activity.homeworkId;
-				break;
-			case "quiz":
-				title = this.activity.quizTitle;
-				id = this.activity.quizId;
-				break;
+		case "exam":
+			title = this.activity.examDescription;
+			id = undefined;
+			break;
+		case "homework":
+			title = this.activity.homeworkTitle;
+			id = this.activity.homeworkId;
+			break;
+		case "quiz":
+			title = this.activity.quizTitle;
+			id = this.activity.quizId;
+			break;
 		}
 		return {
-			id,
+			id: id || "",
 			type: this.activity.type,
-			title,
+			title: title || "",
 			date: this.activity.date.toISOString(),
 			done: this.activity.done,
 			course: { title: this.activity.courseTitle, }
@@ -61,6 +58,6 @@ export class ActivityDTO implements IActivityDTO {
 			courseTitle: json.course.title,
 			homeworkTitle: json.title,
 			homeworkId: json.id
-		})
+		});
 	}
 }

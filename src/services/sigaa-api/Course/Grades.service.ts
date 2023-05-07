@@ -7,7 +7,7 @@ import { WeightedAverageDTO } from "../../../DTOs/GradeGroup/WeightedAverage.DTO
 
 class GradesService {
 	constructor(private gradeGroups: GradeGroup[]) { }
-	getDTOs() {
+	getDTOs(): GradeGroupDTO[] {
 		const gradeGroupsDTOs = this.gradeGroups.map(gradeGroup => {
 			let subGradesDTOs: SubGradeDTO[] = [];
 			switch (gradeGroup.type) {

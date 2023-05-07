@@ -1,18 +1,17 @@
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
-import { BondService } from "../services/sigaa-api/Bond/Bond.service";
 import { Socket } from "socket.io";
 import { HomeworkDTO } from "../DTOs/Homework.DTO";
-import { Sigaa, SigaaFile, SigaaHomework } from "sigaa-api";
+import { SigaaHomework } from "sigaa-api";
 import { FileDTO } from "../DTOs/Attachments/File.DTO";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
-import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
 import LoggerService from "../services/LoggerService";
-import { IBondDTOProps } from "../DTOs/Bond.DTO";
+import { CourseCommonController } from "./CourseCommonController";
+import { HomeworkService } from "../services/sigaa-api/Course/Homework.service";
 
-interface IHomeworkQuery {
+type IHomeworkQuery = {
 	inactive: boolean,
 	cache: boolean,
 	registration: string,
@@ -20,8 +19,10 @@ interface IHomeworkQuery {
 	homeworkId?: string
 	homeworkTitle?: string,
 }
-export class Homeworks {
-	constructor(private socketService: Socket) { }
+export class Homeworks extends CourseCommonController {
+	constructor(private socketService: Socket) {
+		super();
+	}
 	/**
 	 * Lista homeworks de todas as matérias de um vinculo especificado pelo registration
 	 * @param params 
@@ -31,17 +32,17 @@ export class Homeworks {
 	async content(query: IHomeworkQuery) {
 		try {
 
-			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
-			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID);
+			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id) as string;
+			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID) as ISessionMap;
 
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
 
+			if (!query.courseTitle) throw new Error("Course title is required");
 			/**
 			 * para ver o conteudo da matéria, é necessário que ele tenha atividades carregadas
 			 */
-			const activitiesLoaded = bond.activities !== undefined;
-			if (!activitiesLoaded) throw new Error(`Bond ${query.registration} has no activities loaded`);
+			if (bond.activities === undefined) throw new Error(`Bond ${query.registration} has no activities loaded`);
 
 			if (bond.courses) {
 				if (query.cache) {
@@ -60,6 +61,7 @@ export class Homeworks {
 
 			const sigaaInstance = AuthenticationService.getRehydratedSigaaInstance(sigaaURL, JSESSIONID);
 			const homeworkActivity = bond.activities.find(a => a.type === "homework" && a.title === query.homeworkTitle && a.id === query.homeworkId);
+			if (!homeworkActivity) throw new Error(`Homework ${query.homeworkId} not found`);
 
 			const courseService = await this.getCourseService(bond, query.courseTitle, sigaaInstance);
 			if (!courseService) throw new Error(`Course not found with title ${query.courseTitle}`);
@@ -67,14 +69,14 @@ export class Homeworks {
 			const homeworks = await courseService.getHomeworks() as SigaaHomework[];
 			const homework = homeworks.find(h => h.id === homeworkActivity.id);
 			if (!homework) throw new Error(`Homework ${homeworkActivity.id} not found`);
+			const homeworkService = new HomeworkService(homework);
 
-			let attachmentFile: SigaaFile | null = null;
-			try {
-				attachmentFile = await homework.getAttachmentFile() as SigaaFile;
-			} catch (error) {
-				LoggerService.log("No attachment file found");
+			const file = await homeworkService.getAttachment();
+			let fileDTO: FileDTO | null = null;
+			if(file) {
+				fileDTO = new FileDTO(file);
 			}
-			const fileDTO = attachmentFile ? new FileDTO(attachmentFile) : null;
+			
 			const content = await homework.getDescription();
 			const haveGrade = await homework.getFlagHaveGrade();
 			const isGroup = await homework.getFlagIsGroupHomework();
@@ -94,23 +96,4 @@ export class Homeworks {
 		}
 	}
 
-	private getSharedQuery(course: { id: string; }, homework: { id: string; title: string; }) {
-		return { courseId: course.id, homeworkId: homework.id, homeworkTitle: homework.title };
-	}
-
-	/**
-	* Se por algum motivo não tenha o bond.courses, ele requisita ao SIGAA
-	*/
-	private async getCourseService(bond: IBondDTOProps, courseTitle: string, sigaaInstance: Sigaa): Promise<CourseService> {
-		if (bond.courses?.length > 0) {
-			const coursesServices = bond.courses.map(course => CourseService.fromDTO(course, sigaaInstance));
-			return coursesServices.find(({ course }) => course.title === courseTitle);
-		} else {
-			const bondService = BondService.fromDTO(bond, sigaaInstance);
-			const courses = await bondService.getCourses();
-			const coursesServices = courses.map(course => new CourseService(course));
-			LoggerService.log(`[getCourseService] - ${courses.length} (fetched)`);
-			return coursesServices.find(({ course }) => course.title === courseTitle);
-		}
-	}
 }

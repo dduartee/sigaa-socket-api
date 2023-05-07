@@ -11,6 +11,7 @@ dotenv.config();
 class JWTService {
 	secret: string;
 	constructor() {
+		if(!process.env.SECRET) throw new Error("SECRET not found in .env file");
 		this.secret = process.env.SECRET + Date.now();
 	}
 	/**

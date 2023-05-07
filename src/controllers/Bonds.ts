@@ -9,7 +9,7 @@ import ResponseCache from "../services/cache/ResponseCache";
 import LoggerService from "../services/LoggerService";
 import BondCache from "../services/cache/BondCache";
 
-interface IBondQuery {
+type IBondQuery = {
 	inactive: boolean;
 	cache: boolean;
 }
@@ -18,8 +18,8 @@ export class Bonds {
 	constructor(private socketService: Socket) { }
 	async list(query: IBondQuery) {
 		try {
-			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
-			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID);
+			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id) as string;
+			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID) as ISessionMap;
 
 			const responseCache = ResponseCache.getResponse<IBondDTOProps[]>({ uniqueID, event: "bonds::list", query });
 			if (query.cache && responseCache) {

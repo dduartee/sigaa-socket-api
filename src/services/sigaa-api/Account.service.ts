@@ -67,7 +67,7 @@ class AccountService {
 			}
 		}
 	}
-	async logoff(retryTimes = 0) {
+	async logoff(retryTimes = 0): Promise<void> {
 		try {
 			return await this.account.logoff();
 		} catch (error) {

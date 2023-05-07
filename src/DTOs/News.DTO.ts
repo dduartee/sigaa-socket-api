@@ -1,28 +1,30 @@
 
-export type FullNews = {
+export interface INewsProps {
     id: string,
     title: string,
-    content?: string;
-    date?: Date;
 }
-export interface INewsDTOProps {
-    id: string,
-    title: string,
-    date: string,
+export interface INewsData {
+    date: Date,
+    content: string
+}
+export interface INewsDTOProps extends INewsProps {
+    date?: string,
     content?: string
 }
 export interface INewsDTO {
     toJSON(): INewsDTOProps;
 }
 export class NewsDTO implements INewsDTO {
-	constructor(public news: FullNews) {}
+	constructor(public newsProps: INewsProps, public newsData?: INewsData) {}
 
 	toJSON(): INewsDTOProps {
+		const date = this.newsData?.date || undefined;
+		const content = this.newsData?.content || undefined;
 		return {
-			id: this.news.id,
-			title: this.news.title,
-			date: this.news.date.toISOString(),
-			content: this.news.content
+			id: this.newsProps.id,
+			title: this.newsProps.title,
+			date: date?.toISOString(),
+			content: content
 		};
 	}
 }

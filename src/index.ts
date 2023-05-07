@@ -9,6 +9,7 @@ const io = new Server({
 	}
 });
 
+if(!process.env.PORT) throw new Error("PORT not found in .env file");
 const PORT = parseInt(process.env.PORT) || 5000;
 
 io.listen(PORT);

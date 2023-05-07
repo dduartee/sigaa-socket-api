@@ -3,7 +3,7 @@ import { SubGradeWeightedAverage } from "sigaa-api";
 export interface IWeightedAverageDTOProps {
     name: string,
     code: string,
-    value: number,
+    value?: number,
     weight: number,
 }
 export interface IWeightedAverageDTO {

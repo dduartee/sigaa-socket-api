@@ -1,15 +1,15 @@
-import { CourseStudent, CourseStudentData, GradeGroup, Lesson, Sigaa, SigaaHomework, SigaaNews, Syllabus } from "sigaa-api";
+import { AbsenceList, CourseStudent, CourseStudentData, GradeGroup, Lesson, MemberList, Sigaa, SigaaHomework, SigaaNews, Syllabus } from "sigaa-api";
 import { CourseDTO, ICourseDTOProps } from "../../../DTOs/CourseDTO";
 import CourseRehydrateService from "./CourseRehydrateService";
 import LoggerService from "../../LoggerService";
 export class CourseService {
 	constructor(public course: CourseStudent) { }
-	getDTO() {
+	getDTO(): CourseDTO {
 		const courseForm = this.course.getCourseForm();
 		const postValues = JSON.stringify(courseForm.postValues);
 		return new CourseDTO(this.course, postValues);
 	}
-	static fromDTO(courseDTOProps: ICourseDTOProps, sigaaInstance: Sigaa) {
+	static fromDTO(courseDTOProps: ICourseDTOProps, sigaaInstance: Sigaa): CourseService {
 		const form = CourseDTO.getCourseForm(courseDTOProps, sigaaInstance);
 		const courseData: CourseStudentData = {
 			id: courseDTOProps.id,
@@ -36,7 +36,7 @@ export class CourseService {
 			}
 		}
 	}
-	async getGrades(retryTimes = 0): Promise < GradeGroup[] > {
+	async getGrades(retryTimes = 0): Promise <GradeGroup[]> {
 		try {
 			const grades = await this.course.getGrades();
 			return grades;
@@ -49,10 +49,10 @@ export class CourseService {
 			}
 		}
 	}
-	async getNews(retryTimes = 0): Promise < SigaaNews[] > {
+	async getNews(retryTimes = 0): Promise <SigaaNews[]> {
 		try {
-			const news = await this.course.getNews() as SigaaNews[];
-			return news;
+			const News = await this.course.getNews() as SigaaNews[];
+			return News;
 		} catch(error) {
 			LoggerService.log(`Error: ${error} @ ${retryTimes}/3`);
 			if (retryTimes < 3) {
@@ -62,7 +62,7 @@ export class CourseService {
 			}
 		}
 	}
-	async getLessons(retryTimes = 0): Promise < Lesson[] > {
+	async getLessons(retryTimes = 0): Promise <Lesson[]> {
 		try {
 			const lessons = await this.course.getLessons();
 			return lessons;
@@ -75,7 +75,7 @@ export class CourseService {
 			}
 		}
 	}
-	async getAbsences(retryTimes = 0) {
+	async getAbsences(retryTimes = 0): Promise<AbsenceList | undefined> {
 		try {
 			const absence = await this.course.getAbsence();
 			return absence;
@@ -84,11 +84,11 @@ export class CourseService {
 			if (retryTimes < 3) {
 				return this.getAbsences(retryTimes + 1);
 			} else {
-				return [];
+				return undefined;
 			}
 		}
 	}
-	async getMembers(retryTimes = 0) {
+	async getMembers(retryTimes = 0): Promise<MemberList | undefined> {
 		try {
 			const members = await this.course.getMembers();
 			return members;
@@ -97,11 +97,11 @@ export class CourseService {
 			if (retryTimes < 3) {
 				return this.getMembers(retryTimes + 1);
 			} else {
-				return [];
+				return undefined;
 			}
 		}
 	}
-	async getSyllabus(retryTimes = 0): Promise<Syllabus> {
+	async getSyllabus(retryTimes = 0): Promise<Syllabus | undefined> {
 		try {
 			const syllabus = await this.course.getSyllabus();
 			return syllabus;

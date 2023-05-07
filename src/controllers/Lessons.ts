@@ -1,7 +1,5 @@
 import { Socket } from "socket.io";
-import { ICourseDTOProps } from "../DTOs/CourseDTO";
 import { LessonDTO } from "../DTOs/Lessons.DTO";
-import { CourseService } from "../services/sigaa-api/Course/Course.service";
 import AuthenticationService from "../services/sigaa-api/Authentication.service";
 import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
@@ -9,9 +7,7 @@ import { LessonService } from "../services/sigaa-api/Course/Lesson.service";
 import BondCache from "../services/cache/BondCache";
 import ResponseCache from "../services/cache/ResponseCache";
 import LoggerService from "../services/LoggerService";
-import { BondService } from "../services/sigaa-api/Bond/Bond.service";
-import { Sigaa } from "sigaa-api";
-import { IBondDTOProps } from "../DTOs/Bond.DTO";
+import { CourseCommonController } from "./CourseCommonController";
 
 interface ILessonsQuery {
 	inactive: boolean;
@@ -20,12 +16,14 @@ interface ILessonsQuery {
 	courseId: string,
 	allPeriods: boolean
 }
-export class Lessons {
-	constructor(private socketService: Socket) { }
+export class Lessons extends CourseCommonController {
+	constructor(private socketService: Socket) {
+		super();
+	}
 	async list(query: ILessonsQuery) {
 		try {
-			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
-			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID);
+			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id) as string;
+			const { JSESSIONID, sigaaURL, username } = SessionMap.get<ISessionMap>(uniqueID) as ISessionMap;
 			
 			const bond = BondCache.getBond(uniqueID, query.registration);
 			if (!bond) throw new Error(`Bond not found with registration ${query.registration}`);
@@ -68,28 +66,6 @@ export class Lessons {
 		} catch (error) {
 			console.error(error);
 			return false;
-		}
-	}
-	/**
-	 * Retorna um objeto com os dados que serão usados para identificar a resposta compartilhada
-	 */
-	private getSharedQuery(course: ICourseDTOProps) {
-		return { courseId: course.id, period: course.period };
-	}
-
-	/**
-		* Se por algum motivo não tenha o bond.courses, ele requisita ao SIGAA
-		*/
-	private async getCourseService(bond: IBondDTOProps, courseId: string, sigaaInstance: Sigaa): Promise<CourseService> {
-		if (bond.courses?.length > 0) {
-			const coursesServices = bond.courses.map(course => CourseService.fromDTO(course, sigaaInstance));
-			return coursesServices.find(({ course }) => course.id === courseId);
-		} else {
-			const bondService = BondService.fromDTO(bond, sigaaInstance);
-			const courses = await bondService.getCourses();
-			const coursesServices = courses.map(course => new CourseService(course));
-			LoggerService.log(`[getCourseService] - ${courses.length} (fetched)`);
-			return coursesServices.find(({ course }) => course.id === courseId);
 		}
 	}
 }

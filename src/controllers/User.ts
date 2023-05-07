@@ -65,7 +65,7 @@ export class User {
 				}
 			}
 		} catch (error) {
-			if (error.message === "SIGAA: Invalid loginParams.") {
+			if (error.message === "SIGAA: Invalid credentials.") {
 				this.socketService.emit("user::login", {
 					logado: false,
 					error: "Credenciais inválidas"

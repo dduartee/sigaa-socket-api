@@ -18,7 +18,6 @@ export type LoginParams = {
 	institution: InstitutionType; // acronimo da instituição (IFSC, UnB, etc)
 }
 export class User {
-	logado: boolean;
 	constructor(private socketService: Socket) { }
 	/**
 	 * Realiza evento de login
@@ -27,7 +26,7 @@ export class User {
 	 */
 	async login(loginParams: LoginParams) {
 		try {
-			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
+			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id) as string;
 			const institution = InstitutionService.getFromAcronym(loginParams.institution);
 			if (!institution) throw new Error(`Institution ${loginParams.institution} not found`);
 			
@@ -51,7 +50,7 @@ export class User {
 					this.socketService.emit("user::status", "Deslogado");
 					return this.socketService.emit("user::login", { logado: false });
 				} else {
-					const { JSESSIONID, username } = SessionMap.get<ISessionMap>(uniqueID);
+					const { JSESSIONID, username } = SessionMap.get<ISessionMap>(uniqueID) as ISessionMap;
 					if (loginParams.username !== username) throw new Error("API: Username in cache does not match the username in the request.");
 					if (!JSESSIONID) throw new Error("API: No JSESSIONID found in cache.");
 					LoggerService.log(`[${loginParams.username}: ${this.socketService.id}] Logando (sessão)`);
@@ -64,7 +63,7 @@ export class User {
 					return this.socketService.emit("user::login", { logado: true });
 				}
 			}
-		} catch (error) {
+		} catch (error: any) {
 			if (error.message === "SIGAA: Invalid credentials.") {
 				this.socketService.emit("user::login", {
 					logado: false,
@@ -87,8 +86,8 @@ export class User {
 	 */
 	async info() {
 		try {
-			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
-			const { JSESSIONID, username, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID);
+			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id) as string;
+			const { JSESSIONID, username, sigaaURL } = SessionMap.get<ISessionMap>(uniqueID) as ISessionMap;
 
 			const responseCache = ResponseCache.getResponse<IStudentDTOProps>({ uniqueID, event: "user::info", query: { username } });
 			if (responseCache) {
@@ -98,7 +97,7 @@ export class User {
 			const page = await AuthenticationService.loginWithJSESSIONID(sigaaInstance);
 			const account = await AuthenticationService.parseAccount(sigaaInstance, page);
 			const accountService = new AccountService(account);
-			const fullName = await accountService.getFullName();
+			const fullName = await accountService.getFullName() || username;
 			const defaultProfilePictureURL = new URL("/sigaa/img/no_picture.png", sigaaURL);
 			const userProfilePictureURL = await accountService.getProfilePictureURL();
 			const profilePictureURL = userProfilePictureURL ? userProfilePictureURL : defaultProfilePictureURL;
@@ -126,15 +125,14 @@ export class User {
 	async logoff() {
 		try {
 			LoggerService.log(`[${this.socketService.id}] Deslogando`);
-			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
+			const uniqueID = SocketReferenceMap.get<string>(this.socketService.id) as string;
 			this.socketService.emit("user::status", "Deslogando");
 			SocketReferenceMap.del(this.socketService.id);
-			const { JSESSIONID } = SessionMap.get<ISessionMap>(uniqueID);
+			const { JSESSIONID } = SessionMap.get<ISessionMap>(uniqueID) as ISessionMap;
 			RequestStackCache.del(JSESSIONID);
 			SessionMap.del(uniqueID);
 			BondCache.deleteBonds(uniqueID);
 			ResponseCache.deleteResponses(uniqueID);
-			this.logado = false;
 			this.socketService.emit("user::status", "Deslogado");
 			LoggerService.log(`[${this.socketService.id}] Deslogado`);
 			return this.socketService.emit("user::login", { logado: false });

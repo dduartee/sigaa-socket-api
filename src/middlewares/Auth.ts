@@ -4,7 +4,6 @@ import SessionMap, { ISessionMap } from "../services/cache/SessionCache";
 import SocketReferenceMap from "../services/cache/SocketReferenceCache";
 import jwt from "../services/JWTService";
 class Auth {
-	token: string;
 	constructor(private socketService: Socket) { }
 	valid(params: { token: string }) {
 		const valid = this.handleTokenManagement(params.token);

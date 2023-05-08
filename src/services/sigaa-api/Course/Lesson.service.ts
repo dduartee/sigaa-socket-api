@@ -1,4 +1,4 @@
-import { HyperlinkAttachment, Lesson, LessonData, LinkAttachment, SigaaCourseForum, SigaaFile, SigaaHomework, SigaaQuiz, SigaaSurvey, SigaaWebContent, VideoAttachment } from "sigaa-api";
+import { HyperlinkAttachment, Lesson, LinkAttachment, SigaaCourseForum, SigaaFile, SigaaHomework, SigaaQuiz, SigaaSurvey, SigaaWebContent, VideoAttachment } from "sigaa-api";
 import { AttachmentDTO } from "../../../DTOs/Attachments/Attachment.DTO";
 import { FileDTO } from "../../../DTOs/Attachments/File.DTO";
 import { ForumDTO } from "../../../DTOs/Attachments/Forum.DTO";
@@ -18,7 +18,7 @@ class LessonService {
 		const lessonDTO = new LessonDTO(this.lesson, attachmentsDTOs);
 		return lessonDTO;
 	}
-	private async getAttachmentsDTOs() {
+	private async getAttachmentsDTOs(): Promise<AttachmentDTO[]> {
 		const attachmentsDTOs: AttachmentDTO[] = [];
 		for (const attachment of this.lesson.attachments) {
 			switch (attachment.type) {

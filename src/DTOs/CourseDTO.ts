@@ -9,7 +9,7 @@ export interface ICourseData {
 	id: string;
 	title: string;
 	code: string;
-	schedule?: string;
+	schedule: string;
 	period: string;
 	numberOfStudents: number;
 }
@@ -28,13 +28,13 @@ export interface ICourseAdditionals {
 	homeworksDTOs?: HomeworkDTO[],
 	lessonsDTOs?: LessonDTO[],
 	absencesDTO?: AbsencesDTO,
-	syllabusDTO?: SyllabusDTO
+	syllabusDTO?: SyllabusDTO,
 }
 export interface ICourseDTO {
 	toJSON(): ICourseDTOProps;
 }
 export class CourseDTO implements ICourseDTO {
-	additionals: ICourseAdditionals;
+	additionals?: ICourseAdditionals;
 	constructor(
 		public course: ICourseData,
 		public postValues: string,
@@ -53,7 +53,7 @@ export class CourseDTO implements ICourseDTO {
 			id: this.course.id,
 			title: this.course.title,
 			code: this.course.code,
-			schedule: this.course.schedule,
+			schedule: this.course.schedule || "",
 			period: this.course.period,
 			numberOfStudents: this.course.numberOfStudents,
 			postValues: this.postValues,

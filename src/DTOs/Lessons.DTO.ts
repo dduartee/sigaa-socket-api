@@ -1,4 +1,4 @@
-import { Lesson, LessonData } from "sigaa-api";
+import { Lesson } from "sigaa-api";
 import { AttachmentDTO, AttachmentProps } from "./Attachments/Attachment.DTO";
 
 export interface ILessonDTOProps {

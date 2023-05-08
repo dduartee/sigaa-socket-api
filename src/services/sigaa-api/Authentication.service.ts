@@ -17,7 +17,7 @@ class AuthenticationService {
 		try {
 			const page = await sigaaInstance.loginInstance.login(credentials.username, credentials.password);
 			return { page, error: undefined };
-		} catch (primaryError) {
+		} catch (primaryError: any) {
 			let errorMessage = primaryError.message as string;
 			let counter = 1;
 			while (expectedErrors.includes(errorMessage)) {

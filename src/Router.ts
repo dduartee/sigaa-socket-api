@@ -14,6 +14,7 @@ import SessionMap, { ISessionMap } from "./services/cache/SessionCache";
 import SocketReferenceMap from "./services/cache/SocketReferenceCache";
 import { Syllabus } from "./controllers/Syllabus";
 import { Institutions } from "./controllers/Institutions";
+import { News } from "./controllers/News";
 export class Router {
 	constructor(private socketService: Socket, private io: Server) { }
 
@@ -26,6 +27,7 @@ export class Router {
 		const bonds = new Bonds(this.socketService);
 		const courses = new Courses(this.socketService);
 		const homework = new Homeworks(this.socketService);
+		const news = new News(this.socketService);
 		const grades = new Grades(this.socketService);
 		const activities = new Activities(this.socketService);
 		const absences = new Absences(this.socketService);
@@ -35,12 +37,15 @@ export class Router {
 		this.socketService.use((event, next) => auth.middleware(event, next));
 		this.socketService.on("auth::valid", async (query) => auth.valid(query));
 
+		/**
+		 * Middleware para verificar se o cache existe, no entanto, ignorando alguns eventos
+		 */
 		this.socketService.use((event, next) => {
 			const ignoredEvents = ["auth::valid", "user::login", "institutions::list"];
 			const eventName = event[0];
 			if (ignoredEvents.includes(eventName)) return next();
 			else {
-				const uniqueID = SocketReferenceMap.get<string>(this.socketService.id);
+				const uniqueID = SocketReferenceMap.get<string>(this.socketService.id) as string;
 				const cache = SessionMap.get<ISessionMap>(uniqueID);
 				if (!cache) return this.socketService.emit("api::error", "API: No cache found.");
 				if (!cache.JSESSIONID) return this.socketService.emit("api::error", "API: No JSESSIONID found in cache.");
@@ -61,6 +66,11 @@ export class Router {
 		this.socketService.on(
 			"homework::content",
 			async (query) => await homework.content(query)
+		);
+
+		this.socketService.on(
+			"news::list",
+			async (query) => await news.list(query)
 		);
 
 		this.socketService.on(

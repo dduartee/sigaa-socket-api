@@ -3,7 +3,7 @@ import { SubGradeArithmeticAverage } from "sigaa-api";
 export interface IArithmeticAverageDTOProps {
     name: string,
     code: string,
-    value: number,
+    value?: number,
 }
 export interface IArithmeticAverageDTO {
     toJSON(): IArithmeticAverageDTOProps;

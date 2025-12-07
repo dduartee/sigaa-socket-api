@@ -1,0 +1,208 @@
+validateAuth:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/authValid'
+  summary: Valida token JWT
+  description: Recebe requisição para validar token de autenticação JWT
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/authValid/messages/AuthValidRequest'
+  reply:
+    channel:
+      $ref: '../asyncapi.yaml#/channels/authValid'
+    messages:
+      - $ref: '../asyncapi.yaml#/channels/authValid/messages/AuthValidResponse'
+
+loginUser:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/userLogin'
+  summary: Autentica usuário
+  description: Recebe credenciais e autentica usuário no SIGAA
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/userLogin/messages/UserLoginRequest'
+  reply:
+    channel:
+      $ref: '../asyncapi.yaml#/channels/userLogin'
+    messages:
+      - $ref: '../asyncapi.yaml#/channels/userLogin/messages/UserLoginResponse'
+
+getUserInfo:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/userInfo'
+  summary: Obtém informações do usuário
+  description: Recebe requisição para obter dados do usuário autenticado
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/userInfo/messages/EmptyRequest'
+  reply:
+    channel:
+      $ref: '../asyncapi.yaml#/channels/userInfo'
+    messages:
+      - $ref: '../asyncapi.yaml#/channels/userInfo/messages/UserInfoResponse'
+
+logoffUser:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/userLogoff'
+  summary: Encerra sessão
+  description: Encerra a sessão do usuário autenticado
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/userLogoff/messages/EmptyRequest'
+
+sendUserStatus:
+  action: send
+  channel:
+    $ref: '../asyncapi.yaml#/channels/userStatus'
+  summary: Envia status do usuário
+  description: Envia atualizações sobre o status de autenticação do usuário
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/userStatus/messages/UserStatusUpdate'
+
+getBondsList:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/bondsList'
+  summary: Lista vínculos
+  description: Recebe requisição para listar todos os vínculos acadêmicos do usuário
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/bondsList/messages/BondsListRequest'
+  reply:
+    channel:
+      $ref: '../asyncapi.yaml#/channels/bondsList'
+    messages:
+      - $ref: '../asyncapi.yaml#/channels/bondsList/messages/BondsListResponse'
+
+getCoursesList:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/coursesList'
+  summary: Lista disciplinas
+  description: Recebe requisição para listar disciplinas de um vínculo específico
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/coursesList/messages/CoursesListRequest'
+  reply:
+    channel:
+      $ref: '../asyncapi.yaml#/channels/coursesList'
+    messages:
+      - $ref: '../asyncapi.yaml#/channels/coursesList/messages/CoursesListResponse'
+
+getGradesList:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/gradesList'
+  summary: Lista notas
+  description: Recebe requisição para listar notas de todas as disciplinas de um vínculo
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/gradesList/messages/GradesListRequest'
+  reply:
+    channel:
+      $ref: '../asyncapi.yaml#/channels/gradesList'
+    messages:
+      - $ref: '../asyncapi.yaml#/channels/gradesList/messages/GradesListResponse'
+
+getActivitiesList:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/activitiesList'
+  summary: Lista atividades
+  description: Recebe requisição para listar atividades pendentes de um vínculo
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/activitiesList/messages/ActivitiesListRequest'
+  reply:
+    channel:
+      $ref: '../asyncapi.yaml#/channels/activitiesList'
+    messages:
+      - $ref: '../asyncapi.yaml#/channels/activitiesList/messages/ActivitiesListResponse'
+
+getAbsencesList:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/absencesList'
+  summary: Lista faltas
+  description: Recebe requisição para listar faltas de todas as disciplinas de um vínculo
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/absencesList/messages/AbsencesListRequest'
+  reply:
+    channel:
+      $ref: '../asyncapi.yaml#/channels/absencesList'
+    messages:
+      - $ref: '../asyncapi.yaml#/channels/absencesList/messages/AbsencesListResponse'
+
+getHomeworkContent:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/homeworkContent'
+  summary: Obtém conteúdo de tarefa
+  description: Recebe requisição para obter detalhes completos de uma tarefa específica
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/homeworkContent/messages/HomeworkContentRequest'
+  reply:
+    channel:
+      $ref: '../asyncapi.yaml#/channels/homeworkContent'
+    messages:
+      - $ref: '../asyncapi.yaml#/channels/homeworkContent/messages/HomeworkContentResponse'
+
+getLessonsList:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/lessonsList'
+  summary: Lista aulas
+  description: Recebe requisição para listar aulas de uma disciplina específica
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/lessonsList/messages/LessonsListRequest'
+  reply:
+    channel:
+      $ref: '../asyncapi.yaml#/channels/lessonsList'
+    messages:
+      - $ref: '../asyncapi.yaml#/channels/lessonsList/messages/LessonsListResponse'
+
+getNewsList:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/newsList'
+  summary: Lista notícias
+  description: Recebe requisição para listar notícias de uma disciplina específica
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/newsList/messages/NewsListRequest'
+  reply:
+    channel:
+      $ref: '../asyncapi.yaml#/channels/newsList'
+    messages:
+      - $ref: '../asyncapi.yaml#/channels/newsList/messages/NewsListResponse'
+
+getSyllabusContent:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/syllabusContent'
+  summary: Obtém plano de ensino
+  description: Recebe requisição para obter plano de ensino de uma disciplina específica
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/syllabusContent/messages/SyllabusContentRequest'
+  reply:
+    channel:
+      $ref: '../asyncapi.yaml#/channels/syllabusContent'
+    messages:
+      - $ref: '../asyncapi.yaml#/channels/syllabusContent/messages/SyllabusContentResponse'
+
+getInstitutionsList:
+  action: receive
+  channel:
+    $ref: '../asyncapi.yaml#/channels/institutionsList'
+  summary: Lista instituições
+  description: Recebe requisição para listar todas as instituições de ensino compatíveis
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/institutionsList/messages/InstitutionsListRequest'
+  reply:
+    channel:
+      $ref: '../asyncapi.yaml#/channels/institutionsList'
+    messages:
+      - $ref: '../asyncapi.yaml#/channels/institutionsList/messages/InstitutionsListResponse'
+
+sendApiError:
+  action: send
+  channel:
+    $ref: '../asyncapi.yaml#/channels/apiError'
+  summary: Envia erro
+  description: Envia mensagens de erro quando ocorrem problemas na API
+  messages:
+    - $ref: '../asyncapi.yaml#/channels/apiError/messages/ApiErrorMessage'

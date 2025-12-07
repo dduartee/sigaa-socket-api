@@ -1,0 +1,5 @@
+address: api::error
+description: Canal para receber erros da API
+messages:
+  ApiErrorMessage:
+    $ref: '../components/messages.yaml#/ApiErrorMessage'

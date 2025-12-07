@@ -1,0 +1,7 @@
+address: institutions::list
+description: Canal para listar instituições compatíveis
+messages:
+  InstitutionsListRequest:
+    $ref: '../components/messages.yaml#/InstitutionsListRequest'
+  InstitutionsListResponse:
+    $ref: '../components/messages.yaml#/InstitutionsListResponse'

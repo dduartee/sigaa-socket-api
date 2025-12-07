@@ -1,0 +1,7 @@
+address: news::list
+description: Canal para listar notícias de uma disciplina
+messages:
+  NewsListRequest:
+    $ref: '../components/messages.yaml#/NewsListRequest'
+  NewsListResponse:
+    $ref: '../components/messages.yaml#/NewsListResponse'

@@ -1,0 +1,7 @@
+address: homework::content
+description: Canal para obter conteúdo detalhado de uma tarefa
+messages:
+  HomeworkContentRequest:
+    $ref: '../components/messages.yaml#/HomeworkContentRequest'
+  HomeworkContentResponse:
+    $ref: '../components/messages.yaml#/HomeworkContentResponse'

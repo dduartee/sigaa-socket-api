@@ -1,0 +1,7 @@
+address: bonds::list
+description: Canal para listar vínculos acadêmicos do usuário
+messages:
+  BondsListRequest:
+    $ref: '../components/messages.yaml#/BondsListRequest'
+  BondsListResponse:
+    $ref: '../components/messages.yaml#/BondsListResponse'

@@ -1,0 +1,7 @@
+address: user::info
+description: Canal para obter informações do usuário autenticado
+messages:
+  EmptyRequest:
+    $ref: '../components/messages.yaml#/EmptyRequest'
+  UserInfoResponse:
+    $ref: '../components/messages.yaml#/UserInfoResponse'

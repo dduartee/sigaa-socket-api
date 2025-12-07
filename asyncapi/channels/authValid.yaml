@@ -1,0 +1,7 @@
+address: auth::valid
+description: Canal para validação de token JWT
+messages:
+  AuthValidRequest:
+    $ref: '../components/messages.yaml#/AuthValidRequest'
+  AuthValidResponse:
+    $ref: '../components/messages.yaml#/AuthValidResponse'

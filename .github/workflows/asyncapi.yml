@@ -1,0 +1,45 @@
+name: AsyncAPI
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Validate AsyncAPI document
+        uses: asyncapi/cli@v2.16.0
+        with:
+          command: validate
+          filepath: asyncapi/asyncapi.yaml
+
+  generate-docs:
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Generate Markdown
+        uses: asyncapi/cli@v2.16.0
+        with:
+          command: generate
+          filepath: asyncapi/asyncapi.yaml
+          template: '@asyncapi/markdown-template'
+          output: docs/markdown
+          parameters: '--use-new-generator'
+
+      - name: Generate HTML
+        uses: asyncapi/cli@v2.16.0
+        with:
+          command: generate
+          filepath: asyncapi/asyncapi.yaml
+          template: '@asyncapi/html-template'
+          output: docs/html
+          parameters: '--use-new-generator -p sidebarOrganization=byTags'

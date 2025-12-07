@@ -1,0 +1,195 @@
+EmptyRequest:
+  name: EmptyRequest
+  title: Requisição Vazia
+  summary: Mensagem de requisição sem payload
+  payload:
+    $ref: './schemas.yaml#/EmptyPayload'
+
+AuthValidRequest:
+  name: AuthValidRequest
+  title: Validação de Autenticação
+  summary: Requisição para validar token JWT
+  payload:
+    $ref: './schemas.yaml#/AuthValidRequestPayload'
+
+AuthValidResponse:
+  name: AuthValidResponse
+  title: Resposta de Validação
+  summary: Resposta da validação de token
+  payload:
+    $ref: './schemas.yaml#/AuthValidResponsePayload'
+
+UserLoginRequest:
+  name: UserLoginRequest
+  title: Requisição de Login
+  summary: Credenciais para autenticação no SIGAA
+  payload:
+    $ref: './schemas.yaml#/LoginParams'
+
+UserLoginResponse:
+  name: UserLoginResponse
+  title: Resposta de Login
+  summary: Resultado da tentativa de autenticação
+  payload:
+    $ref: './schemas.yaml#/UserLoginResponsePayload'
+
+UserInfoResponse:
+  name: UserInfoResponse
+  title: Informações do Usuário
+  summary: Dados completos do usuário autenticado
+  payload:
+    $ref: './schemas.yaml#/Student'
+
+UserStatusUpdate:
+  name: UserStatusUpdate
+  title: Atualização de Status
+  summary: Status atual da autenticação do usuário
+  payload:
+    $ref: './schemas.yaml#/UserStatusUpdatePayload'
+
+BondsListRequest:
+  name: BondsListRequest
+  title: Requisição de Vínculos
+  summary: Parâmetros para listagem de vínculos
+  payload:
+    $ref: './schemas.yaml#/BondsListRequestPayload'
+
+BondsListResponse:
+  name: BondsListResponse
+  title: Lista de Vínculos
+  summary: Array de vínculos acadêmicos
+  payload:
+    $ref: './schemas.yaml#/BondsListResponsePayload'
+
+CoursesListRequest:
+  name: CoursesListRequest
+  title: Requisição de Disciplinas
+  summary: Parâmetros para listagem de disciplinas
+  payload:
+    $ref: './schemas.yaml#/CoursesListRequestPayload'
+
+CoursesListResponse:
+  name: CoursesListResponse
+  title: Vínculo com Disciplinas
+  summary: Vínculo contendo lista de disciplinas
+  payload:
+    $ref: './schemas.yaml#/Bond'
+
+GradesListRequest:
+  name: GradesListRequest
+  title: Requisição de Notas
+  summary: Parâmetros para listagem de notas
+  payload:
+    $ref: './schemas.yaml#/GradesListRequestPayload'
+
+GradesListResponse:
+  name: GradesListResponse
+  title: Vínculo com Notas
+  summary: Vínculo contendo notas de todas as disciplinas
+  payload:
+    $ref: './schemas.yaml#/Bond'
+
+ActivitiesListRequest:
+  name: ActivitiesListRequest
+  title: Requisição de Atividades
+  summary: Parâmetros para listagem de atividades
+  payload:
+    $ref: './schemas.yaml#/ActivitiesListRequestPayload'
+
+ActivitiesListResponse:
+  name: ActivitiesListResponse
+  title: Vínculo com Atividades
+  summary: Vínculo contendo lista de atividades pendentes
+  payload:
+    $ref: './schemas.yaml#/Bond'
+
+AbsencesListRequest:
+  name: AbsencesListRequest
+  title: Requisição de Faltas
+  summary: Parâmetros para listagem de faltas
+  payload:
+    $ref: './schemas.yaml#/AbsencesListRequestPayload'
+
+AbsencesListResponse:
+  name: AbsencesListResponse
+  title: Vínculo com Faltas
+  summary: Vínculo contendo faltas de todas as disciplinas
+  payload:
+    $ref: './schemas.yaml#/Bond'
+
+HomeworkContentRequest:
+  name: HomeworkContentRequest
+  title: Requisição de Tarefa
+  summary: Parâmetros para obter conteúdo de uma tarefa
+  payload:
+    $ref: './schemas.yaml#/HomeworkContentRequestPayload'
+
+HomeworkContentResponse:
+  name: HomeworkContentResponse
+  title: Conteúdo da Tarefa
+  summary: Detalhes completos de uma tarefa
+  payload:
+    $ref: './schemas.yaml#/Homework'
+
+LessonsListRequest:
+  name: LessonsListRequest
+  title: Requisição de Aulas
+  summary: Parâmetros para listagem de aulas
+  payload:
+    $ref: './schemas.yaml#/LessonsListRequestPayload'
+
+LessonsListResponse:
+  name: LessonsListResponse
+  title: Lista de Aulas
+  summary: Array de aulas da disciplina
+  payload:
+    $ref: './schemas.yaml#/LessonsListResponsePayload'
+
+NewsListRequest:
+  name: NewsListRequest
+  title: Requisição de Notícias
+  summary: Parâmetros para listagem de notícias
+  payload:
+    $ref: './schemas.yaml#/NewsListRequestPayload'
+
+NewsListResponse:
+  name: NewsListResponse
+  title: Lista de Notícias
+  summary: Array de notícias da disciplina
+  payload:
+    $ref: './schemas.yaml#/NewsListResponsePayload'
+
+SyllabusContentRequest:
+  name: SyllabusContentRequest
+  title: Requisição de Plano de Ensino
+  summary: Parâmetros para obter plano de ensino
+  payload:
+    $ref: './schemas.yaml#/SyllabusContentRequestPayload'
+
+SyllabusContentResponse:
+  name: SyllabusContentResponse
+  title: Plano de Ensino
+  summary: Plano de ensino completo da disciplina
+  payload:
+    $ref: './schemas.yaml#/Syllabus'
+
+InstitutionsListRequest:
+  name: InstitutionsListRequest
+  title: Requisição de Instituições
+  summary: Parâmetros para listagem de instituições
+  payload:
+    $ref: './schemas.yaml#/EmptyPayload'
+
+InstitutionsListResponse:
+  name: InstitutionsListResponse
+  title: Lista de Instituições
+  summary: Array de instituições de ensino compatíveis
+  payload:
+    $ref: './schemas.yaml#/InstitutionsListResponsePayload'
+
+ApiErrorMessage:
+  name: ApiErrorMessage
+  title: Mensagem de Erro
+  summary: Erro ocorrido durante processamento
+  payload:
+    $ref: './schemas.yaml#/ApiErrorMessagePayload'

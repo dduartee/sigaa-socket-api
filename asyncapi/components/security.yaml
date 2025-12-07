@@ -1,0 +1,37 @@
+jwtAuth:
+  type: http
+  scheme: bearer
+  bearerFormat: JWT
+  description: |
+    Autenticação via token JWT.
+    O token deve ser enviado no cabeçalho Authorization como Bearer token.
+    Obtenha o token através do evento 'auth::valid' após fazer login.
+
+oauth2:
+  type: oauth2
+  description: Fluxos suportados para OAuth 2.0
+  flows:
+    clientCredentials:
+      tokenUrl: 'https://sigaa.example/token'
+      availableScopes:
+        'read:bonds': Leitura de vínculos acadêmicos
+        'read:courses': Leitura de disciplinas
+        'read:grades': Leitura de notas
+        'read:activities': Leitura de atividades
+        'read:absences': Leitura de faltas
+        'read:lessons': Leitura de aulas
+        'read:news': Leitura de notícias
+        'read:syllabus': Leitura do plano de ensino
+    authorizationCode:
+      authorizationUrl: 'https://sigaa.example/auth'
+      tokenUrl: 'https://sigaa.example/token'
+      refreshUrl: 'https://sigaa.example/refresh'
+      availableScopes:
+        'read:bonds': Leitura de vínculos acadêmicos
+        'read:courses': Leitura de disciplinas
+        'read:grades': Leitura de notas
+        'read:activities': Leitura de atividades
+        'read:absences': Leitura de faltas
+        'read:lessons': Leitura de aulas
+        'read:news': Leitura de notícias
+        'read:syllabus': Leitura do plano de ensino

@@ -1,0 +1,5 @@
+address: user::logoff
+description: Canal para encerrar sessão do usuário
+messages:
+  EmptyRequest:
+    $ref: '../components/messages.yaml#/EmptyRequest'

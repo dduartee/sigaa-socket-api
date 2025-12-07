@@ -1,0 +1,7 @@
+address: activities::list
+description: Canal para listar atividades pendentes de um vínculo
+messages:
+  ActivitiesListRequest:
+    $ref: '../components/messages.yaml#/ActivitiesListRequest'
+  ActivitiesListResponse:
+    $ref: '../components/messages.yaml#/ActivitiesListResponse'

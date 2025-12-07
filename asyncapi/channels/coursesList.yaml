@@ -1,0 +1,7 @@
+address: courses::list
+description: Canal para listar cursos/disciplinas de um vínculo
+messages:
+  CoursesListRequest:
+    $ref: '../components/messages.yaml#/CoursesListRequest'
+  CoursesListResponse:
+    $ref: '../components/messages.yaml#/CoursesListResponse'

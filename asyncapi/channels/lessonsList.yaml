@@ -1,0 +1,7 @@
+address: lessons::list
+description: Canal para listar aulas de uma disciplina
+messages:
+  LessonsListRequest:
+    $ref: '../components/messages.yaml#/LessonsListRequest'
+  LessonsListResponse:
+    $ref: '../components/messages.yaml#/LessonsListResponse'

@@ -1,0 +1,7 @@
+address: grades::list
+description: Canal para listar notas de um vínculo
+messages:
+  GradesListRequest:
+    $ref: '../components/messages.yaml#/GradesListRequest'
+  GradesListResponse:
+    $ref: '../components/messages.yaml#/GradesListResponse'

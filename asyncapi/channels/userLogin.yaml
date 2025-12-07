@@ -1,0 +1,7 @@
+address: user::login
+description: Canal para autenticação de usuário no SIGAA
+messages:
+  UserLoginRequest:
+    $ref: '../components/messages.yaml#/UserLoginRequest'
+  UserLoginResponse:
+    $ref: '../components/messages.yaml#/UserLoginResponse'

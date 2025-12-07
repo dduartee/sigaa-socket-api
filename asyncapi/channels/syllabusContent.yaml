@@ -1,0 +1,7 @@
+address: syllabus::content
+description: Canal para obter plano de ensino de uma disciplina
+messages:
+  SyllabusContentRequest:
+    $ref: '../components/messages.yaml#/SyllabusContentRequest'
+  SyllabusContentResponse:
+    $ref: '../components/messages.yaml#/SyllabusContentResponse'

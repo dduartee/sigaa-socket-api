@@ -1,0 +1,5 @@
+address: user::status
+description: Canal para receber atualizações de status do usuário
+messages:
+  UserStatusUpdate:
+    $ref: '../components/messages.yaml#/UserStatusUpdate'

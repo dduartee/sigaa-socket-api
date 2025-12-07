@@ -1,0 +1,7 @@
+address: absences::list
+description: Canal para listar faltas de um vínculo
+messages:
+  AbsencesListRequest:
+    $ref: '../components/messages.yaml#/AbsencesListRequest'
+  AbsencesListResponse:
+    $ref: '../components/messages.yaml#/AbsencesListResponse'

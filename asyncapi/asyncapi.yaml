@@ -39,36 +39,36 @@ servers:
       - name: development
 
 channels:
-  authValid:
-    $ref: './channels/authValid.yaml'
   userLogin:
     $ref: './channels/userLogin.yaml'
-  userInfo:
-    $ref: './channels/userInfo.yaml'
   userLogoff:
     $ref: './channels/userLogoff.yaml'
   userStatus:
     $ref: './channels/userStatus.yaml'
+  authValid:
+    $ref: './channels/authValid.yaml'
+  userInfo:
+    $ref: './channels/userInfo.yaml'
+  institutionsList:
+    $ref: './channels/institutionsList.yaml'
   bondsList:
     $ref: './channels/bondsList.yaml'
   coursesList:
     $ref: './channels/coursesList.yaml'
+  lessonsList:
+    $ref: './channels/lessonsList.yaml'
+  syllabusContent:
+    $ref: './channels/syllabusContent.yaml'
   gradesList:
     $ref: './channels/gradesList.yaml'
   activitiesList:
     $ref: './channels/activitiesList.yaml'
-  absencesList:
-    $ref: './channels/absencesList.yaml'
   homeworkContent:
     $ref: './channels/homeworkContent.yaml'
-  lessonsList:
-    $ref: './channels/lessonsList.yaml'
+  absencesList:
+    $ref: './channels/absencesList.yaml'
   newsList:
     $ref: './channels/newsList.yaml'
-  syllabusContent:
-    $ref: './channels/syllabusContent.yaml'
-  institutionsList:
-    $ref: './channels/institutionsList.yaml'
   apiError:
     $ref: './channels/apiError.yaml'
 

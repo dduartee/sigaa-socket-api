@@ -4487,57 +4487,6 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
     }
   },
   "channels": {
-    "authValid": {
-      "address": "auth::valid",
-      "description": "Canal para validação de token JWT",
-      "messages": {
-        "AuthValidRequest": {
-          "name": "AuthValidRequest",
-          "title": "Validação de Autenticação",
-          "summary": "Requisição para validar token JWT",
-          "payload": {
-            "type": "object",
-            "description": "Requisição para validar token JWT",
-            "properties": {
-              "token": {
-                "type": "string",
-                "description": "Token JWT a ser validado",
-                "x-parser-schema-id": "<anonymous-schema-2>"
-              }
-            },
-            "required": [
-              "token"
-            ],
-            "x-parser-schema-id": "<anonymous-schema-1>"
-          },
-          "x-parser-unique-object-id": "AuthValidRequest"
-        },
-        "AuthValidResponse": {
-          "name": "AuthValidResponse",
-          "title": "Resposta de Validação",
-          "summary": "Resposta da validação de token",
-          "payload": {
-            "type": "object",
-            "description": "Resposta da validação de token",
-            "properties": {
-              "valid": {
-                "type": "boolean",
-                "description": "Indica se o token é válido",
-                "x-parser-schema-id": "<anonymous-schema-4>"
-              },
-              "uniqueID": {
-                "type": "string",
-                "description": "ID único do usuário se o token for válido",
-                "x-parser-schema-id": "<anonymous-schema-5>"
-              }
-            },
-            "x-parser-schema-id": "<anonymous-schema-3>"
-          },
-          "x-parser-unique-object-id": "AuthValidResponse"
-        }
-      },
-      "x-parser-unique-object-id": "authValid"
-    },
     "userLogin": {
       "address": "user::login",
       "description": "Canal para autenticação de usuário no SIGAA",
@@ -4553,24 +4502,24 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
               "username": {
                 "type": "string",
                 "description": "Nome de usuário",
-                "x-parser-schema-id": "<anonymous-schema-7>"
+                "x-parser-schema-id": "<anonymous-schema-2>"
               },
               "password": {
                 "type": "string",
                 "description": "Senha do usuário",
-                "x-parser-schema-id": "<anonymous-schema-8>"
+                "x-parser-schema-id": "<anonymous-schema-3>"
               },
               "institution": {
                 "type": "string",
                 "description": "Acrônimo da instituição (ex. IFSC, UnB)",
-                "x-parser-schema-id": "<anonymous-schema-9>"
+                "x-parser-schema-id": "<anonymous-schema-4>"
               }
             },
             "required": [
               "username",
               "institution"
             ],
-            "x-parser-schema-id": "<anonymous-schema-6>"
+            "x-parser-schema-id": "<anonymous-schema-1>"
           },
           "x-parser-unique-object-id": "UserLoginRequest"
         },
@@ -4585,27 +4534,27 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
               "logado": {
                 "type": "boolean",
                 "description": "Indica se o login foi bem-sucedido",
-                "x-parser-schema-id": "<anonymous-schema-11>"
+                "x-parser-schema-id": "<anonymous-schema-6>"
               },
               "error": {
                 "type": "string",
                 "description": "Mensagem de erro caso o login falhe",
-                "x-parser-schema-id": "<anonymous-schema-12>"
+                "x-parser-schema-id": "<anonymous-schema-7>"
               }
             },
             "required": [
               "logado"
             ],
-            "x-parser-schema-id": "<anonymous-schema-10>"
+            "x-parser-schema-id": "<anonymous-schema-5>"
           },
           "x-parser-unique-object-id": "UserLoginResponse"
         }
       },
       "x-parser-unique-object-id": "userLogin"
     },
-    "userInfo": {
-      "address": "user::info",
-      "description": "Canal para obter informações do usuário autenticado",
+    "userLogoff": {
+      "address": "user::logoff",
+      "description": "Canal para encerrar sessão do usuário",
       "messages": {
         "EmptyRequest": {
           "name": "EmptyRequest",
@@ -4615,609 +4564,10 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
             "type": "object",
             "description": "Payload vazio",
             "properties": {},
-            "x-parser-schema-id": "<anonymous-schema-13>"
+            "x-parser-schema-id": "<anonymous-schema-8>"
           },
           "x-parser-unique-object-id": "EmptyRequest"
-        },
-        "UserInfoResponse": {
-          "name": "UserInfoResponse",
-          "title": "Informações do Usuário",
-          "summary": "Dados completos do usuário autenticado",
-          "payload": {
-            "type": "object",
-            "description": "Informações completas do estudante",
-            "properties": {
-              "username": {
-                "type": "string",
-                "description": "Nome de usuário",
-                "x-parser-schema-id": "<anonymous-schema-15>"
-              },
-              "fullName": {
-                "type": "string",
-                "description": "Nome completo",
-                "x-parser-schema-id": "<anonymous-schema-16>"
-              },
-              "emails": {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "x-parser-schema-id": "<anonymous-schema-18>"
-                },
-                "description": "Lista de e-mails",
-                "x-parser-schema-id": "<anonymous-schema-17>"
-              },
-              "profilePictureURL": {
-                "type": "string",
-                "description": "URL da foto de perfil",
-                "x-parser-schema-id": "<anonymous-schema-19>"
-              },
-              "bonds": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "description": "Vínculo acadêmico do estudante",
-                  "properties": {
-                    "program": {
-                      "type": "string",
-                      "description": "Nome do programa/curso",
-                      "x-parser-schema-id": "<anonymous-schema-22>"
-                    },
-                    "registration": {
-                      "type": "string",
-                      "description": "Número de matrícula",
-                      "x-parser-schema-id": "<anonymous-schema-23>"
-                    },
-                    "type": {
-                      "type": "string",
-                      "description": "Tipo de vínculo",
-                      "x-parser-schema-id": "<anonymous-schema-24>"
-                    },
-                    "sequence": {
-                      "type": "integer",
-                      "description": "Sequência do vínculo",
-                      "x-parser-schema-id": "<anonymous-schema-25>"
-                    },
-                    "active": {
-                      "type": "boolean",
-                      "description": "Indica se o vínculo está ativo",
-                      "x-parser-schema-id": "<anonymous-schema-26>"
-                    },
-                    "period": {
-                      "type": "string",
-                      "description": "Período letivo atual",
-                      "x-parser-schema-id": "<anonymous-schema-27>"
-                    },
-                    "activities": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "description": "Atividade acadêmica pendente",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "description": "ID da atividade",
-                            "x-parser-schema-id": "<anonymous-schema-30>"
-                          },
-                          "title": {
-                            "type": "string",
-                            "description": "Título da atividade",
-                            "x-parser-schema-id": "<anonymous-schema-31>"
-                          },
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "exam",
-                              "homework",
-                              "quiz"
-                            ],
-                            "description": "Tipo de atividade",
-                            "x-parser-schema-id": "<anonymous-schema-32>"
-                          },
-                          "date": {
-                            "type": "string",
-                            "format": "date-time",
-                            "description": "Data da atividade",
-                            "x-parser-schema-id": "<anonymous-schema-33>"
-                          },
-                          "done": {
-                            "type": "boolean",
-                            "description": "Indica se foi concluída",
-                            "x-parser-schema-id": "<anonymous-schema-34>"
-                          },
-                          "course": {
-                            "type": "object",
-                            "properties": {
-                              "title": {
-                                "type": "string",
-                                "x-parser-schema-id": "<anonymous-schema-36>"
-                              }
-                            },
-                            "description": "Disciplina relacionada",
-                            "x-parser-schema-id": "<anonymous-schema-35>"
-                          }
-                        },
-                        "x-parser-schema-id": "<anonymous-schema-29>"
-                      },
-                      "description": "Atividades pendentes",
-                      "x-parser-schema-id": "<anonymous-schema-28>"
-                    },
-                    "courses": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "description": "Disciplina/Turma acadêmica",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "description": "ID único da disciplina",
-                            "x-parser-schema-id": "<anonymous-schema-39>"
-                          },
-                          "title": {
-                            "type": "string",
-                            "description": "Nome da disciplina",
-                            "x-parser-schema-id": "<anonymous-schema-40>"
-                          },
-                          "code": {
-                            "type": "string",
-                            "description": "Código da disciplina",
-                            "x-parser-schema-id": "<anonymous-schema-41>"
-                          },
-                          "schedule": {
-                            "type": "string",
-                            "description": "Horário das aulas",
-                            "x-parser-schema-id": "<anonymous-schema-42>"
-                          },
-                          "period": {
-                            "type": "string",
-                            "description": "Período letivo",
-                            "x-parser-schema-id": "<anonymous-schema-43>"
-                          },
-                          "numberOfStudents": {
-                            "type": "integer",
-                            "description": "Número de alunos matriculados",
-                            "x-parser-schema-id": "<anonymous-schema-44>"
-                          },
-                          "postValues": {
-                            "type": "string",
-                            "description": "Valores de formulário para requisições",
-                            "x-parser-schema-id": "<anonymous-schema-45>"
-                          },
-                          "grades": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "description": "Grupo de notas de uma disciplina",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "enum": [
-                                    "sum-of-grades",
-                                    "only-average",
-                                    "weighted-average",
-                                    "arithmetic-average"
-                                  ],
-                                  "description": "Tipo de cálculo das notas",
-                                  "x-parser-schema-id": "<anonymous-schema-48>"
-                                },
-                                "value": {
-                                  "type": "number",
-                                  "description": "Valor da nota final",
-                                  "x-parser-schema-id": "<anonymous-schema-49>"
-                                },
-                                "name": {
-                                  "type": "string",
-                                  "description": "Nome do grupo de notas",
-                                  "x-parser-schema-id": "<anonymous-schema-50>"
-                                },
-                                "subGrades": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "object",
-                                    "description": "Subnota individual",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "description": "Nome da avaliação",
-                                        "x-parser-schema-id": "<anonymous-schema-53>"
-                                      },
-                                      "value": {
-                                        "type": "number",
-                                        "description": "Nota obtida",
-                                        "x-parser-schema-id": "<anonymous-schema-54>"
-                                      },
-                                      "maxValue": {
-                                        "type": "number",
-                                        "description": "Nota máxima possível",
-                                        "x-parser-schema-id": "<anonymous-schema-55>"
-                                      },
-                                      "weight": {
-                                        "type": "number",
-                                        "description": "Peso da avaliação",
-                                        "x-parser-schema-id": "<anonymous-schema-56>"
-                                      }
-                                    },
-                                    "x-parser-schema-id": "<anonymous-schema-52>"
-                                  },
-                                  "description": "Subnotas que compõem o grupo",
-                                  "x-parser-schema-id": "<anonymous-schema-51>"
-                                }
-                              },
-                              "x-parser-schema-id": "<anonymous-schema-47>"
-                            },
-                            "description": "Grupos de notas",
-                            "x-parser-schema-id": "<anonymous-schema-46>"
-                          },
-                          "news": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "description": "Notícia da disciplina",
-                              "properties": {
-                                "id": {
-                                  "type": "string",
-                                  "description": "ID da notícia",
-                                  "x-parser-schema-id": "<anonymous-schema-59>"
-                                },
-                                "title": {
-                                  "type": "string",
-                                  "description": "Título da notícia",
-                                  "x-parser-schema-id": "<anonymous-schema-60>"
-                                },
-                                "date": {
-                                  "type": "string",
-                                  "format": "date-time",
-                                  "description": "Data de publicação",
-                                  "x-parser-schema-id": "<anonymous-schema-61>"
-                                },
-                                "content": {
-                                  "type": "string",
-                                  "description": "Conteúdo completo",
-                                  "x-parser-schema-id": "<anonymous-schema-62>"
-                                }
-                              },
-                              "x-parser-schema-id": "<anonymous-schema-58>"
-                            },
-                            "description": "Notícias da disciplina",
-                            "x-parser-schema-id": "<anonymous-schema-57>"
-                          },
-                          "homeworks": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "description": "Tarefa/Atividade acadêmica",
-                              "properties": {
-                                "id": {
-                                  "type": "string",
-                                  "description": "ID da tarefa",
-                                  "x-parser-schema-id": "<anonymous-schema-65>"
-                                },
-                                "title": {
-                                  "type": "string",
-                                  "description": "Título da tarefa",
-                                  "x-parser-schema-id": "<anonymous-schema-66>"
-                                },
-                                "content": {
-                                  "type": "string",
-                                  "description": "Descrição/conteúdo da tarefa",
-                                  "x-parser-schema-id": "<anonymous-schema-67>"
-                                },
-                                "startDate": {
-                                  "type": "string",
-                                  "format": "date-time",
-                                  "description": "Data de início",
-                                  "x-parser-schema-id": "<anonymous-schema-68>"
-                                },
-                                "endDate": {
-                                  "type": "string",
-                                  "format": "date-time",
-                                  "description": "Data de entrega",
-                                  "x-parser-schema-id": "<anonymous-schema-69>"
-                                },
-                                "haveGrade": {
-                                  "type": "boolean",
-                                  "description": "Indica se possui nota",
-                                  "x-parser-schema-id": "<anonymous-schema-70>"
-                                },
-                                "isGroup": {
-                                  "type": "boolean",
-                                  "description": "Indica se é em grupo",
-                                  "x-parser-schema-id": "<anonymous-schema-71>"
-                                },
-                                "attachment": {
-                                  "type": "object",
-                                  "description": "Arquivo anexo",
-                                  "properties": {
-                                    "name": {
-                                      "type": "string",
-                                      "description": "Nome do arquivo",
-                                      "x-parser-schema-id": "<anonymous-schema-73>"
-                                    },
-                                    "url": {
-                                      "type": "string",
-                                      "format": "uri",
-                                      "description": "URL para download",
-                                      "x-parser-schema-id": "<anonymous-schema-74>"
-                                    },
-                                    "size": {
-                                      "type": "integer",
-                                      "description": "Tamanho em bytes",
-                                      "x-parser-schema-id": "<anonymous-schema-75>"
-                                    },
-                                    "type": {
-                                      "type": "string",
-                                      "description": "Tipo MIME do arquivo",
-                                      "x-parser-schema-id": "<anonymous-schema-76>"
-                                    }
-                                  },
-                                  "x-parser-schema-id": "<anonymous-schema-72>"
-                                }
-                              },
-                              "x-parser-schema-id": "<anonymous-schema-64>"
-                            },
-                            "description": "Tarefas da disciplina",
-                            "x-parser-schema-id": "<anonymous-schema-63>"
-                          },
-                          "absences": {
-                            "type": "object",
-                            "description": "Registro de faltas de uma disciplina",
-                            "properties": {
-                              "list": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "date": {
-                                      "type": "string",
-                                      "format": "date-time",
-                                      "description": "Data da falta",
-                                      "x-parser-schema-id": "<anonymous-schema-80>"
-                                    },
-                                    "numOfAbsences": {
-                                      "type": "integer",
-                                      "description": "Número de faltas",
-                                      "x-parser-schema-id": "<anonymous-schema-81>"
-                                    }
-                                  },
-                                  "x-parser-schema-id": "<anonymous-schema-79>"
-                                },
-                                "description": "Lista de faltas por data",
-                                "x-parser-schema-id": "<anonymous-schema-78>"
-                              },
-                              "total": {
-                                "type": "integer",
-                                "description": "Total de faltas",
-                                "x-parser-schema-id": "<anonymous-schema-82>"
-                              },
-                              "max": {
-                                "type": "integer",
-                                "description": "Máximo de faltas permitidas",
-                                "x-parser-schema-id": "<anonymous-schema-83>"
-                              }
-                            },
-                            "x-parser-schema-id": "<anonymous-schema-77>"
-                          },
-                          "lessons": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "description": "Aula/Conteúdo didático",
-                              "properties": {
-                                "id": {
-                                  "type": "string",
-                                  "description": "ID da aula",
-                                  "x-parser-schema-id": "<anonymous-schema-86>"
-                                },
-                                "title": {
-                                  "type": "string",
-                                  "description": "Título da aula",
-                                  "x-parser-schema-id": "<anonymous-schema-87>"
-                                },
-                                "content": {
-                                  "type": "string",
-                                  "description": "Conteúdo textual",
-                                  "x-parser-schema-id": "<anonymous-schema-88>"
-                                },
-                                "startDate": {
-                                  "type": "string",
-                                  "format": "date-time",
-                                  "description": "Data de início",
-                                  "x-parser-schema-id": "<anonymous-schema-89>"
-                                },
-                                "endDate": {
-                                  "type": "string",
-                                  "format": "date-time",
-                                  "description": "Data de término",
-                                  "x-parser-schema-id": "<anonymous-schema-90>"
-                                },
-                                "attachments": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "object",
-                                    "description": "Anexo genérico de aula",
-                                    "properties": {
-                                      "id": {
-                                        "type": "string",
-                                        "description": "ID do anexo",
-                                        "x-parser-schema-id": "<anonymous-schema-93>"
-                                      },
-                                      "title": {
-                                        "type": "string",
-                                        "description": "Título do anexo",
-                                        "x-parser-schema-id": "<anonymous-schema-94>"
-                                      },
-                                      "type": {
-                                        "type": "string",
-                                        "enum": [
-                                          "file",
-                                          "link",
-                                          "hyperlink",
-                                          "video",
-                                          "forum",
-                                          "quiz",
-                                          "survey",
-                                          "web-content"
-                                        ],
-                                        "description": "Tipo de anexo",
-                                        "x-parser-schema-id": "<anonymous-schema-95>"
-                                      },
-                                      "description": {
-                                        "type": "string",
-                                        "description": "Descrição do anexo",
-                                        "x-parser-schema-id": "<anonymous-schema-96>"
-                                      }
-                                    },
-                                    "x-parser-schema-id": "<anonymous-schema-92>"
-                                  },
-                                  "description": "Anexos da aula",
-                                  "x-parser-schema-id": "<anonymous-schema-91>"
-                                }
-                              },
-                              "x-parser-schema-id": "<anonymous-schema-85>"
-                            },
-                            "description": "Aulas da disciplina",
-                            "x-parser-schema-id": "<anonymous-schema-84>"
-                          },
-                          "syllabus": {
-                            "type": "object",
-                            "description": "Plano de ensino da disciplina",
-                            "properties": {
-                              "methods": {
-                                "type": "string",
-                                "description": "Metodologia de ensino",
-                                "x-parser-schema-id": "<anonymous-schema-98>"
-                              },
-                              "assessmentProcedures": {
-                                "type": "string",
-                                "description": "Procedimentos de avaliação",
-                                "x-parser-schema-id": "<anonymous-schema-99>"
-                              },
-                              "attendanceSchedule": {
-                                "type": "string",
-                                "description": "Horário de atendimento",
-                                "x-parser-schema-id": "<anonymous-schema-100>"
-                              },
-                              "schedule": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "description": {
-                                      "type": "string",
-                                      "description": "Descrição do conteúdo",
-                                      "x-parser-schema-id": "<anonymous-schema-103>"
-                                    },
-                                    "startDate": {
-                                      "type": "string",
-                                      "format": "date-time",
-                                      "description": "Data de início",
-                                      "x-parser-schema-id": "<anonymous-schema-104>"
-                                    },
-                                    "endDate": {
-                                      "type": "string",
-                                      "format": "date-time",
-                                      "description": "Data de término",
-                                      "x-parser-schema-id": "<anonymous-schema-105>"
-                                    }
-                                  },
-                                  "x-parser-schema-id": "<anonymous-schema-102>"
-                                },
-                                "description": "Cronograma de aulas",
-                                "x-parser-schema-id": "<anonymous-schema-101>"
-                              },
-                              "exams": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "description": {
-                                      "type": "string",
-                                      "description": "Descrição da avaliação",
-                                      "x-parser-schema-id": "<anonymous-schema-108>"
-                                    },
-                                    "date": {
-                                      "type": "string",
-                                      "format": "date-time",
-                                      "description": "Data da avaliação",
-                                      "x-parser-schema-id": "<anonymous-schema-109>"
-                                    }
-                                  },
-                                  "x-parser-schema-id": "<anonymous-schema-107>"
-                                },
-                                "description": "Calendário de avaliações",
-                                "x-parser-schema-id": "<anonymous-schema-106>"
-                              },
-                              "references": {
-                                "type": "object",
-                                "properties": {
-                                  "basic": {
-                                    "type": "array",
-                                    "items": {
-                                      "type": "object",
-                                      "properties": {
-                                        "type": {
-                                          "type": "string",
-                                          "x-parser-schema-id": "<anonymous-schema-113>"
-                                        },
-                                        "description": {
-                                          "type": "string",
-                                          "x-parser-schema-id": "<anonymous-schema-114>"
-                                        }
-                                      },
-                                      "x-parser-schema-id": "<anonymous-schema-112>"
-                                    },
-                                    "description": "Referências básicas",
-                                    "x-parser-schema-id": "<anonymous-schema-111>"
-                                  },
-                                  "supplementary": {
-                                    "type": "array",
-                                    "items": {
-                                      "type": "object",
-                                      "properties": {
-                                        "type": {
-                                          "type": "string",
-                                          "x-parser-schema-id": "<anonymous-schema-117>"
-                                        },
-                                        "description": {
-                                          "type": "string",
-                                          "x-parser-schema-id": "<anonymous-schema-118>"
-                                        }
-                                      },
-                                      "x-parser-schema-id": "<anonymous-schema-116>"
-                                    },
-                                    "description": "Referências complementares",
-                                    "x-parser-schema-id": "<anonymous-schema-115>"
-                                  }
-                                },
-                                "x-parser-schema-id": "<anonymous-schema-110>"
-                              }
-                            },
-                            "x-parser-schema-id": "<anonymous-schema-97>"
-                          }
-                        },
-                        "x-parser-schema-id": "<anonymous-schema-38>"
-                      },
-                      "description": "Disciplinas do vínculo",
-                      "x-parser-schema-id": "<anonymous-schema-37>"
-                    }
-                  },
-                  "x-parser-schema-id": "<anonymous-schema-21>"
-                },
-                "description": "Vínculos acadêmicos",
-                "x-parser-schema-id": "<anonymous-schema-20>"
-              }
-            },
-            "x-parser-schema-id": "<anonymous-schema-14>"
-          },
-          "x-parser-unique-object-id": "UserInfoResponse"
         }
-      },
-      "x-parser-unique-object-id": "userInfo"
-    },
-    "userLogoff": {
-      "address": "user::logoff",
-      "description": "Canal para encerrar sessão do usuário",
-      "messages": {
-        "EmptyRequest": "$ref:$.channels.userInfo.messages.EmptyRequest"
       },
       "x-parser-unique-object-id": "userLogoff"
     },
@@ -5241,15 +4591,719 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
                   "Deslogado"
                 ],
                 "description": "Status da autenticação",
-                "x-parser-schema-id": "<anonymous-schema-120>"
+                "x-parser-schema-id": "<anonymous-schema-10>"
               }
             },
-            "x-parser-schema-id": "<anonymous-schema-119>"
+            "x-parser-schema-id": "<anonymous-schema-9>"
           },
           "x-parser-unique-object-id": "UserStatusUpdate"
         }
       },
       "x-parser-unique-object-id": "userStatus"
+    },
+    "authValid": {
+      "address": "auth::valid",
+      "description": "Canal para validação de token JWT",
+      "messages": {
+        "AuthValidRequest": {
+          "name": "AuthValidRequest",
+          "title": "Validação de Autenticação",
+          "summary": "Requisição para validar token JWT",
+          "payload": {
+            "type": "object",
+            "description": "Requisição para validar token JWT",
+            "properties": {
+              "token": {
+                "type": "string",
+                "description": "Token JWT a ser validado",
+                "x-parser-schema-id": "<anonymous-schema-12>"
+              }
+            },
+            "required": [
+              "token"
+            ],
+            "x-parser-schema-id": "<anonymous-schema-11>"
+          },
+          "x-parser-unique-object-id": "AuthValidRequest"
+        },
+        "AuthValidResponse": {
+          "name": "AuthValidResponse",
+          "title": "Resposta de Validação",
+          "summary": "Resposta da validação de token",
+          "payload": {
+            "type": "object",
+            "description": "Resposta da validação de token",
+            "properties": {
+              "valid": {
+                "type": "boolean",
+                "description": "Indica se o token é válido",
+                "x-parser-schema-id": "<anonymous-schema-14>"
+              },
+              "uniqueID": {
+                "type": "string",
+                "description": "ID único do usuário se o token for válido",
+                "x-parser-schema-id": "<anonymous-schema-15>"
+              }
+            },
+            "x-parser-schema-id": "<anonymous-schema-13>"
+          },
+          "x-parser-unique-object-id": "AuthValidResponse"
+        }
+      },
+      "x-parser-unique-object-id": "authValid"
+    },
+    "userInfo": {
+      "address": "user::info",
+      "description": "Canal para obter informações do usuário autenticado",
+      "messages": {
+        "EmptyRequest": "$ref:$.channels.userLogoff.messages.EmptyRequest",
+        "UserInfoResponse": {
+          "name": "UserInfoResponse",
+          "title": "Informações do Usuário",
+          "summary": "Dados completos do usuário autenticado",
+          "payload": {
+            "type": "object",
+            "description": "Informações completas do estudante",
+            "properties": {
+              "username": {
+                "type": "string",
+                "description": "Nome de usuário",
+                "x-parser-schema-id": "<anonymous-schema-17>"
+              },
+              "fullName": {
+                "type": "string",
+                "description": "Nome completo",
+                "x-parser-schema-id": "<anonymous-schema-18>"
+              },
+              "emails": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "x-parser-schema-id": "<anonymous-schema-20>"
+                },
+                "description": "Lista de e-mails",
+                "x-parser-schema-id": "<anonymous-schema-19>"
+              },
+              "profilePictureURL": {
+                "type": "string",
+                "description": "URL da foto de perfil",
+                "x-parser-schema-id": "<anonymous-schema-21>"
+              },
+              "bonds": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "description": "Vínculo acadêmico do estudante",
+                  "properties": {
+                    "program": {
+                      "type": "string",
+                      "description": "Nome do programa/curso",
+                      "x-parser-schema-id": "<anonymous-schema-24>"
+                    },
+                    "registration": {
+                      "type": "string",
+                      "description": "Número de matrícula",
+                      "x-parser-schema-id": "<anonymous-schema-25>"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "Tipo de vínculo",
+                      "x-parser-schema-id": "<anonymous-schema-26>"
+                    },
+                    "sequence": {
+                      "type": "integer",
+                      "description": "Sequência do vínculo",
+                      "x-parser-schema-id": "<anonymous-schema-27>"
+                    },
+                    "active": {
+                      "type": "boolean",
+                      "description": "Indica se o vínculo está ativo",
+                      "x-parser-schema-id": "<anonymous-schema-28>"
+                    },
+                    "period": {
+                      "type": "string",
+                      "description": "Período letivo atual",
+                      "x-parser-schema-id": "<anonymous-schema-29>"
+                    },
+                    "activities": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "Atividade acadêmica pendente",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "ID da atividade",
+                            "x-parser-schema-id": "<anonymous-schema-32>"
+                          },
+                          "title": {
+                            "type": "string",
+                            "description": "Título da atividade",
+                            "x-parser-schema-id": "<anonymous-schema-33>"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "exam",
+                              "homework",
+                              "quiz"
+                            ],
+                            "description": "Tipo de atividade",
+                            "x-parser-schema-id": "<anonymous-schema-34>"
+                          },
+                          "date": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "Data da atividade",
+                            "x-parser-schema-id": "<anonymous-schema-35>"
+                          },
+                          "done": {
+                            "type": "boolean",
+                            "description": "Indica se foi concluída",
+                            "x-parser-schema-id": "<anonymous-schema-36>"
+                          },
+                          "course": {
+                            "type": "object",
+                            "properties": {
+                              "title": {
+                                "type": "string",
+                                "x-parser-schema-id": "<anonymous-schema-38>"
+                              }
+                            },
+                            "description": "Disciplina relacionada",
+                            "x-parser-schema-id": "<anonymous-schema-37>"
+                          }
+                        },
+                        "x-parser-schema-id": "<anonymous-schema-31>"
+                      },
+                      "description": "Atividades pendentes",
+                      "x-parser-schema-id": "<anonymous-schema-30>"
+                    },
+                    "courses": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "Disciplina/Turma acadêmica",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "ID único da disciplina",
+                            "x-parser-schema-id": "<anonymous-schema-41>"
+                          },
+                          "title": {
+                            "type": "string",
+                            "description": "Nome da disciplina",
+                            "x-parser-schema-id": "<anonymous-schema-42>"
+                          },
+                          "code": {
+                            "type": "string",
+                            "description": "Código da disciplina",
+                            "x-parser-schema-id": "<anonymous-schema-43>"
+                          },
+                          "schedule": {
+                            "type": "string",
+                            "description": "Horário das aulas",
+                            "x-parser-schema-id": "<anonymous-schema-44>"
+                          },
+                          "period": {
+                            "type": "string",
+                            "description": "Período letivo",
+                            "x-parser-schema-id": "<anonymous-schema-45>"
+                          },
+                          "numberOfStudents": {
+                            "type": "integer",
+                            "description": "Número de alunos matriculados",
+                            "x-parser-schema-id": "<anonymous-schema-46>"
+                          },
+                          "postValues": {
+                            "type": "string",
+                            "description": "Valores de formulário para requisições",
+                            "x-parser-schema-id": "<anonymous-schema-47>"
+                          },
+                          "grades": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "description": "Grupo de notas de uma disciplina",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "sum-of-grades",
+                                    "only-average",
+                                    "weighted-average",
+                                    "arithmetic-average"
+                                  ],
+                                  "description": "Tipo de cálculo das notas",
+                                  "x-parser-schema-id": "<anonymous-schema-50>"
+                                },
+                                "value": {
+                                  "type": "number",
+                                  "description": "Valor da nota final",
+                                  "x-parser-schema-id": "<anonymous-schema-51>"
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "description": "Nome do grupo de notas",
+                                  "x-parser-schema-id": "<anonymous-schema-52>"
+                                },
+                                "subGrades": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "description": "Subnota individual",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "description": "Nome da avaliação",
+                                        "x-parser-schema-id": "<anonymous-schema-55>"
+                                      },
+                                      "value": {
+                                        "type": "number",
+                                        "description": "Nota obtida",
+                                        "x-parser-schema-id": "<anonymous-schema-56>"
+                                      },
+                                      "maxValue": {
+                                        "type": "number",
+                                        "description": "Nota máxima possível",
+                                        "x-parser-schema-id": "<anonymous-schema-57>"
+                                      },
+                                      "weight": {
+                                        "type": "number",
+                                        "description": "Peso da avaliação",
+                                        "x-parser-schema-id": "<anonymous-schema-58>"
+                                      }
+                                    },
+                                    "x-parser-schema-id": "<anonymous-schema-54>"
+                                  },
+                                  "description": "Subnotas que compõem o grupo",
+                                  "x-parser-schema-id": "<anonymous-schema-53>"
+                                }
+                              },
+                              "x-parser-schema-id": "<anonymous-schema-49>"
+                            },
+                            "description": "Grupos de notas",
+                            "x-parser-schema-id": "<anonymous-schema-48>"
+                          },
+                          "news": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "description": "Notícia da disciplina",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "ID da notícia",
+                                  "x-parser-schema-id": "<anonymous-schema-61>"
+                                },
+                                "title": {
+                                  "type": "string",
+                                  "description": "Título da notícia",
+                                  "x-parser-schema-id": "<anonymous-schema-62>"
+                                },
+                                "date": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "description": "Data de publicação",
+                                  "x-parser-schema-id": "<anonymous-schema-63>"
+                                },
+                                "content": {
+                                  "type": "string",
+                                  "description": "Conteúdo completo",
+                                  "x-parser-schema-id": "<anonymous-schema-64>"
+                                }
+                              },
+                              "x-parser-schema-id": "<anonymous-schema-60>"
+                            },
+                            "description": "Notícias da disciplina",
+                            "x-parser-schema-id": "<anonymous-schema-59>"
+                          },
+                          "homeworks": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "description": "Tarefa/Atividade acadêmica",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "ID da tarefa",
+                                  "x-parser-schema-id": "<anonymous-schema-67>"
+                                },
+                                "title": {
+                                  "type": "string",
+                                  "description": "Título da tarefa",
+                                  "x-parser-schema-id": "<anonymous-schema-68>"
+                                },
+                                "content": {
+                                  "type": "string",
+                                  "description": "Descrição/conteúdo da tarefa",
+                                  "x-parser-schema-id": "<anonymous-schema-69>"
+                                },
+                                "startDate": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "description": "Data de início",
+                                  "x-parser-schema-id": "<anonymous-schema-70>"
+                                },
+                                "endDate": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "description": "Data de entrega",
+                                  "x-parser-schema-id": "<anonymous-schema-71>"
+                                },
+                                "haveGrade": {
+                                  "type": "boolean",
+                                  "description": "Indica se possui nota",
+                                  "x-parser-schema-id": "<anonymous-schema-72>"
+                                },
+                                "isGroup": {
+                                  "type": "boolean",
+                                  "description": "Indica se é em grupo",
+                                  "x-parser-schema-id": "<anonymous-schema-73>"
+                                },
+                                "attachment": {
+                                  "type": "object",
+                                  "description": "Arquivo anexo",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "Nome do arquivo",
+                                      "x-parser-schema-id": "<anonymous-schema-75>"
+                                    },
+                                    "url": {
+                                      "type": "string",
+                                      "format": "uri",
+                                      "description": "URL para download",
+                                      "x-parser-schema-id": "<anonymous-schema-76>"
+                                    },
+                                    "size": {
+                                      "type": "integer",
+                                      "description": "Tamanho em bytes",
+                                      "x-parser-schema-id": "<anonymous-schema-77>"
+                                    },
+                                    "type": {
+                                      "type": "string",
+                                      "description": "Tipo MIME do arquivo",
+                                      "x-parser-schema-id": "<anonymous-schema-78>"
+                                    }
+                                  },
+                                  "x-parser-schema-id": "<anonymous-schema-74>"
+                                }
+                              },
+                              "x-parser-schema-id": "<anonymous-schema-66>"
+                            },
+                            "description": "Tarefas da disciplina",
+                            "x-parser-schema-id": "<anonymous-schema-65>"
+                          },
+                          "absences": {
+                            "type": "object",
+                            "description": "Registro de faltas de uma disciplina",
+                            "properties": {
+                              "list": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "date": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "description": "Data da falta",
+                                      "x-parser-schema-id": "<anonymous-schema-82>"
+                                    },
+                                    "numOfAbsences": {
+                                      "type": "integer",
+                                      "description": "Número de faltas",
+                                      "x-parser-schema-id": "<anonymous-schema-83>"
+                                    }
+                                  },
+                                  "x-parser-schema-id": "<anonymous-schema-81>"
+                                },
+                                "description": "Lista de faltas por data",
+                                "x-parser-schema-id": "<anonymous-schema-80>"
+                              },
+                              "total": {
+                                "type": "integer",
+                                "description": "Total de faltas",
+                                "x-parser-schema-id": "<anonymous-schema-84>"
+                              },
+                              "max": {
+                                "type": "integer",
+                                "description": "Máximo de faltas permitidas",
+                                "x-parser-schema-id": "<anonymous-schema-85>"
+                              }
+                            },
+                            "x-parser-schema-id": "<anonymous-schema-79>"
+                          },
+                          "lessons": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "description": "Aula/Conteúdo didático",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "ID da aula",
+                                  "x-parser-schema-id": "<anonymous-schema-88>"
+                                },
+                                "title": {
+                                  "type": "string",
+                                  "description": "Título da aula",
+                                  "x-parser-schema-id": "<anonymous-schema-89>"
+                                },
+                                "content": {
+                                  "type": "string",
+                                  "description": "Conteúdo textual",
+                                  "x-parser-schema-id": "<anonymous-schema-90>"
+                                },
+                                "startDate": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "description": "Data de início",
+                                  "x-parser-schema-id": "<anonymous-schema-91>"
+                                },
+                                "endDate": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "description": "Data de término",
+                                  "x-parser-schema-id": "<anonymous-schema-92>"
+                                },
+                                "attachments": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "description": "Anexo genérico de aula",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string",
+                                        "description": "ID do anexo",
+                                        "x-parser-schema-id": "<anonymous-schema-95>"
+                                      },
+                                      "title": {
+                                        "type": "string",
+                                        "description": "Título do anexo",
+                                        "x-parser-schema-id": "<anonymous-schema-96>"
+                                      },
+                                      "type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "file",
+                                          "link",
+                                          "hyperlink",
+                                          "video",
+                                          "forum",
+                                          "quiz",
+                                          "survey",
+                                          "web-content"
+                                        ],
+                                        "description": "Tipo de anexo",
+                                        "x-parser-schema-id": "<anonymous-schema-97>"
+                                      },
+                                      "description": {
+                                        "type": "string",
+                                        "description": "Descrição do anexo",
+                                        "x-parser-schema-id": "<anonymous-schema-98>"
+                                      }
+                                    },
+                                    "x-parser-schema-id": "<anonymous-schema-94>"
+                                  },
+                                  "description": "Anexos da aula",
+                                  "x-parser-schema-id": "<anonymous-schema-93>"
+                                }
+                              },
+                              "x-parser-schema-id": "<anonymous-schema-87>"
+                            },
+                            "description": "Aulas da disciplina",
+                            "x-parser-schema-id": "<anonymous-schema-86>"
+                          },
+                          "syllabus": {
+                            "type": "object",
+                            "description": "Plano de ensino da disciplina",
+                            "properties": {
+                              "methods": {
+                                "type": "string",
+                                "description": "Metodologia de ensino",
+                                "x-parser-schema-id": "<anonymous-schema-100>"
+                              },
+                              "assessmentProcedures": {
+                                "type": "string",
+                                "description": "Procedimentos de avaliação",
+                                "x-parser-schema-id": "<anonymous-schema-101>"
+                              },
+                              "attendanceSchedule": {
+                                "type": "string",
+                                "description": "Horário de atendimento",
+                                "x-parser-schema-id": "<anonymous-schema-102>"
+                              },
+                              "schedule": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "description": {
+                                      "type": "string",
+                                      "description": "Descrição do conteúdo",
+                                      "x-parser-schema-id": "<anonymous-schema-105>"
+                                    },
+                                    "startDate": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "description": "Data de início",
+                                      "x-parser-schema-id": "<anonymous-schema-106>"
+                                    },
+                                    "endDate": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "description": "Data de término",
+                                      "x-parser-schema-id": "<anonymous-schema-107>"
+                                    }
+                                  },
+                                  "x-parser-schema-id": "<anonymous-schema-104>"
+                                },
+                                "description": "Cronograma de aulas",
+                                "x-parser-schema-id": "<anonymous-schema-103>"
+                              },
+                              "exams": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "description": {
+                                      "type": "string",
+                                      "description": "Descrição da avaliação",
+                                      "x-parser-schema-id": "<anonymous-schema-110>"
+                                    },
+                                    "date": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "description": "Data da avaliação",
+                                      "x-parser-schema-id": "<anonymous-schema-111>"
+                                    }
+                                  },
+                                  "x-parser-schema-id": "<anonymous-schema-109>"
+                                },
+                                "description": "Calendário de avaliações",
+                                "x-parser-schema-id": "<anonymous-schema-108>"
+                              },
+                              "references": {
+                                "type": "object",
+                                "properties": {
+                                  "basic": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "x-parser-schema-id": "<anonymous-schema-115>"
+                                        },
+                                        "description": {
+                                          "type": "string",
+                                          "x-parser-schema-id": "<anonymous-schema-116>"
+                                        }
+                                      },
+                                      "x-parser-schema-id": "<anonymous-schema-114>"
+                                    },
+                                    "description": "Referências básicas",
+                                    "x-parser-schema-id": "<anonymous-schema-113>"
+                                  },
+                                  "supplementary": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "x-parser-schema-id": "<anonymous-schema-119>"
+                                        },
+                                        "description": {
+                                          "type": "string",
+                                          "x-parser-schema-id": "<anonymous-schema-120>"
+                                        }
+                                      },
+                                      "x-parser-schema-id": "<anonymous-schema-118>"
+                                    },
+                                    "description": "Referências complementares",
+                                    "x-parser-schema-id": "<anonymous-schema-117>"
+                                  }
+                                },
+                                "x-parser-schema-id": "<anonymous-schema-112>"
+                              }
+                            },
+                            "x-parser-schema-id": "<anonymous-schema-99>"
+                          }
+                        },
+                        "x-parser-schema-id": "<anonymous-schema-40>"
+                      },
+                      "description": "Disciplinas do vínculo",
+                      "x-parser-schema-id": "<anonymous-schema-39>"
+                    }
+                  },
+                  "x-parser-schema-id": "<anonymous-schema-23>"
+                },
+                "description": "Vínculos acadêmicos",
+                "x-parser-schema-id": "<anonymous-schema-22>"
+              }
+            },
+            "x-parser-schema-id": "<anonymous-schema-16>"
+          },
+          "x-parser-unique-object-id": "UserInfoResponse"
+        }
+      },
+      "x-parser-unique-object-id": "userInfo"
+    },
+    "institutionsList": {
+      "address": "institutions::list",
+      "description": "Canal para listar instituições compatíveis",
+      "messages": {
+        "InstitutionsListRequest": {
+          "name": "InstitutionsListRequest",
+          "title": "Requisição de Instituições",
+          "summary": "Parâmetros para listagem de instituições",
+          "payload": "$ref:$.channels.userLogoff.messages.EmptyRequest.payload",
+          "x-parser-unique-object-id": "InstitutionsListRequest"
+        },
+        "InstitutionsListResponse": {
+          "name": "InstitutionsListResponse",
+          "title": "Lista de Instituições",
+          "summary": "Array de instituições de ensino compatíveis",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "institutions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "description": "Instituição de ensino compatível",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Nome completo da instituição",
+                      "x-parser-schema-id": "<anonymous-schema-124>"
+                    },
+                    "acronym": {
+                      "type": "string",
+                      "description": "Sigla/acrônimo da instituição",
+                      "x-parser-schema-id": "<anonymous-schema-125>"
+                    },
+                    "url": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "URL do sistema SIGAA da instituição",
+                      "x-parser-schema-id": "<anonymous-schema-126>"
+                    }
+                  },
+                  "x-parser-schema-id": "<anonymous-schema-123>"
+                },
+                "x-parser-schema-id": "<anonymous-schema-122>"
+              }
+            },
+            "description": "Resposta contendo lista de instituições",
+            "x-parser-schema-id": "<anonymous-schema-121>"
+          },
+          "x-parser-unique-object-id": "InstitutionsListResponse"
+        }
+      },
+      "x-parser-unique-object-id": "institutionsList"
     },
     "bondsList": {
       "address": "bonds::list",
@@ -5267,16 +5321,16 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
                 "type": "boolean",
                 "description": "Incluir vínculos inativos",
                 "default": false,
-                "x-parser-schema-id": "<anonymous-schema-122>"
+                "x-parser-schema-id": "<anonymous-schema-128>"
               },
               "cache": {
                 "type": "boolean",
                 "description": "Usar cache se disponível",
                 "default": true,
-                "x-parser-schema-id": "<anonymous-schema-123>"
+                "x-parser-schema-id": "<anonymous-schema-129>"
               }
             },
-            "x-parser-schema-id": "<anonymous-schema-121>"
+            "x-parser-schema-id": "<anonymous-schema-127>"
           },
           "x-parser-unique-object-id": "BondsListRequest"
         },
@@ -5290,11 +5344,11 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
               "bonds": {
                 "type": "array",
                 "items": "$ref:$.channels.userInfo.messages.UserInfoResponse.payload.properties.bonds.items",
-                "x-parser-schema-id": "<anonymous-schema-125>"
+                "x-parser-schema-id": "<anonymous-schema-131>"
               }
             },
             "description": "Resposta contendo lista de vínculos",
-            "x-parser-schema-id": "<anonymous-schema-124>"
+            "x-parser-schema-id": "<anonymous-schema-130>"
           },
           "x-parser-unique-object-id": "BondsListResponse"
         }
@@ -5316,31 +5370,31 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
               "registration": {
                 "type": "string",
                 "description": "Matrícula do vínculo",
-                "x-parser-schema-id": "<anonymous-schema-127>"
+                "x-parser-schema-id": "<anonymous-schema-133>"
               },
               "inactive": {
                 "type": "boolean",
                 "description": "Incluir disciplinas inativas",
                 "default": false,
-                "x-parser-schema-id": "<anonymous-schema-128>"
+                "x-parser-schema-id": "<anonymous-schema-134>"
               },
               "allPeriods": {
                 "type": "boolean",
                 "description": "Incluir todos os períodos",
                 "default": false,
-                "x-parser-schema-id": "<anonymous-schema-129>"
+                "x-parser-schema-id": "<anonymous-schema-135>"
               },
               "cache": {
                 "type": "boolean",
                 "description": "Usar cache se disponível",
                 "default": true,
-                "x-parser-schema-id": "<anonymous-schema-130>"
+                "x-parser-schema-id": "<anonymous-schema-136>"
               }
             },
             "required": [
               "registration"
             ],
-            "x-parser-schema-id": "<anonymous-schema-126>"
+            "x-parser-schema-id": "<anonymous-schema-132>"
           },
           "x-parser-unique-object-id": "CoursesListRequest"
         },
@@ -5353,6 +5407,124 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
         }
       },
       "x-parser-unique-object-id": "coursesList"
+    },
+    "lessonsList": {
+      "address": "lessons::list",
+      "description": "Canal para listar aulas de uma disciplina",
+      "messages": {
+        "LessonsListRequest": {
+          "name": "LessonsListRequest",
+          "title": "Requisição de Aulas",
+          "summary": "Parâmetros para listagem de aulas",
+          "payload": {
+            "type": "object",
+            "description": "Parâmetros para listagem de aulas",
+            "properties": {
+              "registration": {
+                "type": "string",
+                "description": "Matrícula do vínculo",
+                "x-parser-schema-id": "<anonymous-schema-138>"
+              },
+              "courseId": {
+                "type": "string",
+                "description": "ID da disciplina",
+                "x-parser-schema-id": "<anonymous-schema-139>"
+              },
+              "inactive": {
+                "type": "boolean",
+                "default": false,
+                "x-parser-schema-id": "<anonymous-schema-140>"
+              },
+              "allPeriods": {
+                "type": "boolean",
+                "default": false,
+                "x-parser-schema-id": "<anonymous-schema-141>"
+              },
+              "cache": {
+                "type": "boolean",
+                "default": true,
+                "x-parser-schema-id": "<anonymous-schema-142>"
+              }
+            },
+            "required": [
+              "registration",
+              "courseId"
+            ],
+            "x-parser-schema-id": "<anonymous-schema-137>"
+          },
+          "x-parser-unique-object-id": "LessonsListRequest"
+        },
+        "LessonsListResponse": {
+          "name": "LessonsListResponse",
+          "title": "Lista de Aulas",
+          "summary": "Array de aulas da disciplina",
+          "payload": {
+            "type": "object",
+            "properties": {
+              "lessons": {
+                "type": "array",
+                "items": "$ref:$.channels.userInfo.messages.UserInfoResponse.payload.properties.bonds.items.properties.courses.items.properties.lessons.items",
+                "x-parser-schema-id": "<anonymous-schema-144>"
+              }
+            },
+            "description": "Resposta contendo lista de aulas",
+            "x-parser-schema-id": "<anonymous-schema-143>"
+          },
+          "x-parser-unique-object-id": "LessonsListResponse"
+        }
+      },
+      "x-parser-unique-object-id": "lessonsList"
+    },
+    "syllabusContent": {
+      "address": "syllabus::content",
+      "description": "Canal para obter plano de ensino de uma disciplina",
+      "messages": {
+        "SyllabusContentRequest": {
+          "name": "SyllabusContentRequest",
+          "title": "Requisição de Plano de Ensino",
+          "summary": "Parâmetros para obter plano de ensino",
+          "payload": {
+            "type": "object",
+            "description": "Parâmetros para obter plano de ensino",
+            "properties": {
+              "registration": {
+                "type": "string",
+                "description": "Matrícula do vínculo",
+                "x-parser-schema-id": "<anonymous-schema-146>"
+              },
+              "courseId": {
+                "type": "string",
+                "description": "ID da disciplina",
+                "x-parser-schema-id": "<anonymous-schema-147>"
+              },
+              "inactive": {
+                "type": "boolean",
+                "default": false,
+                "x-parser-schema-id": "<anonymous-schema-148>"
+              },
+              "cache": {
+                "type": "boolean",
+                "default": true,
+                "x-parser-schema-id": "<anonymous-schema-149>"
+              }
+            },
+            "required": [
+              "registration",
+              "courseId"
+            ],
+            "x-parser-schema-id": "<anonymous-schema-145>"
+          },
+          "x-parser-unique-object-id": "SyllabusContentRequest"
+        },
+        "SyllabusContentResponse": {
+          "name": "SyllabusContentResponse",
+          "title": "Plano de Ensino",
+          "summary": "Plano de ensino completo da disciplina",
+          "payload": "$ref:$.channels.userInfo.messages.UserInfoResponse.payload.properties.bonds.items.properties.courses.items.properties.syllabus",
+          "x-parser-unique-object-id": "SyllabusContentResponse"
+        }
+      },
+      "x-parser-unique-object-id": "syllabusContent"
     },
     "gradesList": {
       "address": "grades::list",
@@ -5369,31 +5541,31 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
               "registration": {
                 "type": "string",
                 "description": "Matrícula do vínculo",
-                "x-parser-schema-id": "<anonymous-schema-132>"
+                "x-parser-schema-id": "<anonymous-schema-151>"
               },
               "inactive": {
                 "type": "boolean",
                 "description": "Incluir disciplinas inativas",
                 "default": false,
-                "x-parser-schema-id": "<anonymous-schema-133>"
+                "x-parser-schema-id": "<anonymous-schema-152>"
               },
               "allPeriods": {
                 "type": "boolean",
                 "description": "Incluir todos os períodos",
                 "default": false,
-                "x-parser-schema-id": "<anonymous-schema-134>"
+                "x-parser-schema-id": "<anonymous-schema-153>"
               },
               "cache": {
                 "type": "boolean",
                 "description": "Usar cache se disponível",
                 "default": true,
-                "x-parser-schema-id": "<anonymous-schema-135>"
+                "x-parser-schema-id": "<anonymous-schema-154>"
               }
             },
             "required": [
               "registration"
             ],
-            "x-parser-schema-id": "<anonymous-schema-131>"
+            "x-parser-schema-id": "<anonymous-schema-150>"
           },
           "x-parser-unique-object-id": "GradesListRequest"
         },
@@ -5422,25 +5594,25 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
               "registration": {
                 "type": "string",
                 "description": "Matrícula do vínculo",
-                "x-parser-schema-id": "<anonymous-schema-137>"
+                "x-parser-schema-id": "<anonymous-schema-156>"
               },
               "inactive": {
                 "type": "boolean",
                 "description": "Incluir atividades antigas",
                 "default": false,
-                "x-parser-schema-id": "<anonymous-schema-138>"
+                "x-parser-schema-id": "<anonymous-schema-157>"
               },
               "cache": {
                 "type": "boolean",
                 "description": "Usar cache se disponível",
                 "default": true,
-                "x-parser-schema-id": "<anonymous-schema-139>"
+                "x-parser-schema-id": "<anonymous-schema-158>"
               }
             },
             "required": [
               "registration"
             ],
-            "x-parser-schema-id": "<anonymous-schema-136>"
+            "x-parser-schema-id": "<anonymous-schema-155>"
           },
           "x-parser-unique-object-id": "ActivitiesListRequest"
         },
@@ -5453,59 +5625,6 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
         }
       },
       "x-parser-unique-object-id": "activitiesList"
-    },
-    "absencesList": {
-      "address": "absences::list",
-      "description": "Canal para listar faltas de um vínculo",
-      "messages": {
-        "AbsencesListRequest": {
-          "name": "AbsencesListRequest",
-          "title": "Requisição de Faltas",
-          "summary": "Parâmetros para listagem de faltas",
-          "payload": {
-            "type": "object",
-            "description": "Parâmetros para listagem de faltas",
-            "properties": {
-              "registration": {
-                "type": "string",
-                "description": "Matrícula do vínculo",
-                "x-parser-schema-id": "<anonymous-schema-141>"
-              },
-              "inactive": {
-                "type": "boolean",
-                "description": "Incluir disciplinas inativas",
-                "default": false,
-                "x-parser-schema-id": "<anonymous-schema-142>"
-              },
-              "allPeriods": {
-                "type": "boolean",
-                "description": "Incluir todos os períodos",
-                "default": false,
-                "x-parser-schema-id": "<anonymous-schema-143>"
-              },
-              "cache": {
-                "type": "boolean",
-                "description": "Usar cache se disponível",
-                "default": true,
-                "x-parser-schema-id": "<anonymous-schema-144>"
-              }
-            },
-            "required": [
-              "registration"
-            ],
-            "x-parser-schema-id": "<anonymous-schema-140>"
-          },
-          "x-parser-unique-object-id": "AbsencesListRequest"
-        },
-        "AbsencesListResponse": {
-          "name": "AbsencesListResponse",
-          "title": "Vínculo com Faltas",
-          "summary": "Vínculo contendo faltas de todas as disciplinas",
-          "payload": "$ref:$.channels.userInfo.messages.UserInfoResponse.payload.properties.bonds.items",
-          "x-parser-unique-object-id": "AbsencesListResponse"
-        }
-      },
-      "x-parser-unique-object-id": "absencesList"
     },
     "homeworkContent": {
       "address": "homework::content",
@@ -5522,39 +5641,39 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
               "registration": {
                 "type": "string",
                 "description": "Matrícula do vínculo",
-                "x-parser-schema-id": "<anonymous-schema-146>"
+                "x-parser-schema-id": "<anonymous-schema-160>"
               },
               "courseTitle": {
                 "type": "string",
                 "description": "Título da disciplina",
-                "x-parser-schema-id": "<anonymous-schema-147>"
+                "x-parser-schema-id": "<anonymous-schema-161>"
               },
               "homeworkId": {
                 "type": "string",
                 "description": "ID da tarefa",
-                "x-parser-schema-id": "<anonymous-schema-148>"
+                "x-parser-schema-id": "<anonymous-schema-162>"
               },
               "homeworkTitle": {
                 "type": "string",
                 "description": "Título da tarefa",
-                "x-parser-schema-id": "<anonymous-schema-149>"
+                "x-parser-schema-id": "<anonymous-schema-163>"
               },
               "inactive": {
                 "type": "boolean",
                 "default": false,
-                "x-parser-schema-id": "<anonymous-schema-150>"
+                "x-parser-schema-id": "<anonymous-schema-164>"
               },
               "cache": {
                 "type": "boolean",
                 "default": true,
-                "x-parser-schema-id": "<anonymous-schema-151>"
+                "x-parser-schema-id": "<anonymous-schema-165>"
               }
             },
             "required": [
               "registration",
               "courseTitle"
             ],
-            "x-parser-schema-id": "<anonymous-schema-145>"
+            "x-parser-schema-id": "<anonymous-schema-159>"
           },
           "x-parser-unique-object-id": "HomeworkContentRequest"
         },
@@ -5568,72 +5687,58 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
       },
       "x-parser-unique-object-id": "homeworkContent"
     },
-    "lessonsList": {
-      "address": "lessons::list",
-      "description": "Canal para listar aulas de uma disciplina",
+    "absencesList": {
+      "address": "absences::list",
+      "description": "Canal para listar faltas de um vínculo",
       "messages": {
-        "LessonsListRequest": {
-          "name": "LessonsListRequest",
-          "title": "Requisição de Aulas",
-          "summary": "Parâmetros para listagem de aulas",
+        "AbsencesListRequest": {
+          "name": "AbsencesListRequest",
+          "title": "Requisição de Faltas",
+          "summary": "Parâmetros para listagem de faltas",
           "payload": {
             "type": "object",
-            "description": "Parâmetros para listagem de aulas",
+            "description": "Parâmetros para listagem de faltas",
             "properties": {
               "registration": {
                 "type": "string",
                 "description": "Matrícula do vínculo",
-                "x-parser-schema-id": "<anonymous-schema-153>"
-              },
-              "courseId": {
-                "type": "string",
-                "description": "ID da disciplina",
-                "x-parser-schema-id": "<anonymous-schema-154>"
+                "x-parser-schema-id": "<anonymous-schema-167>"
               },
               "inactive": {
                 "type": "boolean",
+                "description": "Incluir disciplinas inativas",
                 "default": false,
-                "x-parser-schema-id": "<anonymous-schema-155>"
+                "x-parser-schema-id": "<anonymous-schema-168>"
               },
               "allPeriods": {
                 "type": "boolean",
+                "description": "Incluir todos os períodos",
                 "default": false,
-                "x-parser-schema-id": "<anonymous-schema-156>"
+                "x-parser-schema-id": "<anonymous-schema-169>"
               },
               "cache": {
                 "type": "boolean",
+                "description": "Usar cache se disponível",
                 "default": true,
-                "x-parser-schema-id": "<anonymous-schema-157>"
+                "x-parser-schema-id": "<anonymous-schema-170>"
               }
             },
             "required": [
-              "registration",
-              "courseId"
+              "registration"
             ],
-            "x-parser-schema-id": "<anonymous-schema-152>"
+            "x-parser-schema-id": "<anonymous-schema-166>"
           },
-          "x-parser-unique-object-id": "LessonsListRequest"
+          "x-parser-unique-object-id": "AbsencesListRequest"
         },
-        "LessonsListResponse": {
-          "name": "LessonsListResponse",
-          "title": "Lista de Aulas",
-          "summary": "Array de aulas da disciplina",
-          "payload": {
-            "type": "object",
-            "properties": {
-              "lessons": {
-                "type": "array",
-                "items": "$ref:$.channels.userInfo.messages.UserInfoResponse.payload.properties.bonds.items.properties.courses.items.properties.lessons.items",
-                "x-parser-schema-id": "<anonymous-schema-159>"
-              }
-            },
-            "description": "Resposta contendo lista de aulas",
-            "x-parser-schema-id": "<anonymous-schema-158>"
-          },
-          "x-parser-unique-object-id": "LessonsListResponse"
+        "AbsencesListResponse": {
+          "name": "AbsencesListResponse",
+          "title": "Vínculo com Faltas",
+          "summary": "Vínculo contendo faltas de todas as disciplinas",
+          "payload": "$ref:$.channels.userInfo.messages.UserInfoResponse.payload.properties.bonds.items",
+          "x-parser-unique-object-id": "AbsencesListResponse"
         }
       },
-      "x-parser-unique-object-id": "lessonsList"
+      "x-parser-unique-object-id": "absencesList"
     },
     "newsList": {
       "address": "news::list",
@@ -5650,35 +5755,35 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
               "registration": {
                 "type": "string",
                 "description": "Matrícula do vínculo",
-                "x-parser-schema-id": "<anonymous-schema-161>"
+                "x-parser-schema-id": "<anonymous-schema-172>"
               },
               "courseId": {
                 "type": "string",
                 "description": "ID da disciplina",
-                "x-parser-schema-id": "<anonymous-schema-162>"
+                "x-parser-schema-id": "<anonymous-schema-173>"
               },
               "full": {
                 "type": "boolean",
                 "description": "Incluir conteúdo completo das notícias",
                 "default": false,
-                "x-parser-schema-id": "<anonymous-schema-163>"
+                "x-parser-schema-id": "<anonymous-schema-174>"
               },
               "inactive": {
                 "type": "boolean",
                 "default": false,
-                "x-parser-schema-id": "<anonymous-schema-164>"
+                "x-parser-schema-id": "<anonymous-schema-175>"
               },
               "cache": {
                 "type": "boolean",
                 "default": true,
-                "x-parser-schema-id": "<anonymous-schema-165>"
+                "x-parser-schema-id": "<anonymous-schema-176>"
               }
             },
             "required": [
               "registration",
               "courseId"
             ],
-            "x-parser-schema-id": "<anonymous-schema-160>"
+            "x-parser-schema-id": "<anonymous-schema-171>"
           },
           "x-parser-unique-object-id": "NewsListRequest"
         },
@@ -5692,121 +5797,16 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
               "news": {
                 "type": "array",
                 "items": "$ref:$.channels.userInfo.messages.UserInfoResponse.payload.properties.bonds.items.properties.courses.items.properties.news.items",
-                "x-parser-schema-id": "<anonymous-schema-167>"
+                "x-parser-schema-id": "<anonymous-schema-178>"
               }
             },
             "description": "Resposta contendo lista de notícias",
-            "x-parser-schema-id": "<anonymous-schema-166>"
+            "x-parser-schema-id": "<anonymous-schema-177>"
           },
           "x-parser-unique-object-id": "NewsListResponse"
         }
       },
       "x-parser-unique-object-id": "newsList"
-    },
-    "syllabusContent": {
-      "address": "syllabus::content",
-      "description": "Canal para obter plano de ensino de uma disciplina",
-      "messages": {
-        "SyllabusContentRequest": {
-          "name": "SyllabusContentRequest",
-          "title": "Requisição de Plano de Ensino",
-          "summary": "Parâmetros para obter plano de ensino",
-          "payload": {
-            "type": "object",
-            "description": "Parâmetros para obter plano de ensino",
-            "properties": {
-              "registration": {
-                "type": "string",
-                "description": "Matrícula do vínculo",
-                "x-parser-schema-id": "<anonymous-schema-169>"
-              },
-              "courseId": {
-                "type": "string",
-                "description": "ID da disciplina",
-                "x-parser-schema-id": "<anonymous-schema-170>"
-              },
-              "inactive": {
-                "type": "boolean",
-                "default": false,
-                "x-parser-schema-id": "<anonymous-schema-171>"
-              },
-              "cache": {
-                "type": "boolean",
-                "default": true,
-                "x-parser-schema-id": "<anonymous-schema-172>"
-              }
-            },
-            "required": [
-              "registration",
-              "courseId"
-            ],
-            "x-parser-schema-id": "<anonymous-schema-168>"
-          },
-          "x-parser-unique-object-id": "SyllabusContentRequest"
-        },
-        "SyllabusContentResponse": {
-          "name": "SyllabusContentResponse",
-          "title": "Plano de Ensino",
-          "summary": "Plano de ensino completo da disciplina",
-          "payload": "$ref:$.channels.userInfo.messages.UserInfoResponse.payload.properties.bonds.items.properties.courses.items.properties.syllabus",
-          "x-parser-unique-object-id": "SyllabusContentResponse"
-        }
-      },
-      "x-parser-unique-object-id": "syllabusContent"
-    },
-    "institutionsList": {
-      "address": "institutions::list",
-      "description": "Canal para listar instituições compatíveis",
-      "messages": {
-        "InstitutionsListRequest": {
-          "name": "InstitutionsListRequest",
-          "title": "Requisição de Instituições",
-          "summary": "Parâmetros para listagem de instituições",
-          "payload": "$ref:$.channels.userInfo.messages.EmptyRequest.payload",
-          "x-parser-unique-object-id": "InstitutionsListRequest"
-        },
-        "InstitutionsListResponse": {
-          "name": "InstitutionsListResponse",
-          "title": "Lista de Instituições",
-          "summary": "Array de instituições de ensino compatíveis",
-          "payload": {
-            "type": "object",
-            "properties": {
-              "institutions": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "description": "Instituição de ensino compatível",
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "Nome completo da instituição",
-                      "x-parser-schema-id": "<anonymous-schema-176>"
-                    },
-                    "acronym": {
-                      "type": "string",
-                      "description": "Sigla/acrônimo da instituição",
-                      "x-parser-schema-id": "<anonymous-schema-177>"
-                    },
-                    "url": {
-                      "type": "string",
-                      "format": "uri",
-                      "description": "URL do sistema SIGAA da instituição",
-                      "x-parser-schema-id": "<anonymous-schema-178>"
-                    }
-                  },
-                  "x-parser-schema-id": "<anonymous-schema-175>"
-                },
-                "x-parser-schema-id": "<anonymous-schema-174>"
-              }
-            },
-            "description": "Resposta contendo lista de instituições",
-            "x-parser-schema-id": "<anonymous-schema-173>"
-          },
-          "x-parser-unique-object-id": "InstitutionsListResponse"
-        }
-      },
-      "x-parser-unique-object-id": "institutionsList"
     },
     "apiError": {
       "address": "api::error",
@@ -5873,7 +5873,7 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
       "summary": "Obtém informações do usuário",
       "description": "Recebe requisição para obter dados do usuário autenticado",
       "messages": [
-        "$ref:$.channels.userInfo.messages.EmptyRequest"
+        "$ref:$.channels.userLogoff.messages.EmptyRequest"
       ],
       "reply": {
         "channel": "$ref:$.channels.userInfo",
@@ -5889,7 +5889,7 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
       "summary": "Encerra sessão",
       "description": "Encerra a sessão do usuário autenticado",
       "messages": [
-        "$ref:$.channels.userInfo.messages.EmptyRequest"
+        "$ref:$.channels.userLogoff.messages.EmptyRequest"
       ],
       "x-parser-unique-object-id": "logoffUser"
     },
@@ -6080,7 +6080,7 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
         "name": "EmptyRequest",
         "title": "Requisição Vazia",
         "summary": "Mensagem de requisição sem payload",
-        "payload": "$ref:$.channels.userInfo.messages.EmptyRequest.payload",
+        "payload": "$ref:$.channels.userLogoff.messages.EmptyRequest.payload",
         "x-parser-unique-object-id": "EmptyRequest"
       },
       "AuthValidRequest": {
@@ -6255,7 +6255,7 @@ Documentação modularizada usando $ref para facilitar manutenção.</p>
         "name": "InstitutionsListRequest",
         "title": "Requisição de Instituições",
         "summary": "Parâmetros para listagem de instituições",
-        "payload": "$ref:$.channels.userInfo.messages.EmptyRequest.payload",
+        "payload": "$ref:$.channels.userLogoff.messages.EmptyRequest.payload",
         "x-parser-unique-object-id": "InstitutionsListRequest"
       },
       "InstitutionsListResponse": {

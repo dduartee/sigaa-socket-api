@@ -14,10 +14,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate AsyncAPI document
-        uses: asyncapi/cli@v2.16.0
-        with:
-          command: validate
-          filepath: asyncapi/asyncapi.yaml
+        run: cd asyncapi && npx @asyncapi/cli validate asyncapi.yaml
 
   generate-docs:
     runs-on: ubuntu-latest
@@ -27,19 +24,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Generate Markdown
-        uses: asyncapi/cli@v2.16.0
-        with:
-          command: generate
-          filepath: asyncapi/asyncapi.yaml
-          template: '@asyncapi/markdown-template'
-          output: docs/markdown
-          parameters: '--use-new-generator'
+        run: |
+          cd asyncapi
+          npx @asyncapi/cli generate fromTemplate asyncapi.yaml @asyncapi/markdown-template -o ../docs/markdown --force-write --use-new-generator
 
       - name: Generate HTML
-        uses: asyncapi/cli@v2.16.0
-        with:
-          command: generate
-          filepath: asyncapi/asyncapi.yaml
-          template: '@asyncapi/html-template'
-          output: docs/html
-          parameters: '--use-new-generator -p sidebarOrganization=byTags'
+        run: |
+          cd asyncapi
+          npx @asyncapi/cli generate fromTemplate asyncapi.yaml @asyncapi/html-template -o ../docs/html --force-write --use-new-generator -p sidebarOrganization=byTags
